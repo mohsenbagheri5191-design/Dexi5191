@@ -27,7 +27,18 @@
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --tabbar-h:66px;
+  --scrim:rgba(4,5,18,.55);
 }
+/* Light theme — same accent hues, inverted surfaces; accents darkened where needed for contrast */
+:root[data-theme="light"]{
+  --void:#E9EDF6; --ink:#FFFFFF; --surface:#FFFFFF; --surface-2:#EDF1F9; --line:rgba(20,24,60,.12);
+  --paper:#161A38; --muted:#5C6488;
+  --cyan:#0E97B5; --success:#0FA579;
+  --scrim:rgba(20,24,60,.35);
+}
+:root[data-theme="light"] .btn-primary,:root[data-theme="light"] #fab{color:#fff}
+:root[data-theme="light"] .chip[aria-pressed="true"],:root[data-theme="light"] .seg button[aria-pressed="true"],:root[data-theme="light"] .catbadge,:root[data-theme="light"] .act.on,:root[data-theme="light"] .commentbar button{color:#fff}
+:root[data-theme="light"] .skeleton{background:linear-gradient(90deg,#eef1f9 25%,#e2e7f3 50%,#eef1f9 75%);background-size:200% 100%}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overscroll-behavior:none}
 body{background:var(--void);color:var(--paper);font-family:var(--font-body);font-size:16px;line-height:1.48;-webkit-font-smoothing:antialiased;touch-action:manipulation}
@@ -352,6 +363,16 @@ img{max-width:100%}
 .place-info .place-title{font-family:var(--font-display);font-weight:800;font-size:15px;margin-bottom:3px}
 .loc-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 
+/* ---------- Live presence ---------- */
+#nearbyPill{position:absolute;left:12px;z-index:16;top:calc(var(--safe-top) + 108px);height:34px;padding:0 13px;border-radius:99px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--paper);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+:root[data-theme="light"] #nearbyPill{background:rgba(255,255,255,.9)}
+.livedot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px rgba(34,229,163,.28);animation:livepulse 2s ease-in-out infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.45}}
+.presence-marker{width:38px;height:38px;position:relative;cursor:pointer}
+.presence-marker .pav{position:absolute;inset:0;border-radius:50%;overflow:hidden;border:2.5px solid var(--success);background:var(--surface-2);box-shadow:0 4px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:18px}
+.presence-marker .pav svg,.presence-marker .pav img{width:100%;height:100%;object-fit:cover}
+.presence-marker .pdot{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:var(--success);border:2px solid var(--ink);z-index:2}
+
 /* ---------- Super Spot (weekly bonus) ---------- */
 .super-marker{width:42px;height:42px;position:relative;cursor:pointer}
 .super-marker .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);border:2px solid #fff;box-shadow:0 6px 20px rgba(255,176,32,.75)}
@@ -359,6 +380,82 @@ img{max-width:100%}
 .super-hero{display:flex;gap:14px;align-items:center;margin-bottom:12px}
 .super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);box-shadow:0 10px 30px rgba(255,176,32,.5)}
 #superBanner{display:none;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,210,63,.18),rgba(255,176,32,.05));border:1px solid rgba(255,210,63,.4);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:600;line-height:1.35}
+
+/* ---------- Account setup wizard ---------- */
+#setupWizard{position:fixed;inset:0;z-index:190;background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));display:none;flex-direction:column;max-width:560px;margin:0 auto}
+:root[data-theme="light"] #setupWizard{background:radial-gradient(120% 80% at 50% 0%,#dfe6f5,var(--void))}
+#setupWizard.show{display:flex}
+.setup-inner{flex:1;display:flex;flex-direction:column;padding:calc(var(--safe-top) + 28px) 24px calc(var(--safe-bottom) + 20px);overflow-y:auto}
+.setup-progress{display:flex;gap:6px;margin-bottom:24px}
+.setup-progress i{flex:1;height:5px;border-radius:99px;background:var(--surface-2)}
+.setup-progress i.on{background:linear-gradient(90deg,var(--social),var(--cyan))}
+.setup-step{flex:1}
+.setup-step h2{font-family:var(--font-display);font-weight:800;font-size:26px;margin:0 0 6px;letter-spacing:-.02em}
+.setup-step p.lead{color:var(--muted);font-size:14.5px;margin:0 0 22px;line-height:1.5}
+.setup-actions{display:flex;gap:10px;margin-top:18px}
+
+/* ---------- Stories ---------- */
+.stories-row{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 12px}
+.stories-row::-webkit-scrollbar{display:none}
+.story-bubble{flex:0 0 auto;width:66px;text-align:center;cursor:pointer}
+.story-ring{width:62px;height:62px;border-radius:50%;padding:2.5px;background:conic-gradient(from 210deg,var(--social),var(--lost),var(--hazard),var(--cyan),var(--social))}
+.story-ring.seen{background:var(--surface-2)}
+.story-ring.mine{background:var(--surface-2)}
+.story-ring>div{width:100%;height:100%;border-radius:50%;overflow:hidden;border:2px solid var(--ink);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:26px}
+.story-ring svg,.story-ring img{width:100%;height:100%;object-fit:cover}
+.story-add{position:relative}
+.story-add .plus{position:absolute;right:-1px;bottom:16px;width:20px;height:20px;border-radius:50%;background:var(--social);color:#fff;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}
+.story-name{font-size:10.5px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#storyViewer{position:fixed;inset:0;z-index:120;background:#000;display:none;max-width:560px;margin:0 auto;flex-direction:column;align-items:center;justify-content:center}
+#storyViewer.show{display:flex}
+#storyImg{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.story-bars{position:absolute;top:calc(var(--safe-top) + 10px);left:10px;right:10px;z-index:3;display:flex;gap:5px}
+.story-bars i{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.3);overflow:hidden}
+.story-bars i>b{display:block;height:100%;width:0;background:#fff}
+.story-bars i.done>b{width:100%}
+.story-bars i.active>b{animation:storyfill 5s linear forwards}
+@keyframes storyfill{from{width:0}to{width:100%}}
+.story-top{position:absolute;top:calc(var(--safe-top) + 22px);left:14px;right:54px;z-index:3;display:flex;align-items:center;gap:10px;color:#fff}
+.story-top .avatar{width:36px;height:36px;border:2px solid rgba(255,255,255,.5)}
+.story-top .nm{font-weight:700;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.story-top .tm{font-size:11px;opacity:.85}
+.story-cap{position:absolute;bottom:calc(var(--safe-bottom) + 28px);left:18px;right:18px;z-index:3;color:#fff;font-size:15px;text-shadow:0 1px 6px rgba(0,0,0,.8);text-align:center}
+.story-nav{position:absolute;top:0;bottom:0;width:38%;z-index:2;background:none}
+.story-nav.prev{left:0}.story-nav.next{right:0}
+.story-close{position:absolute;top:calc(var(--safe-top) + 18px);right:14px;z-index:4;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:16px}
+
+/* ---------- DMs ---------- */
+.dm-row{display:flex;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line);cursor:pointer}
+.dm-row .nm{font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px}
+.dm-row .pv{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.dm-row .tm{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);flex:0 0 auto;align-self:flex-start;margin-top:4px}
+.dm-row .unread{width:9px;height:9px;border-radius:50%;background:var(--cyan);flex:0 0 auto}
+.dm-avstack{position:relative;width:46px;height:46px;flex:0 0 auto}
+.conv-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(var(--tabbar-h) + var(--safe-bottom))}
+.conv-bar{position:sticky;bottom:0;display:flex;gap:8px;padding:10px 12px calc(var(--safe-bottom) + 10px);background:var(--ink);border-top:1px solid var(--line)}
+.conv-bar input{flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;color:var(--paper);padding:11px 14px}
+.conv-bar button{flex:0 0 auto;padding:0 16px;border-radius:14px;background:var(--social);color:#fff;font-weight:700}
+.msg-day{text-align:center;font-size:11px;color:var(--muted);margin:8px 0}
+
+/* ---------- Reactions & vibes ---------- */
+.react-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
+.react-btn{height:38px;padding:0 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);font-size:15px;display:flex;align-items:center;gap:6px;color:var(--paper)}
+.react-btn.on{border-color:var(--social);background:rgba(124,92,255,.14)}
+.react-btn .rc{font-size:12px;font-weight:700;font-family:var(--font-mono)}
+.vibe-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line)}
+.vibegrid{display:flex;flex-wrap:wrap;gap:8px}
+.vibegrid button{padding:9px 13px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper)}
+.vibegrid button[aria-pressed="true"]{border-color:var(--cyan);background:rgba(53,229,255,.12)}
+
+/* ---------- Whispers (anon feed) ---------- */
+.whisper{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.whisper .wtext{font-size:15px;line-height:1.45}
+.whisper .wmeta{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
+.wvote{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:4px 6px}
+.wvote button{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px}
+.wvote button.on{color:var(--cyan)}
+.wvote .score{font-family:var(--font-mono);font-weight:700;font-size:12.5px;min-width:18px;text-align:center;color:var(--paper)}
+.streakchip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:linear-gradient(90deg,rgba(255,120,60,.18),rgba(255,176,32,.1));border:1px solid rgba(255,150,60,.35);color:var(--hazard)}
 
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 </style>
@@ -381,6 +478,29 @@ img{max-width:100%}
     <h1 class="display" style="font-size:24px;margin:0">Come back at 18</h1>
     <p style="margin-top:8px">Pin Drop is an 18+ community, so we can't let you in just yet. There's no under-18 mode, by design. Thanks for understanding.</p>
   </div>
+</div>
+
+<!-- ACCOUNT SETUP WIZARD -->
+<div id="setupWizard" role="dialog" aria-modal="true" aria-label="Set up your account">
+  <div class="setup-inner">
+    <div class="setup-progress" id="setupProgress"></div>
+    <div class="setup-step" id="setupStep"></div>
+    <div class="setup-actions">
+      <button class="btn-ghost" id="setupBack" style="width:96px;flex:0 0 auto">Back</button>
+      <button class="btn-primary" id="setupNext" style="flex:1">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- STORY VIEWER -->
+<div id="storyViewer" aria-label="Story">
+  <div class="story-bars" id="storyBars"></div>
+  <div class="story-top" id="storyTop"></div>
+  <img id="storyImg" alt="" />
+  <div class="story-cap" id="storyCap"></div>
+  <button class="story-nav prev" id="storyPrev" aria-label="Previous"></button>
+  <button class="story-nav next" id="storyNext" aria-label="Next"></button>
+  <button class="story-close" id="storyClose" aria-label="Close">✕</button>
 </div>
 
 <div id="app">
@@ -417,6 +537,7 @@ img{max-width:100%}
   </div>
 
   <button id="fab" aria-label="Drop a pin">＋ Drop a pin</button>
+  <button id="nearbyPill" aria-label="People nearby" style="display:none"><span class="livedot"></span>0 nearby</button>
 
   <!-- PIN PLACEMENT MODE (drop directly on the main map) -->
   <div id="placeLayer" aria-hidden="true">
@@ -432,7 +553,17 @@ img{max-width:100%}
 
   <!-- FEED -->
   <section class="screen" id="feedScreen" aria-hidden="true">
-    <div class="screen-head"><h1>Feed</h1></div>
+    <div class="screen-head" style="gap:10px">
+      <h1 style="flex:0 0 auto">Feed</h1>
+      <button class="searchfield" id="feedSearchBtn" style="flex:1;background:var(--surface-2)" aria-label="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <span style="color:var(--muted);font-size:15px">Search pins, people, #tags</span>
+      </button>
+      <button class="iconbtn" id="feedDmBtn" aria-label="Messages" style="width:40px;height:40px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+        <span class="badge-dot" id="dmDot" style="display:none">0</span>
+      </button>
+    </div>
     <div class="screen-body scroll" id="feedBody"></div>
   </section>
 
@@ -486,6 +617,18 @@ img{max-width:100%}
     <div class="screen-body scroll" id="adminBody"></div>
   </section>
 
+  <!-- MESSAGES (inbox) -->
+  <section class="screen" id="dmScreen" aria-hidden="true">
+    <div class="screen-head"><button class="back" id="dmBack">←</button><h1>Messages</h1><button class="back" id="newDmBtn" style="width:auto;padding:0 12px;font-size:12px">＋ New</button></div>
+    <div class="screen-body scroll" id="dmBody"></div>
+  </section>
+
+  <!-- CONVERSATION -->
+  <section class="screen" id="convScreen" aria-hidden="true">
+    <div class="screen-head" id="convHead"><button class="back" id="convBack">←</button><h1 id="convTitle">Chat</h1></div>
+    <div class="screen-body" id="convBody" style="display:flex;flex-direction:column;padding:0"></div>
+  </section>
+
   <nav id="tabbar" aria-label="Primary">
     <button class="tab active" data-tab="map">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg>Map</button>
@@ -509,6 +652,7 @@ img{max-width:100%}
     <div id="superBanner">✨ You're posting at a <b>Super Spot</b> — publish to claim your bonus points.</div>
     <div class="field"><label>Category</label><div class="seg" id="catSeg"></div></div>
     <div class="field" id="subField"><label id="subLabel">What kind of spot?</label><div class="subgrid" id="subSeg"></div></div>
+    <div class="field"><label>Vibe (optional)</label><div class="vibegrid" id="vibeSeg"></div></div>
     <div class="field">
       <label>Location</label>
       <div class="loc-card">
@@ -548,6 +692,10 @@ img{max-width:100%}
       <div class="composer-map" style="height:180px"><div id="meetMap"></div><div class="crosshair"><div class="ring"></div></div><div class="coordreadout mono" id="meetCoord">--.------ , --.------</div></div>
       <div class="hint" id="venueHint">Nearest public venue will be used.</div>
     </div>
+    <div class="field"><label>Post as</label><div class="seg" id="meetIdentity">
+      <button data-id="anon" aria-pressed="true">🕶️ Anonymous alias</button>
+      <button data-id="real">🙂 My real profile</button>
+    </div><div class="hint" id="identityHint">Anonymous: you show as a random alias until you both choose to reveal.</div></div>
     <div class="field"><label>Who can see this? (your band + one adjacent)</label><div class="seg" id="meetBands"></div></div>
     <div class="field"><label>Note (optional, moderated)</label><input class="input" id="meetNote" placeholder="e.g. relaxed pace, bring water" maxlength="140"></div>
     <div class="field"><label>Lifetime</label><div class="seg" id="meetLife"></div></div>
@@ -593,6 +741,13 @@ img{max-width:100%}
 <div class="sheet" id="superSheet" role="dialog" aria-modal="true" aria-label="Super Spot">
   <div class="handle"></div>
   <div class="sheet-body scroll" id="superBody"></div>
+</div>
+
+<!-- ADMIN USER DETAIL -->
+<div class="scrim" id="userAdminScrim"></div>
+<div class="sheet" id="userAdminSheet" role="dialog" aria-modal="true" aria-label="User details">
+  <div class="handle"></div>
+  <div class="sheet-body scroll" id="userAdminBody"></div>
 </div>
 
 <!-- ACTION MENU -->
@@ -713,16 +868,19 @@ function bandAdjacent(band){const i=AGE_BANDS.indexOf(band);const out=[band];if(
 function aliasFor(){const adj=['Amber','Cobalt','Jade','Coral','Slate','Indigo','Mint','Violet','Ember','Cyan'];const noun=['Fox','Heron','Otter','Lynx','Wren','Marten','Falcon','Vole','Crane','Moth'];return adj[Math.floor(Math.random()*adj.length)]+' '+noun[Math.floor(Math.random()*noun.length)]+' '+(10+Math.floor(Math.random()*89));}
 
 /* ---------- State ---------- */
-const me={id:'me',name:'You',username:'you',avatarPreset:1,color:'#7C5CFF',bio:'Dropping pins around town.',ageBand:'25-34',isAdult:true,isAdmin:true,status:'active',joined:Date.now()};
+const me={id:'me',name:'You',username:'you',avatarPreset:1,color:'#7C5CFF',bio:'Dropping pins around town.',ageBand:'25-34',isAdult:true,isAdmin:true,status:'active',joined:Date.now(),
+  email:'you@example.com',phone:'',streak:0,streakDay:null,dmPrivacy:'everyone'};
 const state={
   activeCats:new Set(),radiusIdx:2,center:[-122.4194,37.7749],me:null,
   posts:[],meetups:[],users:{},notifications:[],pointEvents:[],reports:[],
+  whispers:[],stories:[],conversations:[],
   following:new Set(),blocked:new Set(),muted:new Set(),saved:new Set(),
-  viewProfile:'me',prevTab:'map',ageVerified:false,
+  viewProfile:'me',prevTab:'map',ageVerified:false,setupDone:false,
   composer:{media:[],category:'social',subcat:null,lifetime:LIFETIMES.social.def,precision:'approx_50m'},
-  meetForm:{activity:'Coffee',bands:new Set(['25-34']),lifetime:3*H,note:''},
+  meetForm:{activity:'Coffee',bands:new Set(['25-34']),lifetime:3*H,note:'',identity:'anon'},
   settings:{pinHistoryPublic:true,leaderboardOptIn:true,quietHours:true,under18Sim:false,
-    notif:{like:true,comment:true,follow:true,nearby:true,emergency:true,meetup:true,badge:true}},
+    theme:'dark',visibility:'invisible',dmPrivacy:'everyone',
+    notif:{like:true,comment:true,follow:true,nearby:true,emergency:true,meetup:true,badge:true,dm:true}},
 };
 
 /* ---------- Seed users (with a small follow graph so lists are real) ---------- */
@@ -737,7 +895,13 @@ function seedUsers(){
     {id:'u7',name:'Nora W',username:'nora',color:'#FFB020',bio:'Winter safety 🧊',ageBand:'55-64',points:770,follows:['u3','u2']},
     {id:'u8',name:'Theo M',username:'theo',color:'#22E5A3',bio:'Community garden 🌱',ageBand:'35-44',points:1520,follows:['u1','u6','u4','me']},
   ];
-  list.forEach((u,i)=>{u.isAdult=true;u.avatarPreset=(i%AV_COUNT)+2;u.status=u.status||'active';u.reports=u.reports||0;state.users[u.id]=u;});
+  const dmModes=['everyone','friends','everyone','none','friends','everyone','everyone','friends'];
+  const vis=[true,true,false,true,false,true,false,true];
+  list.forEach((u,i)=>{u.isAdult=true;u.avatarPreset=(i%AV_COUNT)+2;u.status=u.status||'active';u.reports=u.reports||0;
+    u.email=u.username+'@example.com';u.phone='+1 415 555 0'+(100+i);u.dmPrivacy=dmModes[i]||'everyone';u.visible=!!vis[i];
+    const [clng,clat]=state.center,dx=((i*137)%620)-310,dy=((i*223)%620)-310;
+    u.loc=[clng+dx/(111320*Math.cos(clat*Math.PI/180)),clat+dy/111320];u.lastSeen=Date.now()-Math.floor(Math.random()*1500)*1000;
+    state.users[u.id]=u;});
   state.users['me']=me;
 }
 function userOf(id){return state.users[id]||{id,name:'Someone',avatar:'🙂',color:'#7C5CFF',username:'user',status:'active'};}
@@ -766,7 +930,8 @@ function makePost(o){
     exact_location:exact,display_location:display,precision:o.precision||'approx_50m',status:'active',
     created_at:created,lifetime_seconds:life,expires_at:life?created+life*1000:null,
     like_count:o.like_count||0,liked:false,saved:false,confirm_count:o.confirm_count||0,confirmed:false,
-    repliesOff:false,comments:o.comments||[],tags:parseHashtags(o.text||'')};
+    repliesOff:false,comments:o.comments||[],tags:parseHashtags(o.text||''),
+    reactions:o.reactions||(o.like_count?{love:Math.ceil(o.like_count*0.6),fire:Math.floor(o.like_count*0.4)}:{}),myReaction:null,vibe:o.vibe||null};
 }
 function pic(seed,w,h){return 'https://picsum.photos/seed/'+seed+'/'+(w||800)+'/'+(h||600);}
 function seedPosts(center){
@@ -817,28 +982,57 @@ let map,composerMap,meetMap,urgentMarkers=[],meetMarkers=[],meMarker=null;
 /* Dark-but-legible basemap: CARTO's dark-matter *vector* style (same keyless CDN the
    raster used), recoloured on load so water, parks and buildings are clearly visible. */
 const BASE_STYLE='https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const BASE_STYLE_LIGHT='https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+function currentTheme(){return state.settings.theme==='light'?'light':'dark';}
+function currentMapStyle(){return currentTheme()==='light'?BASE_STYLE_LIGHT:BASE_STYLE;}
 /* Raster fallback if the vector basemap can't load (keeps the map from ever going blank). */
-const RASTER_FALLBACK={version:8,glyphs:'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-  sources:{cartoR:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png','https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png','https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO'}},
-  layers:[{id:'bg',type:'background',paint:{'background-color':'#0B0F30'}},{id:'cartoR',type:'raster',source:'cartoR',paint:{'raster-opacity':1}}]};
-function enhanceBasemap(m){
+function rasterFallback(){const light=currentTheme()==='light';const kind=light?'light_all':'dark_all',bg=light?'#E9EDF6':'#0B0F30';
+  return {version:8,glyphs:'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+    sources:{cartoR:{type:'raster',tiles:['a','b','c'].map(s=>'https://'+s+'.basemaps.cartocdn.com/'+kind+'/{z}/{x}/{y}@2x.png'),tileSize:256,attribution:'© OpenStreetMap © CARTO'}},
+    layers:[{id:'bg',type:'background',paint:{'background-color':bg}},{id:'cartoR',type:'raster',source:'cartoR',paint:{'raster-opacity':1}}]};}
+function applyTheme(t){
+  state.settings.theme=(t==='light')?'light':'dark';
+  document.documentElement.setAttribute('data-theme',state.settings.theme);
+  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',state.settings.theme==='light'?'#E9EDF6':'#090B24');
+  try{localStorage.setItem('pd_theme',state.settings.theme);}catch(e){}
+  if(map){try{map.setStyle(currentMapStyle());}catch(e){}} // style.load re-runs enhanceBasemap + re-adds overlays
+}
+/* Palettes keyed by theme. Green/water are pushed brighter than a "realistic" map would use —
+   deliberately, so parks and lakes read clearly at a glance on a phone in either theme. */
+const BASEMAP_PALETTES={
+  dark:{bg:'#0B0F30',water:'#2E7BC4',waterLine:'#63A9E0',green:'#2E9F62',greenLine:'#49C481',bld:'#333B7A',bldLine:'#4A5499'},
+  light:{bg:'#E7EEF5',water:'#6FB3EA',waterLine:'#3E8FCB',green:'#7FD19E',greenLine:'#4FAE73',bld:'#C6D0E4',bldLine:'#A9B6D6'},
+};
+function classifyLayer(L){
+  const id=(L.id||'').toLowerCase(),sl=(L['source-layer']||'').toLowerCase();
+  let filterStr='';try{filterStr=JSON.stringify(L.filter||'').toLowerCase();}catch(e){}
+  const key=id+' '+sl+' '+filterStr;
+  const isLabel=/label|name|place|poi|housenumber|text/.test(id+' '+sl); // never reclassify text/label layers
+  if(isLabel)return null;
+  const isWater=/water|ocean|sea|lake|river|bay|pond|reservoir|marine|waterway|canal|strait|basin/.test(key);
+  const isGreen=/park|wood|grass|forest|golf|pitch|cemetery|garden|nature|greenspace|scrub|meadow|orchard|recreation|zoo|wetland|heath|common|reserve|village_green|allotment/.test(key);
+  const isBld=/building/.test(key);
+  if(isWater)return 'water';if(isGreen)return 'green';if(isBld)return 'bld';return null;
+}
+function enhanceBasemap(m,theme){
   try{
-    const bg='#0B0F30',water='#1B4E86',green='#1E5B3C',bld='#2A3170';
+    const P=BASEMAP_PALETTES[theme||state.settings.theme||'dark']||BASEMAP_PALETTES.dark;
     const layers=(m.getStyle()&&m.getStyle().layers)||[];
     for(const L of layers){
-      const id=(L.id||'').toLowerCase(),sl=(L['source-layer']||'').toLowerCase(),key=id+' '+sl,t=L.type;
-      if(t==='background'){m.setPaintProperty(L.id,'background-color',bg);continue;}
-      const isLabel=/label|name|place|poi|housenumber/.test(key);
-      const isWater=/water|ocean|sea|lake|river|bay|pond|reservoir|marine|waterway/.test(key)&&!isLabel;
-      const isGreen=/park|wood|grass|forest|golf|pitch|cemetery|garden|nature|greenspace|scrub|meadow|orchard|farmland|recreation|zoo/.test(key)&&!isLabel;
-      const isBld=/building/.test(key)&&!isLabel;
+      const t=L.type;
+      if(t==='background'){try{m.setPaintProperty(L.id,'background-color',P.bg);}catch(e){}continue;}
+      const cls=classifyLayer(L);if(!cls)continue;
       try{
         if(t==='fill'){
-          if(isWater){m.setPaintProperty(L.id,'fill-color',water);m.setPaintProperty(L.id,'fill-opacity',0.95);}
-          else if(isGreen){m.setPaintProperty(L.id,'fill-color',green);m.setPaintProperty(L.id,'fill-opacity',0.9);}
-          else if(isBld){m.setPaintProperty(L.id,'fill-color',bld);m.setPaintProperty(L.id,'fill-opacity',0.9);}
-        }else if(t==='fill-extrusion'&&isBld){m.setPaintProperty(L.id,'fill-extrusion-color',bld);m.setPaintProperty(L.id,'fill-extrusion-opacity',0.92);}
-        else if(t==='line'&&isWater){m.setPaintProperty(L.id,'line-color',water);}
+          if(cls==='water'){m.setPaintProperty(L.id,'fill-color',P.water);m.setPaintProperty(L.id,'fill-opacity',0.95);}
+          else if(cls==='green'){m.setPaintProperty(L.id,'fill-color',P.green);m.setPaintProperty(L.id,'fill-opacity',0.92);}
+          else if(cls==='bld'){m.setPaintProperty(L.id,'fill-color',P.bld);m.setPaintProperty(L.id,'fill-opacity',0.92);}
+        }else if(t==='fill-extrusion'&&cls==='bld'){m.setPaintProperty(L.id,'fill-extrusion-color',P.bld);m.setPaintProperty(L.id,'fill-extrusion-opacity',0.94);}
+        else if(t==='line'){
+          if(cls==='water')m.setPaintProperty(L.id,'line-color',P.waterLine);
+          else if(cls==='green')m.setPaintProperty(L.id,'line-color',P.greenLine);
+          else if(cls==='bld')m.setPaintProperty(L.id,'line-color',P.bldLine);
+        }
       }catch(e){}
     }
   }catch(e){}
@@ -876,21 +1070,21 @@ function addMapOverlays(){
     // Pin placement now happens via the Drop button + on-map crosshair, so map
     // gestures (pan/pinch-zoom) never accidentally open the composer.
     map.on('move',()=>{if(state.placing)updatePlaceCoord();});
-    map.on('moveend',debounce(()=>{refreshUrgent();refreshMeetMarkers();},300));
+    map.on('moveend',debounce(()=>{refreshUrgent();refreshMeetMarkers();refreshPresence();},300));
     map.on('idle',debounce(updateLocationBar,400));
     tryGeolocate(true);setTimeout(handleHash,400);
   }
-  drawRadius();refreshUrgent();refreshMeetMarkers();refreshSuperMarker();updateLocationBar();
+  drawRadius();refreshUrgent();refreshMeetMarkers();refreshSuperMarker();refreshPresence();updateLocationBar();
 }
 function initMap(){
-  map=new maplibregl.Map({container:'map',style:BASE_STYLE,center:state.center,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:{compact:true}});
+  map=new maplibregl.Map({container:'map',style:currentMapStyle(),center:state.center,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:{compact:true}});
   map.touchZoomRotate.disableRotation();
   let usedFallback=false;
   // style.load fires on the initial style and again after any setStyle() — so overlays survive a fallback swap.
   map.on('style.load',()=>{enhanceBasemap(map);addMapOverlays();});
   map.on('load',()=>{enhanceBasemap(map);addMapOverlays();}); // belt-and-braces for the first render
   // If the vector basemap can't load, drop to the raster basemap so the map is never blank.
-  setTimeout(()=>{try{if(!usedFallback&&map&&map.isStyleLoaded&&!map.isStyleLoaded()){usedFallback=true;toast('Loading a lighter map…');map.setStyle(RASTER_FALLBACK);}}catch(e){}},6500);
+  setTimeout(()=>{try{if(!usedFallback&&map&&map.isStyleLoaded&&!map.isStyleLoaded()){usedFallback=true;map.setStyle(rasterFallback());}}catch(e){}},6500);
 }
 function refreshPins(){if(map&&map.getSource('pins'))map.getSource('pins').setData(toFC(filteredPosts()));refreshUrgent();refreshMeetMarkers();if(document.getElementById('feedScreen').classList.contains('active'))renderFeed();}
 /* Meetups on the map (§1): anonymous cyan markers, gated to 18+ and matching age band.
@@ -916,6 +1110,27 @@ function refreshMeetMarkers(){
     meetMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(m.display_location).addTo(map));
   }
 }
+/* ---------- Live presence (§ item 1) — real users on the map, opt-in ---------- */
+let presenceMarkers=[];
+function setDm(mode){state.settings.dmPrivacy=mode;me.dmPrivacy=mode;renderSettings();toast('Messages: '+({everyone:'Everyone',friends:'Friends only',none:'No one'}[mode]));}
+function livePeople(){
+  return Object.values(state.users).filter(u=>u.id!=='me'&&u.visible&&u.status==='active'&&!state.blocked.has(u.id)&&u.loc);
+}
+function nearbyCount(){const r=RADII[state.radiusIdx][0]||8000;return livePeople().filter(u=>metresBetween(state.center,u.loc)<=r).length+(state.settings.visibility==='live'?1:0);}
+function refreshPresence(){
+  presenceMarkers.forEach(mk=>mk.remove());presenceMarkers=[];if(!map)return;
+  const b=map.getBounds();
+  for(const u of livePeople()){
+    const [lng,lat]=u.loc;if(lng<b.getWest()||lng>b.getEast()||lat<b.getSouth()||lat>b.getNorth())continue;
+    const el=document.createElement('div');el.className='presence-marker';el.setAttribute('role','button');
+    el.setAttribute('aria-label',u.name+' is nearby');
+    el.innerHTML='<div class="pdot"></div><div class="pav">'+avatarInner(u)+'</div>';
+    el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openUserProfile(u.id);});
+    presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(u.loc).addTo(map));
+  }
+  updateNearbyPill();
+}
+function updateNearbyPill(){const el=document.getElementById('nearbyPill');if(!el)return;const n=nearbyCount();el.style.display=n>0?'flex':'none';el.innerHTML='<span class="livedot"></span>'+n+' nearby';}
 function refreshUrgent(){
   urgentMarkers.forEach(m=>m.remove());urgentMarkers=[];if(!map)return;const b=map.getBounds();
   const u=filteredPosts().filter(p=>CATS[p.category].urgent).filter(p=>{const [lng,lat]=p.display_location;return lng>=b.getWest()&&lng<=b.getEast()&&lat>=b.getSouth()&&lat<=b.getNorth();}).slice(0,30);
@@ -958,9 +1173,9 @@ const composerScrim=document.getElementById('composerScrim'),composerSheet=docum
 function openComposer(loc){
   if(!ageOK()){showAgeGate();return;}
   const where=(loc&&loc.length===2)?loc.slice():((state.composer&&state.composer.location)||(state.me?[state.me.lng,state.me.lat]:state.center.slice()));
-  state.composer={media:[],category:'social',subcat:null,lifetime:LIFETIMES.social.def,precision:'approx_50m',location:where,superId:null};
+  state.composer={media:[],category:'social',subcat:null,vibe:null,lifetime:LIFETIMES.social.def,precision:'approx_50m',location:where,superId:null};
   const sb=document.getElementById('superBanner');if(sb)sb.style.display='none';
-  renderCatSeg();renderSubSeg();renderLifeSeg();renderPrecision();renderMediaStrip();updateComposerLoc();
+  renderCatSeg();renderSubSeg();renderVibeSeg();renderLifeSeg();renderPrecision();renderMediaStrip();updateComposerLoc();
   document.getElementById('postText').value='';updatePublish();
   composerScrim.classList.add('open');composerSheet.classList.add('open');
 }
@@ -1012,8 +1227,8 @@ document.getElementById('publishBtn').onclick=()=>{
   const cat=state.composer.category;const loc=(state.composer.location)||state.center;const c={lng:loc[0],lat:loc[1]};
   if(cat==='hazard'){const lvl=levelOf(myPoints());if(lvl<2&&!me.contactVerified){toast('Hazard posting needs level 2 or a verified contact');return;}}
   const text=document.getElementById('postText').value.trim();
-  const post=makePost({category:cat,subcat:state.composer.subcat,text,exact:[c.lng,c.lat],precision:state.composer.precision,lifetime:state.composer.lifetime,authorId:'me',media:state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}))});
-  state.posts.unshift(post);award('create_post',10,post.id);
+  const post=makePost({category:cat,subcat:state.composer.subcat,vibe:state.composer.vibe,text,exact:[c.lng,c.lat],precision:state.composer.precision,lifetime:state.composer.lifetime,authorId:'me',media:state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}))});
+  state.posts.unshift(post);award('create_post',10,post.id);bumpStreak();
   closeComposer();refreshPins();if(map)map.easeTo({center:post.display_location,zoom:16});
   toast(cat==='hazard'?'Hazard pin dropped — neighbours notified':'Pin dropped 📍 +10 pts');
   maybeBadgeToast();maybeClaimSuperSpot(post);setTimeout(()=>openDetail(post.id),500);
@@ -1043,10 +1258,12 @@ function renderDetail(p){
     +(sub?'<div style="margin:-4px 0 8px"><span class="subbadge">'+sub.e+' '+esc(sub.n)+'</span></div>':'')
     +'<div class="countdown" id="cdown">'+countdownText(p)+'</div>'
     +'<div class="detail-text">'+linkify(p.text)+'</div>'
+    +(cat.urgent?'':reactionBarHTML(p))
     +'<div class="actions">'
-      +(cat.urgent?'<button class="act confirm '+(p.confirmed?'':'emph')+'" id="confirmBtn">▲ '+(p.confirmed?'Confirmed':'I see it too')+' · '+p.confirm_count+'</button>':'<button class="act like '+(p.liked?'on':'')+'" id="likeBtn">♥ '+p.like_count+'</button>')
+      +(cat.urgent?'<button class="act confirm '+(p.confirmed?'':'emph')+'" id="confirmBtn">▲ '+(p.confirmed?'Confirmed':'I see it too')+' · '+p.confirm_count+'</button>':'')
       +'<button class="act save '+(p.saved?'on':'')+'" id="saveBtn">🔖 '+(p.saved?'Saved':'Save')+'</button>'
       +(mine?'':'<button class="act follow '+(following?'on':'')+'" id="followBtn">'+(following?'Following':'Follow')+'</button>')
+      +(mine?'':'<button class="act" id="dmBtnDetail">✉️ Message</button>')
     +'</div>'
     +((p.category==='lost'||p.category==='found')&&mine?'<button class="btn-ghost" id="resolveBtn" style="margin-bottom:8px">Mark resolved</button>':'')
     +(mine?'<button class="btn-ghost" id="extendBtn" style="margin-bottom:8px">Extend / shorten lifetime</button>':'')
@@ -1058,6 +1275,8 @@ function renderDetail(p){
   body.querySelector('#postMenu').onclick=()=>openPostMenu(p);
   const au=body.querySelector('[data-openuser]');if(au)au.onclick=()=>{closeDetail();openUserProfile(au.dataset.openuser);};
   const like=body.querySelector('#likeBtn');if(like)like.onclick=()=>{p.liked=!p.liked;p.like_count+=p.liked?1:-1;if(p.liked&&!mine)notify('like',p.authorId,p.id);renderDetail(p);};
+  body.querySelectorAll('[data-react]').forEach(b=>b.onclick=()=>{toggleReaction(p,b.dataset.react);renderDetail(p);refreshPins();});
+  const dmb=body.querySelector('#dmBtnDetail');if(dmb)dmb.onclick=()=>{closeDetail();messageUser(p.authorId);};
   const conf=body.querySelector('#confirmBtn');if(conf)conf.onclick=()=>{if(p.confirmed)return;const d=metresBetween(state.me?[state.me.lng,state.me.lat]:state.center,p.display_location);if(d>1500){toast('Get closer to confirm (server-verified distance)');return;}p.confirmed=true;p.confirm_count++;if(p.expires_at)p.expires_at+=3600*1000;award('confirm_emergency',4,p.id);toast('Confirmed — pin extended · +4 pts');renderDetail(p);refreshPins();};
   body.querySelector('#saveBtn').onclick=()=>{p.saved=!p.saved;if(p.saved)state.saved.add(p.id);else state.saved.delete(p.id);toast(p.saved?'Saved to your collection':'Removed');renderDetail(p);};
   const fol=body.querySelector('#followBtn');if(fol)fol.onclick=()=>{toggleFollow(p.authorId);renderDetail(p);};
@@ -1146,13 +1365,13 @@ function updateBell(){const n=state.notifications.filter(x=>!x.read).length;cons
 let feedSort='new',feedTag=null;
 function postCard(p){
   const cat=CATS[p.category],author=userOf(p.authorId),dist=metresBetween(state.center,p.display_location),media=p.media[0];
-  const sub=subOf(p);
+  const sub=subOf(p),vibe=vibeOf(p),rt=reactionTotal(p);
   return '<div class="card" style="border-left-color:'+cat.color+'" data-id="'+p.id+'">'
     +(media?'<img class="thumb" src="'+media.url+'" alt="'+esc(media.alt||p.text)+'">':'')
-    +'<div class="row" style="justify-content:space-between;gap:6px"><span style="display:flex;gap:6px;flex-wrap:wrap"><span class="catbadge" style="background:'+cat.color+'22;color:'+cat.color+'">'+cat.glyph+' '+cat.name+'</span>'+(sub?'<span class="subbadge">'+sub.e+' '+esc(sub.n)+'</span>':'')+'</span><span class="meta" style="flex:0 0 auto">'+fmtDist(dist)+' · '+countdownText(p).replace('Expires in','⏱')+'</span></div>'
+    +'<div class="row" style="justify-content:space-between;gap:6px"><span style="display:flex;gap:6px;flex-wrap:wrap"><span class="catbadge" style="background:'+cat.color+'22;color:'+cat.color+'">'+cat.glyph+' '+cat.name+'</span>'+(sub?'<span class="subbadge">'+sub.e+' '+esc(sub.n)+'</span>':'')+(vibe?'<span class="vibe-badge">'+vibe.e+' '+esc(vibe.n)+'</span>':'')+'</span><span class="meta" style="flex:0 0 auto">'+fmtDist(dist)+' · '+countdownText(p).replace('Expires in','⏱')+'</span></div>'
     +'<div class="title">'+esc(author.name)+' '+badgeFlair(author)+'</div>'
     +'<div class="body">'+linkify(p.text)+'</div>'
-    +'<div class="meta" style="margin-top:8px">'+(cat.urgent?('▲ '+p.confirm_count+' confirms'):('♥ '+p.like_count))+' · 💬 '+p.comments.length+'</div></div>';
+    +'<div class="meta" style="margin-top:8px">'+(cat.urgent?('▲ '+p.confirm_count+' confirms'):(topReaction(p)+' '+rt+' reactions'))+' · 💬 '+p.comments.length+'</div></div>';
 }
 function sortPosts(posts){
   const a=posts.slice();
@@ -1162,24 +1381,46 @@ function sortPosts(posts){
   if(feedSort==='expiring')a.sort((x,y)=>(x.expires_at||1e15)-(y.expires_at||1e15));
   return a;
 }
+let feedView='pins';
 function renderFeed(){
   const body=document.getElementById('feedBody');
+  let html=storiesRowHTML();
+  html+='<div class="segtabs" id="feedViewTabs"><button class="'+(feedView==='pins'?'on':'')+'" data-v="pins">Pins</button><button class="'+(feedView==='whispers'?'on':'')+'" data-v="whispers">Whispers</button></div>';
+  if(feedView==='whispers'){
+    html+='<button class="btn-ghost" id="newWhisper" style="margin-bottom:12px">＋ Post anonymously</button>';
+    html+='<div class="meta" style="margin:0 4px 8px">Anonymous, nearby, and gone in a day. Be kind.</div>';
+    const ws=state.whispers.slice().sort((a,b)=>(b.up-b.down)-(a.up-a.down));
+    html+=ws.length?ws.map(whisperCard).join(''):emptyMsg('No whispers yet — start one.');
+    body.innerHTML=html;
+    bindStoriesRow(body);bindFeedViewTabs(body);
+    const nw=body.querySelector('#newWhisper');if(nw)nw.onclick=postWhisper;
+    body.querySelectorAll('.whisper').forEach(el=>{const w=state.whispers.find(x=>x.id===el.dataset.wh);el.querySelectorAll('[data-wv]').forEach(b=>b.onclick=(e)=>{e.stopPropagation();voteWhisper(w,b.dataset.wv==='up'?1:-1);renderFeed();});});
+    body.querySelectorAll('[data-tag]').forEach(b=>b.onclick=(e)=>{if(e){e.stopPropagation();if(e.preventDefault)e.preventDefault();}filterByTag(b.dataset.tag);});
+    return;
+  }
   let posts=filteredPosts();if(feedTag)posts=posts.filter(p=>p.tags.includes(feedTag));
   posts=sortPosts(posts);
   const tagCount={};filteredPosts().forEach(p=>p.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
   const trending=Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  let html='';
   html+='<div class="segtabs" id="sortTabs">'+[['new','Newest'],['near','Nearest'],['liked','Top'],['expiring','Expiring']].map(([k,l])=>'<button class="'+(feedSort===k?'on':'')+'" data-s="'+k+'">'+l+'</button>').join('')+'</div>';
   if(feedTag)html+='<div class="pill-note" style="margin-bottom:10px">Filtering #'+esc(feedTag)+' · <a href="#" id="clearTag" style="color:var(--cyan)">clear</a></div>';
   if(trending.length&&!feedTag)html+='<div style="margin-bottom:12px"><div class="meta" style="margin-bottom:6px">Trending near you</div><div class="chiprow">'+trending.map(([t])=>'<button class="chip" data-tag="'+esc(t)+'"><span class="glyph" style="color:var(--cyan)">#</span>'+esc(t)+'</button>').join('')+'</div></div>';
   html+=posts.length?posts.map(postCard).join(''):'<div class="empty"><div class="big">No pins here yet</div><div>Widen your radius or drop the first one.</div></div>';
   body.innerHTML=html;
+  bindStoriesRow(body);bindFeedViewTabs(body);
   body.querySelectorAll('#sortTabs button').forEach(b=>b.onclick=()=>{feedSort=b.dataset.s;renderFeed();});
   const ct=body.querySelector('#clearTag');if(ct)ct.onclick=e=>{e.preventDefault();feedTag=null;renderFeed();};
   body.querySelectorAll('.card[data-id]').forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
-  body.querySelectorAll('[data-tag]').forEach(b=>b.onclick=()=>{feedTag=b.dataset.tag;renderFeed();});
+  body.querySelectorAll('[data-tag]').forEach(b=>b.onclick=(e)=>{if(e){e.stopPropagation();if(e.preventDefault)e.preventDefault();}feedTag=b.dataset.tag;renderFeed();});
+}
+function bindFeedViewTabs(scope){scope.querySelectorAll('#feedViewTabs button').forEach(b=>b.onclick=()=>{feedView=b.dataset.v;renderFeed();});}
+function bindStoriesRow(scope){
+  const add=scope.querySelector('[data-story-add]');if(add)add.onclick=addStory;
+  scope.querySelectorAll('[data-story-user]').forEach(el=>el.onclick=()=>openStories(el.dataset.storyUser));
 }
 function filterByTag(tag){closeDetail();feedTag=tag;switchTab('feed');renderFeed();toast('Filtering #'+tag+' within '+RADII[state.radiusIdx][1]);}
+document.getElementById('feedSearchBtn').onclick=openSearch;
+document.getElementById('feedDmBtn').onclick=()=>openMessages();
 
 /* ============================================================
    SEARCH (§7.3)
@@ -1228,9 +1469,10 @@ function renderProfile(){
       +'<div class="statlink" data-list="followers"><div class="n">'+followersOf(id).length+'</div><div class="meta">followers</div></div>'
       +'<div class="statlink" data-list="following"><div class="n">'+followingIdsOf(id).length+'</div><div class="meta">following</div></div>'
       +'<div><div class="n mono">'+points+'</div><div class="meta">points</div></div></div>'
-    +'<div class="levelbar"><i style="width:'+Math.round(prog*100)+'%"></i></div><div class="meta">'+(lvl>=5?'Max level':((nextMin-points)+' pts to '+LEVEL_NAMES[lvl+1]))+'</div>';
-  if(mine){html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-ghost" id="viewBadges">Badges</button><button class="btn-ghost" id="viewLb">Leaderboard</button></div>';}
-  else{html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="'+(following?'btn-ghost':'btn-primary')+'" id="pFollow" style="height:44px">'+(following?'Following':'Follow')+'</button><button class="btn-ghost" id="pMenu" style="width:52px;flex:0 0 auto">⋯</button></div>';}
+    +'<div class="levelbar"><i style="width:'+Math.round(prog*100)+'%"></i></div><div class="meta">'+(lvl>=5?'Max level':((nextMin-points)+' pts to '+LEVEL_NAMES[lvl+1]))+'</div>'
+    +(mine?'<div style="margin-top:10px">'+streakChipHTML()+'</div>':'');
+  if(mine){html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-ghost" id="viewBadges">Badges</button><button class="btn-ghost" id="viewLb">Leaderboard</button><button class="btn-ghost" id="openMsgs">Messages</button></div>';}
+  else{html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="'+(following?'btn-ghost':'btn-primary')+'" id="pFollow" style="height:44px">'+(following?'Following':'Follow')+'</button><button class="btn-ghost" id="pMsg" style="height:44px">Message</button><button class="btn-ghost" id="pMenu" style="width:52px;flex:0 0 auto">⋯</button></div>';}
   html+='</div>';
   html+='<div class="segtabs" id="pTabs">'+[['pins','Pins'],['saved','Saved'],mine?['archive','Archive']:null].filter(Boolean).map(([k,l])=>'<button class="'+(profileTab===k?'on':'')+'" data-s="'+k+'">'+l+'</button>').join('')+'</div>';
   let list=[];
@@ -1246,6 +1488,8 @@ function renderProfile(){
   const pa=body.querySelector('#profileAvatar');if(pa)pa.onclick=openAvatarPicker;
   bindBadgeCards(body);
   const pf=body.querySelector('#pFollow');if(pf)pf.onclick=()=>{toggleFollow(id);renderProfile();};
+  const om=body.querySelector('#openMsgs');if(om)om.onclick=openMessages;
+  const pmsg=body.querySelector('#pMsg');if(pmsg)pmsg.onclick=()=>messageUser(id);
   const pm=body.querySelector('#pMenu');if(pm)pm.onclick=()=>openMenu([[['🔕',muted?'Unmute':'Mute',()=>{toggleMute(id);renderProfile();}],['🚫',blocked?'Unblock':'Block',()=>{toggleBlock(id);renderProfile();},'danger'],['⚑','Report user',()=>reportFlow('user',id),'danger']]]);
   body.querySelectorAll('#pTabs button').forEach(b=>b.onclick=()=>{profileTab=b.dataset.s;renderProfile();});
   body.querySelectorAll('.card[data-id]').forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
@@ -1401,25 +1645,27 @@ function renderMeet(){
   document.getElementById('newMeet').onclick=openMeetComposer;
   body.querySelectorAll('.meet-card[data-id]').forEach(c=>c.onclick=()=>openMeetDetail(c.dataset.id));
 }
+function meetIsReal(m){return m.identity==='real';}
+function meetHostName(m){return m.mine?'You (host)':(meetIsReal(m)?userOf(m.hostId).name:m.hostAlias);}
+function meetHostAvatar(m){return (meetIsReal(m)&&!m.mine)?avatarInner(userOf(m.hostId)):((m.mine&&meetIsReal(m))?avatarInner(me):presetAvatar(m.hostAvatar));}
 function meetCard(m){
-  const host=m.mine?{name:'You (host)'}:{name:m.hostAlias};
   const dist=metresBetween(state.center,m.display_location);
   const pending=m.requests.filter(r=>r.status==='pending').length;
   return '<div class="meet-card" data-id="'+m.id+'"><div class="row" style="justify-content:space-between"><span class="act-label">◎ '+esc(m.activity)+'</span><span class="meta">'+countdownText(m).replace('Expires in','⏱')+'</span></div>'
-    +'<div class="alias"><div class="av">'+presetAvatar(m.hostAvatar)+'</div><div><div style="font-weight:700;font-size:13.5px">'+esc(host.name)+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · band '+m.ageBand+'</div></div></div>'
+    +'<div class="alias"><div class="av">'+meetHostAvatar(m)+'</div><div><div style="font-weight:700;font-size:13.5px">'+esc(meetHostName(m))+(meetIsReal(m)?' <span class="vibe-badge" style="padding:1px 7px">real</span>':'')+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · band '+m.ageBand+'</div></div></div>'
     +(m.note?'<div class="body" style="font-size:13.5px">“'+esc(m.note)+'”</div>':'')
     +(m.mine&&pending?'<div class="pill-note">'+pending+' pending request'+(pending>1?'s':'')+'</div>':'')+'</div>';
 }
 function openMeetComposer(){
   if(state.settings.under18Sim||!me.isAdult){toast('Meetups are 18+');return;}
   if(state.meetups.filter(m=>m.mine&&m.status==='open').length>=3){toast('Rate limit: 3 active meetup pins');return;}
-  state.meetForm={activity:'Coffee',bands:new Set([myBand()]),lifetime:3*H,note:''};
+  state.meetForm={activity:'Coffee',bands:new Set([myBand()]),lifetime:3*H,note:'',identity:'anon'};
   const actSel=document.getElementById('meetActivity');actSel.innerHTML=ACTIVITIES.map(a=>'<option>'+a+'</option>').join('');
-  renderMeetBands();renderMeetLife();document.getElementById('meetNote').value='';
+  renderMeetBands();renderMeetLife();renderMeetIdentity();document.getElementById('meetNote').value='';
   meetScrim.classList.add('open');meetSheet.classList.add('open');
   const start=state.me?[state.me.lng,state.me.lat]:state.center;
   setTimeout(()=>{
-    if(!meetMap){meetMap=new maplibregl.Map({container:'meetMap',style:BASE_STYLE,center:start,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:false});meetMap.touchZoomRotate.disableRotation();
+    if(!meetMap){meetMap=new maplibregl.Map({container:'meetMap',style:currentMapStyle(),center:start,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:false});meetMap.touchZoomRotate.disableRotation();meetMap.on('style.load',()=>enhanceBasemap(meetMap));
       meetMap.on('move',()=>{const c=meetMap.getCenter();document.getElementById('meetCoord').textContent=fmtCoord(c.lng,c.lat,6);});
       meetMap.on('load',()=>{meetMap.resize();});
     }else{meetMap.resize();meetMap.jumpTo({center:start,zoom:15});}
@@ -1438,15 +1684,20 @@ function renderMeetBands(){
   state.meetForm.bands.add(myBand());
 }
 function renderMeetLife(){const wrap=document.getElementById('meetLife');wrap.innerHTML='';LIFETIMES.meetup.opts.forEach(([l,s])=>{const b=document.createElement('button');b.className='pillbtn';b.setAttribute('aria-pressed',state.meetForm.lifetime===s?'true':'false');b.textContent=l;b.onclick=()=>{state.meetForm.lifetime=s;renderMeetLife();};wrap.appendChild(b);});}
+function renderMeetIdentity(){
+  document.querySelectorAll('#meetIdentity button').forEach(b=>{const on=state.meetForm.identity===b.dataset.id;b.setAttribute('aria-pressed',on?'true':'false');b.onclick=()=>{state.meetForm.identity=b.dataset.id;renderMeetIdentity();};});
+  document.getElementById('identityHint').textContent=state.meetForm.identity==='real'?'Your real name, avatar and profile are shown on this meetup.':'Anonymous: you show as a random alias until you both choose to reveal.';
+}
 document.getElementById('meetPublish').onclick=()=>{
   const c=meetMap?meetMap.getCenter():{lng:state.center[0],lat:state.center[1]};
   // §10.4 public-venue enforcement (demo): snap to a named public place; block-level precision always
   const venues=['Blue Bottle · Mint Plaza','Central Library','Dolores Park','Ferry Building','Golden Gate Park','Philz Coffee','City Hall Plaza'];
   const venue=venues[Math.abs(hashStr(fmtCoord(c.lng,c.lat,3)))%venues.length];
+  const real=state.meetForm.identity==='real';
   const m={id:uid(),hostId:'me',activity:state.meetForm.activity,note:state.meetForm.note,ageBand:myBand(),bands:[...state.meetForm.bands],
     display_location:blockSnap([c.lng,c.lat]),venue,status:'open',created_at:Date.now(),expires_at:Date.now()+state.meetForm.lifetime*1000,
-    hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],revealHost:false,revealGuest:false,mine:true};
-  state.meetups.unshift(m);closeMeetComposer();renderMeet();toast('Meetup posted · snapped to '+venue);
+    identity:state.meetForm.identity,hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],revealHost:real,revealGuest:false,mine:true};
+  state.meetups.unshift(m);closeMeetComposer();renderMeet();toast('Meetup posted'+(real?' as '+me.name:' · '+venue));
   setTimeout(()=>simulateInboundRequest(m.id),3000);
 };
 function simulateInboundRequest(id){const m=state.meetups.find(x=>x.id===id);if(!m||m.status!=='open')return;m.requests.push({id:uid(),alias:aliasFor(),avatar:2+Math.floor(Math.random()*8),status:'pending',at:Date.now(),bySim:true});notify('meetup_req','me',id);toast('Someone requested your meetup');if(currentTab()==='meet')renderMeet();}
@@ -1480,7 +1731,8 @@ function renderMeetDetail(m){
   const body=document.getElementById('mdBody');const mine=m.mine;const dist=metresBetween(state.center,m.display_location);
   const accepted=m.requests.find(r=>r.status==='accepted');
   let html='<div class="sheet-head"><h2>◎ '+esc(m.activity)+'</h2><button class="kebab" id="mMenu">⋯</button></div>';
-  html+='<div class="alias"><div class="av" style="width:44px;height:44px">'+presetAvatar(m.hostAvatar)+'</div><div><div style="font-weight:700">'+(mine?'You (host)':esc(m.hostAlias))+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · block-level</div></div></div>';
+  const realHost=meetIsReal(m)&&!mine;
+  html+='<div class="alias"'+(realHost?' data-openuser="'+m.hostId+'" style="cursor:pointer"':'')+'><div class="av" style="width:44px;height:44px">'+meetHostAvatar(m)+'</div><div><div style="font-weight:700">'+esc(meetHostName(m))+(meetIsReal(m)?' <span class="vibe-badge" style="padding:1px 7px">real profile</span>':'')+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · block-level'+(realHost?' · tap to view profile':'')+'</div></div></div>';
   html+='<div class="meta" style="margin:2px 0 6px">Band '+m.ageBand+' · '+countdownText(m)+'</div>';
   if(m.note)html+='<div class="detail-text" style="font-size:14.5px">“'+esc(m.note)+'”</div>';
   html+='<div class="safety">🛟 Meet in public. Tell someone where you\'re going. You can leave anytime — that closes the chat. Report &amp; Block are always here.</div>';
@@ -1538,8 +1790,15 @@ function renderSettings(){
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Bio</div><div class="sub">'+esc(me.bio||'—')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="bio">Edit</button></div>';
   html+='<div class="setrow"><div style="flex:0 0 auto">'+avatarHTML(me,40)+'</div><div style="flex:1"><div class="lbl">Avatar</div><div class="sub">'+(me.avatarPhoto?'Your photo':'Generated art')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editAvatar">Change</button></div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Age band</div><div class="sub">'+me.ageBand+' · used for meetup matching</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editBand">Change</button></div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Email</div><div class="sub">'+esc(me.email||'—')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="email">Edit</button></div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Phone</div><div class="sub">'+esc(me.phone||'Not set')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="phone">Edit</button></div>';
+
+  html+='<div class="section-label">Appearance</div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Light theme</div><div class="sub">Switch between dark and light</div></div>'+sw(s.theme==='light','__theme')+'</div>';
 
   html+='<div class="section-label">Privacy &amp; safety</div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Show me on the map</div><div class="sub">'+(s.visibility==='live'?'Live — nearby people can see you':'Invisible — you appear to no one')+'</div></div>'+sw(s.visibility==='live','__visible')+'</div>';
+  html+='<div class="setrow" id="dmRow"><div style="flex:1"><div class="lbl">Who can message you</div><div class="sub">'+({everyone:'Everyone',friends:'Friends only',none:'No one'}[s.dmPrivacy]||'Everyone')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editDm">Change</button></div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Public pin history</div><div class="sub">Show your pins on your profile</div></div>'+sw(s.pinHistoryPublic,'pinHistoryPublic')+'</div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Appear on leaderboard</div><div class="sub">City-scoped, opt out anytime</div></div>'+sw(s.leaderboardOptIn,'leaderboardOptIn')+'</div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Simulate under-18 (demo)</div><div class="sub">Hard-hides Meetups everywhere</div></div>'+sw(s.under18Sim,'under18Sim')+'</div>';
@@ -1560,8 +1819,14 @@ function renderSettings(){
   html+='<div class="hint" style="text-align:center;margin-top:14px">Pin Drop — night cartography · demo build</div>';
   body.innerHTML=html;
 
-  body.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{const path=b.dataset.sw;if(path.startsWith('notif.')){const k=path.split('.')[1];s.notif[k]=!s.notif[k];}else{s[path]=!s[path];}renderSettings();if(path==='under18Sim')updateMeetTab();});
+  body.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{const path=b.dataset.sw;
+    if(path==='__theme'){applyTheme(s.theme==='light'?'dark':'light');}
+    else if(path==='__visible'){s.visibility=s.visibility==='live'?'invisible':'live';refreshPresence();toast(s.visibility==='live'?'You are now Live on the map':'You are invisible');}
+    else if(path.startsWith('notif.')){const k=path.split('.')[1];s.notif[k]=!s.notif[k];}
+    else{s[path]=!s[path];}
+    renderSettings();if(path==='under18Sim')updateMeetTab();});
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const f=b.dataset.edit;const v=prompt('Edit '+f,me[f]||'');if(v!=null){me[f]=v.trim();renderSettings();}});
+  const editDm=body.querySelector('#editDm');if(editDm)editDm.onclick=()=>openMenu([[['🌐','Everyone',()=>setDm('everyone')],['👥','Friends only',()=>setDm('friends')],['🚫','No one',()=>setDm('none')]]]);
   body.querySelector('#editAvatar').onclick=openAvatarPicker;
   const adminRow=body.querySelector('#adminRow');if(adminRow)adminRow.onclick=openAdmin;
   body.querySelector('#editBand').onclick=()=>openMenu([AGE_BANDS.map(b=>['🎂',b,()=>{me.ageBand=b;renderSettings();toast('Age band: '+b);}])]);
@@ -1584,7 +1849,7 @@ function ageOK(){if(state.ageVerified)return true;try{if(localStorage.getItem('p
 function persistAge(){try{localStorage.setItem('pd_age_ok','1');}catch(e){}}
 function showAgeGate(){const g=document.getElementById('ageGate');g.classList.remove('blocked','pickband');g.classList.add('show');}
 function hideAgeGate(){document.getElementById('ageGate').classList.remove('show');}
-function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();hideAgeGate();toast('Welcome to Pin Drop 👋');updateMeetTab();if(map)setTimeout(()=>map.resize(),60);};wrap.appendChild(btn);});}
+function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();hideAgeGate();updateMeetTab();if(map)setTimeout(()=>map.resize(),60);if(needsSetup())setTimeout(startSetup,250);else toast('Welcome to Pin Drop 👋');};wrap.appendChild(btn);});}
 document.getElementById('gateYes').onclick=()=>{const g=document.getElementById('ageGate');g.classList.add('pickband');renderGateBands();};
 document.getElementById('gateNo').onclick=()=>{document.getElementById('ageGate').classList.add('blocked');};
 
@@ -1650,6 +1915,7 @@ function adminUserRow(u){
   const st=u.status||'active';
   return '<div class="admin-row"><span data-openuser="'+u.id+'" style="cursor:pointer;flex:0 0 auto">'+avatarHTML(u,40)+'</span><div style="flex:1;min-width:0"><div class="nm">'+esc(u.name)+' <span class="statustag '+st+'">'+st+'</span></div><div class="sub">@'+esc(u.username)+' · '+(u.reports||0)+' reports · L'+levelOf(u.points||0)+'</div>'
     +'<div class="mini-actions">'
+    +'<button class="good" data-details="'+u.id+'">Details</button>'
     +(st!=='banned'?'<button class="danger" data-ban="'+u.id+'">Ban</button>':'<button class="good" data-unban="'+u.id+'">Reinstate</button>')
     +(st==='active'?'<button class="warn" data-restrict="'+u.id+'">Restrict</button>':st==='restricted'?'<button class="good" data-unrestrict="'+u.id+'">Lift limit</button>':'')
     +'</div></div></div>';
@@ -1683,6 +1949,7 @@ function renderAdmin(){
   body.innerHTML=html;
   body.querySelectorAll('#adTabs button').forEach(b=>b.onclick=()=>{adminTab=b.dataset.t;renderAdmin();});
   body.querySelectorAll('[data-openuser]').forEach(el=>el.onclick=()=>openUserProfile(el.dataset.openuser));
+  body.querySelectorAll('[data-details]').forEach(el=>el.onclick=()=>openUserAdmin(el.dataset.details));
   body.querySelectorAll('[data-ban]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.ban,'banned',userOf(el.dataset.ban).name+' banned');renderAdmin();});
   body.querySelectorAll('[data-unban]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.unban,'active','Account reinstated');renderAdmin();});
   body.querySelectorAll('[data-restrict]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.restrict,'restricted','User restricted — posting limited');renderAdmin();});
@@ -1699,10 +1966,12 @@ document.getElementById('adminBack').onclick=()=>{showScreen('settings');renderS
    NAV / TABS
    ============================================================ */
 function currentTab(){const t=document.querySelector('.tab.active');return t?t.dataset.tab:'map';}
-const SCREENS={feed:'feedScreen',search:'searchScreen',meet:'meetScreen',alerts:'alertScreen',profile:'profileScreen',settings:'settingsScreen',lb:'lbScreen',list:'listScreen',admin:'adminScreen'};
-function showScreen(name){if(name!=='map'&&state.placing)endPlacement();Object.values(SCREENS).forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.setAttribute('aria-hidden','true');});if(SCREENS[name]){const el=document.getElementById(SCREENS[name]);el.classList.add('active');el.setAttribute('aria-hidden','false');}const showMap=name==='map';document.getElementById('fab').style.display=(showMap&&!state.placing)?'flex':'none';document.getElementById('mapctrls').style.display=showMap?'flex':'none';document.getElementById('topbar').style.display=showMap?'flex':'none';if(showMap&&map)setTimeout(()=>map.resize(),50);}
+const SCREENS={feed:'feedScreen',search:'searchScreen',meet:'meetScreen',alerts:'alertScreen',profile:'profileScreen',settings:'settingsScreen',lb:'lbScreen',list:'listScreen',admin:'adminScreen',dm:'dmScreen',conv:'convScreen'};
+function showScreen(name){if(name!=='map'&&state.placing)endPlacement();Object.values(SCREENS).forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.setAttribute('aria-hidden','true');});if(SCREENS[name]){const el=document.getElementById(SCREENS[name]);el.classList.add('active');el.setAttribute('aria-hidden','false');}const showMap=name==='map';document.getElementById('fab').style.display=(showMap&&!state.placing)?'flex':'none';document.getElementById('mapctrls').style.display=showMap?'flex':'none';document.getElementById('topbar').style.display=showMap?'flex':'none';const np=document.getElementById('nearbyPill');if(np){if(showMap&&!state.placing)updateNearbyPill();else np.style.display='none';}
+  document.getElementById('tabbar').style.display=(name==='conv')?'none':'flex';
+  if(showMap&&map)setTimeout(()=>map.resize(),50);}
 function switchTab(name){
-  const tabName=(name==='alerts'||name==='search'||name==='settings'||name==='lb'||name==='list'||name==='admin')?null:name;
+  const tabName=(name==='alerts'||name==='search'||name==='settings'||name==='lb'||name==='list'||name==='admin'||name==='dm'||name==='conv')?null:name;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',tabName&&t.dataset.tab===tabName));
   showScreen(name);
   if(name==='feed')renderFeed();
@@ -1782,6 +2051,234 @@ function maybeClaimSuperSpot(post){
 }
 
 /* ============================================================
+   REACTIONS & VIBES (posts only)
+   ============================================================ */
+const REACTIONS=[['🔥','fire'],['😂','haha'],['👀','eyes'],['❤️','love'],['😮','wow']];
+const VIBES=[{id:'chill',e:'😌',n:'Chill'},{id:'lit',e:'🔥',n:'Lit'},{id:'lowkey',e:'🤫',n:'Lowkey'},{id:'cozy',e:'☕',n:'Cozy'},{id:'hype',e:'⚡',n:'Hype'},{id:'wholesome',e:'🌷',n:'Wholesome'}];
+const VIBE_INDEX={};VIBES.forEach(v=>VIBE_INDEX[v.id]=v);
+function vibeOf(p){return p&&p.vibe?VIBE_INDEX[p.vibe]:null;}
+function reactionTotal(p){const r=p.reactions||{};let t=0;for(const k in r)t+=r[k];return t;}
+function topReaction(p){const r=p.reactions||{};let best=null,bc=0;for(const k in r){if(r[k]>bc){bc=r[k];best=k;}}return best?(REACTIONS.find(x=>x[1]===best)||['❤️'])[0]:'❤️';}
+function toggleReaction(p,key){
+  p.reactions=p.reactions||{};
+  if(p.myReaction===key){p.reactions[key]=Math.max(0,(p.reactions[key]||1)-1);p.myReaction=null;}
+  else{if(p.myReaction)p.reactions[p.myReaction]=Math.max(0,(p.reactions[p.myReaction]||1)-1);p.reactions[key]=(p.reactions[key]||0)+1;p.myReaction=key;if(p.authorId!=='me')notify('like',p.authorId,p.id);}
+}
+function reactionBarHTML(p){p.reactions=p.reactions||{};return '<div class="react-bar">'+REACTIONS.map(([e,k])=>{const c=p.reactions[k]||0;return '<button class="react-btn'+(p.myReaction===k?' on':'')+'" data-react="'+k+'">'+e+(c?'<span class="rc">'+c+'</span>':'')+'</button>';}).join('')+'</div>';}
+function renderVibeSeg(){const seg=document.getElementById('vibeSeg');if(!seg)return;seg.innerHTML='';VIBES.forEach(v=>{const b=document.createElement('button');const on=state.composer.vibe===v.id;b.setAttribute('aria-pressed',on?'true':'false');b.innerHTML=v.e+' '+v.n;b.onclick=()=>{state.composer.vibe=(state.composer.vibe===v.id)?null:v.id;renderVibeSeg();};seg.appendChild(b);});}
+
+/* ============================================================
+   DAILY STREAKS (§ item 3)
+   ============================================================ */
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function bumpStreak(){
+  const t=todayKey();if(me.streakDay===t)return;
+  const y=new Date(Date.now()-86400000);const yKey=y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+  me.streak=(me.streakDay===yKey)?(me.streak||0)+1:1;me.streakDay=t;
+  try{localStorage.setItem('pd_streak',JSON.stringify({s:me.streak,d:me.streakDay}));}catch(e){}
+}
+function streakChipHTML(){return '<span class="streakchip">🔥 '+(me.streak||1)+'-day streak</span>';}
+
+/* ============================================================
+   WHISPERS — anonymous, neighbourhood-scoped feed (§ item 5)
+   ============================================================ */
+function seedWhispers(){
+  const now=Date.now();
+  const W=[
+    {t:'Whoever’s playing guitar in the plaza at midnight — you’re carrying the whole block 🎸',up:41,dn:2,h:0.4},
+    {t:'The 24h diner on 5th quietly has the best fries in the city and nobody talks about it',up:88,dn:5,h:2},
+    {t:'Saw two people meet off a Pin Drop meetup today and they looked so happy 🥹',up:126,dn:3,h:4},
+    {t:'Reminder that the library rooftop is open till 10 and the view is unreal',up:53,dn:1,h:6},
+    {t:'Lost my scarf near the park bench, if anyone grabbed it I hope it keeps you warm',up:19,dn:0,h:9},
+    {t:'Group run tomorrow 7am was 3 people last week, come make it 10 👟',up:34,dn:0,h:12},
+  ];
+  state.whispers=W.map((w,i)=>({id:'wh'+i,alias:aliasFor(),text:w.t,up:w.up,down:w.dn,myVote:0,created_at:now-w.h*3600000,neighborhood:HOODS[i%HOODS.length]}));
+}
+function whisperScore(w){return w.up-w.down+ (w.myVote||0)*0 ;}
+function voteWhisper(w,dir){
+  const prev=w.myVote||0;
+  if(prev===dir){ if(dir>0)w.up--; else w.down--; w.myVote=0; }
+  else{ if(prev>0)w.up--; if(prev<0)w.down--; if(dir>0)w.up++; else w.down++; w.myVote=dir; }
+}
+function whisperCard(w){
+  const score=w.up-w.down;
+  return '<div class="whisper" data-wh="'+w.id+'"><div class="wtext">'+linkify(w.text)+'</div>'
+    +'<div class="wmeta"><div class="wvote"><button class="'+(w.myVote>0?'on':'')+'" data-wv="up">▲</button><span class="score">'+score+'</span><button class="'+(w.myVote<0?'on':'')+'" data-wv="down">▼</button></div>'
+    +'<span>·</span><span>'+esc(w.neighborhood)+'</span><span>·</span><span>'+fmtAgo(w.created_at)+' ago · anon</span></div></div>';
+}
+function postWhisper(){
+  const t=prompt('Say something anonymously to your neighbourhood (be kind):');if(!t||!t.trim())return;
+  const w={id:uid(),alias:aliasFor(),text:t.trim(),up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby'};
+  state.whispers.unshift(w);award('whisper',3,w.id);toast('Posted anonymously · +3 pts');renderFeed();
+}
+
+/* ============================================================
+   STORIES — ephemeral 24h photo drops (§ item 6)
+   ============================================================ */
+let storyState={items:[],idx:0,timer:null};
+function activeStories(){const cut=Date.now()-24*3600*1000;return state.stories.filter(s=>s.created_at>cut&&!state.blocked.has(s.authorId));}
+function storiesByUser(){const map={};activeStories().forEach(s=>{(map[s.authorId]=map[s.authorId]||[]).push(s);});return map;}
+function seedStories(){
+  const now=Date.now();const S=[['u1','sun1','Golden hour on the roof 🌇',2],['u6','food3','taco run, come thru 🌮',3],['u8','park2','garden’s blooming 🌱',5],['u4','dog2','say hi to this good boy 🐕',7]];
+  state.stories=S.map((s,i)=>({id:'st'+i,authorId:s[0],url:pic(s[1],900,1600),caption:s[2],created_at:now-s[3]*3600000,seen:false}));
+}
+function storiesRowHTML(){
+  const byU=storiesByUser();const ids=Object.keys(byU);
+  let html='<div class="stories-row">';
+  html+='<div class="story-bubble story-add" data-story-add="1"><div class="story-ring mine"><div>'+avatarInner(me)+'</div></div><span class="plus">＋</span><div class="story-name">Your story</div></div>';
+  ids.forEach(id=>{const u=userOf(id);const seen=byU[id].every(s=>s.seen);html+='<div class="story-bubble" data-story-user="'+id+'"><div class="story-ring'+(seen?' seen':'')+'"><div>'+avatarInner(u)+'</div></div><div class="story-name">'+esc(u.name.split(' ')[0])+'</div></div>';});
+  return html+'</div>';
+}
+function openStories(authorId){
+  const byU=storiesByUser();const items=byU[authorId]||[];if(!items.length)return;
+  storyState={items,idx:0,timer:null};document.getElementById('storyViewer').classList.add('show');renderStory();
+}
+function renderStory(){
+  const {items,idx}=storyState;const s=items[idx];if(!s){closeStories();return;}
+  s.seen=true;const u=userOf(s.authorId);
+  document.getElementById('storyImg').src=s.url;
+  document.getElementById('storyCap').textContent=s.caption||'';
+  document.getElementById('storyTop').innerHTML=avatarHTML(u,36)+'<div><div class="nm">'+esc(u.name)+'</div><div class="tm">'+fmtAgo(s.created_at)+' ago</div></div>';
+  document.getElementById('storyBars').innerHTML=items.map((_,i)=>'<i class="'+(i<idx?'done':i===idx?'active':'')+'"><b></b></i>').join('');
+  clearTimeout(storyState.timer);storyState.timer=setTimeout(nextStory,5000);
+}
+function nextStory(){if(storyState.idx<storyState.items.length-1){storyState.idx++;renderStory();}else closeStories();}
+function prevStory(){if(storyState.idx>0){storyState.idx--;renderStory();}}
+function closeStories(){clearTimeout(storyState.timer);document.getElementById('storyViewer').classList.remove('show');if(currentTab()==='feed')renderFeed();}
+function addStory(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const cap=prompt('Add a caption (optional):')||'';const url=URL.createObjectURL(f);state.stories.unshift({id:uid(),authorId:'me',url,caption:cap,created_at:Date.now(),seen:true});award('story',3,'');toast('Story posted · gone in 24h · +3 pts');renderFeed();};
+  inp.click();
+}
+document.getElementById('storyClose').onclick=closeStories;
+document.getElementById('storyNext').onclick=nextStory;
+document.getElementById('storyPrev').onclick=prevStory;
+
+/* ============================================================
+   DIRECT MESSAGES + GROUP CHATS (§ item 2)
+   ============================================================ */
+function canDM(targetId){const u=userOf(targetId);const mode=u.dmPrivacy||'everyone';if(mode==='none')return false;if(mode==='friends')return friendsOf(targetId).includes('me')||followsBool(targetId,'me');return true;}
+function convWith(userId){let c=state.conversations.find(x=>!x.group&&x.members.length===2&&x.members.includes(userId)&&x.members.includes('me'));if(!c){c={id:uid(),group:false,members:['me',userId],messages:[],created_at:Date.now()};state.conversations.unshift(c);}return c;}
+function convTitle(c){if(c.group)return c.name||('Group · '+c.members.length+' people');return userOf(c.members.find(m=>m!=='me')).name;}
+function convAvatar(c,size){if(c.group)return '<div class="avatar" style="width:'+size+'px;height:'+size+'px;background:linear-gradient(135deg,var(--social),var(--cyan))">👥</div>';return avatarHTML(userOf(c.members.find(m=>m!=='me')),size);}
+function lastMsg(c){return c.messages.length?c.messages[c.messages.length-1]:null;}
+function unreadCount(){return state.conversations.reduce((a,c)=>a+(c.unread?1:0),0);}
+function updateDmDot(){const n=unreadCount();const d=document.getElementById('dmDot');if(d){d.style.display=n?'flex':'none';d.textContent=n>9?'9+':n;}}
+function openMessages(){showScreen('dm');renderDm();}
+function renderDm(){
+  const body=document.getElementById('dmBody');
+  const convs=state.conversations.slice().filter(c=>!c.members.some(m=>m!=='me'&&state.blocked.has(m))).sort((a,b)=>{const la=lastMsg(a),lb=lastMsg(b);return (lb?lb.at:b.created_at)-(la?la.at:a.created_at);});
+  if(!convs.length){body.innerHTML='<div class="empty"><div class="big">No messages yet</div><div>Start a chat from someone’s profile, or tap ＋ New.</div></div>';return;}
+  body.innerHTML=convs.map(c=>{const lm=lastMsg(c);const pv=lm?((lm.me?'You: ':'')+(lm.text||'')):'Say hi 👋';
+    return '<div class="dm-row" data-conv="'+c.id+'"><div class="dm-avstack">'+convAvatar(c,46)+'</div><div style="flex:1;min-width:0"><div class="nm">'+esc(convTitle(c))+'</div><div class="pv">'+esc(pv)+'</div></div>'+(lm?'<div class="tm">'+fmtAgo(lm.at)+'</div>':'')+(c.unread?'<div class="unread"></div>':'')+'</div>';}).join('');
+  body.querySelectorAll('[data-conv]').forEach(el=>el.onclick=()=>openConversation(el.dataset.conv));
+}
+function openConversation(id){const c=state.conversations.find(x=>x.id===id);if(!c)return;c.unread=false;updateDmDot();state.currentConv=id;showScreen('conv');document.getElementById('convTitle').textContent=convTitle(c);renderConv(c);}
+function renderConv(c){
+  const body=document.getElementById('convBody');
+  const msgs=c.messages.length?c.messages.map(m=>'<div class="msg '+(m.me?'me':'them')+'">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>').join(''):'<div class="empty"><div>No messages yet — say hi 👋</div></div>';
+  body.innerHTML='<div class="conv-msgs chat" id="convMsgs">'+msgs+'</div><div class="conv-bar"><input id="convInput" placeholder="Message…"><button id="convSend">Send</button></div>';
+  const cm=document.getElementById('convMsgs');if(cm)cm.scrollTop=cm.scrollHeight;
+  const send=()=>{const inp=document.getElementById('convInput');const t=inp.value.trim();if(!t)return;c.messages.push({me:true,text:t,at:Date.now()});inp.value='';renderConv(c);
+    setTimeout(()=>{const other=c.members.find(m=>m!=='me')||c.members[0];c.messages.push({me:false,from:other,text:['haha for real','omg yes 😄','let’s do it','on my way','sounds good 👍','where at?'][Math.floor(Math.random()*6)],at:Date.now()});if(state.currentConv===c.id)renderConv(c);else{c.unread=true;updateDmDot();}},1300+Math.random()*1200);};
+  document.getElementById('convSend').onclick=send;
+  document.getElementById('convInput').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+}
+function startNewDm(){
+  const friends=friendsOf('me').filter(id=>!state.blocked.has(id));
+  openMenu([[
+    ['👥','New group chat…',startGroupChat],
+  ].concat((Object.values(state.users).filter(u=>u.id!=='me'&&!state.blocked.has(u.id)&&canDM(u.id)).slice(0,8)).map(u=>['💬',u.name,()=>openConversation(convWith(u.id).id)]))]);
+}
+function startGroupChat(){
+  const cands=Object.values(state.users).filter(u=>u.id!=='me'&&!state.blocked.has(u.id));
+  const picked=[];
+  const step=()=>{openMenu([cands.filter(u=>!picked.includes(u.id)).slice(0,8).map(u=>['➕',u.name+(picked.length?' (add)':''),()=>{picked.push(u.id);if(picked.length>=2){openMenu([[['✅','Create group ('+ (picked.length+1) +')',()=>{const c={id:uid(),group:true,name:picked.map(id=>userOf(id).name.split(' ')[0]).join(', '),members:['me'].concat(picked),messages:[],created_at:Date.now()};state.conversations.unshift(c);openConversation(c.id);}],['➕','Add another',step]]]);}else step();}])]);};
+  if(!cands.length){toast('No one to add');return;}step();
+}
+function messageUser(id){if(!canDM(id)){const m=userOf(id).dmPrivacy;toast(m==='none'?userOf(id).name+' isn’t accepting messages':'Only '+userOf(id).name+'’s friends can message them');return;}openConversation(convWith(id).id);}
+document.getElementById('dmBack').onclick=()=>switchTab('feed');
+document.getElementById('convBack').onclick=()=>openMessages();
+document.getElementById('newDmBtn').onclick=startNewDm;
+
+/* ============================================================
+   ACCOUNT SETUP WIZARD (§ item L)
+   ============================================================ */
+let setupStep=0;const SETUP_STEPS=['name','avatar','bio','privacy','done'];
+function needsSetup(){try{return localStorage.getItem('pd_setup')!=='1';}catch(e){return !state.setupDone;}}
+function startSetup(){setupStep=0;document.getElementById('setupWizard').classList.add('show');renderSetup();}
+function finishSetup(){state.setupDone=true;try{localStorage.setItem('pd_setup','1');}catch(e){}document.getElementById('setupWizard').classList.remove('show');toast('You’re all set 🎉');if(currentTab()==='profile')renderProfile();}
+function setDmQuiet(mode){state.settings.dmPrivacy=mode;me.dmPrivacy=mode;const l=document.getElementById('suDmLabel');if(l)l.textContent={everyone:'Everyone',friends:'Friends only',none:'No one'}[mode];}
+function renderSetup(){
+  document.getElementById('setupProgress').innerHTML=SETUP_STEPS.map((_,i)=>'<i class="'+(i<=setupStep?'on':'')+'"></i>').join('');
+  const step=document.getElementById('setupStep'),k=SETUP_STEPS[setupStep];let h='';
+  if(k==='name'){h='<h2>What should we call you?</h2><p class="lead">This is how you show up to other people. You can change it anytime.</p>'
+    +'<div class="field"><label>Display name</label><input class="input" id="suName" value="'+esc(me.name==='You'?'':me.name)+'" placeholder="Your name"></div>'
+    +'<div class="field"><label>Username</label><input class="input" id="suUser" value="'+esc(me.username==='you'?'':me.username)+'" placeholder="username"></div>';}
+  else if(k==='avatar'){h='<h2>Pick your look</h2><p class="lead">Choose an avatar — you can upload a photo later in Settings.</p><div class="av-grid" id="suAvGrid"></div>';}
+  else if(k==='bio'){h='<h2>Add a short bio</h2><p class="lead">A line about you. Totally optional.</p><div class="field"><textarea class="textarea" id="suBio" placeholder="e.g. Coffee, live music, long walks around the city" maxlength="140">'+esc(me.bio==='Dropping pins around town.'?'':(me.bio||''))+'</textarea></div>';}
+  else if(k==='privacy'){h='<h2>Your privacy</h2><p class="lead">You’re always in control — change these anytime in Settings.</p>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">Show me on the map</div><div class="sub">Nearby people can see you’re around</div></div><button class="switch'+(state.settings.visibility==='live'?' on':'')+'" id="suVis"></button></div>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">Who can message me</div><div class="sub" id="suDmLabel">'+({everyone:'Everyone',friends:'Friends only',none:'No one'}[state.settings.dmPrivacy])+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="suDm">Change</button></div>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">Light theme</div><div class="sub">Prefer a bright look</div></div><button class="switch'+(state.settings.theme==='light'?' on':'')+'" id="suTheme"></button></div>';}
+  else{h='<div style="text-align:center;padding-top:16px"><div class="glyphmark" style="margin:0 auto 18px">🎉</div><h2>You’re all set, '+esc(me.name.split(' ')[0])+'!</h2><p class="lead">Drop a pin, see what’s happening nearby, and say hi. Welcome to the neighbourhood.</p><div style="margin:10px auto 0;width:110px">'+avatarHTML(me,110)+'</div></div>';}
+  step.innerHTML=h;
+  document.getElementById('setupBack').style.visibility=setupStep>0?'visible':'hidden';
+  document.getElementById('setupNext').textContent=setupStep>=SETUP_STEPS.length-1?'Enter Pin Drop':'Continue';
+  if(k==='avatar'){const g=document.getElementById('suAvGrid');let ah='';for(let i=1;i<=Math.min(AV_COUNT,12);i++)ah+='<button class="av-opt" aria-pressed="'+(me.avatarPreset===i)+'" data-suav="'+i+'">'+presetAvatar(i)+'<span class="chk">✓</span></button>';g.innerHTML=ah;g.querySelectorAll('[data-suav]').forEach(b=>b.onclick=()=>{me.avatarPreset=parseInt(b.dataset.suav,10);me.avatarPhoto=null;renderSetup();});}
+  if(k==='privacy'){
+    document.getElementById('suVis').onclick=function(){state.settings.visibility=state.settings.visibility==='live'?'invisible':'live';this.classList.toggle('on');refreshPresence();};
+    document.getElementById('suTheme').onclick=function(){applyTheme(state.settings.theme==='light'?'dark':'light');this.classList.toggle('on');};
+    document.getElementById('suDm').onclick=()=>openMenu([[['🌐','Everyone',()=>setDmQuiet('everyone')],['👥','Friends only',()=>setDmQuiet('friends')],['🚫','No one',()=>setDmQuiet('none')]]]);
+  }
+}
+function setupNext(){
+  const k=SETUP_STEPS[setupStep];
+  if(k==='name'){const n=document.getElementById('suName').value.trim(),u=document.getElementById('suUser').value.trim().replace(/^@/,'');if(n)me.name=n;if(u)me.username=u.toLowerCase().replace(/\s+/g,'');}
+  else if(k==='bio'){const b=document.getElementById('suBio').value.trim();if(b)me.bio=b;}
+  if(setupStep>=SETUP_STEPS.length-1){finishSetup();return;}
+  setupStep++;renderSetup();
+}
+document.getElementById('setupNext').onclick=setupNext;
+document.getElementById('setupBack').onclick=()=>{if(setupStep>0){setupStep--;renderSetup();}};
+
+/* ============================================================
+   ADMIN: FULL USER DETAILS (§ item K)
+   ============================================================ */
+const userAdminScrim=document.getElementById('userAdminScrim'),userAdminSheet=document.getElementById('userAdminSheet');
+function closeUserAdmin(){userAdminScrim.classList.remove('open');userAdminSheet.classList.remove('open');}
+userAdminScrim.onclick=closeUserAdmin;
+function userChatHistory(id){
+  const out=[];
+  state.conversations.forEach(c=>{if(c.members.includes(id))c.messages.forEach(m=>out.push({who:m.me?'them':(m.from===id?'them':'other'),text:m.text,at:m.at}));});
+  state.meetups.forEach(mt=>{if(mt.hostId===id||mt.guestRealId===id)mt.messages.forEach(m=>out.push({who:'them',text:m.text,at:m.at}));});
+  return out.sort((a,b)=>a.at-b.at).slice(-24);
+}
+function openUserAdmin(id){
+  if(!me.isAdmin)return;const u=userOf(id);
+  const lastLoc=u.loc?fmtCoord(u.loc[0],u.loc[1],4):'unknown';
+  const hist=userChatHistory(id);
+  document.getElementById('userAdminBody').innerHTML=
+    '<div class="sheet-head"><h2>🛡️ User details</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="uaClose">Close</button></div>'
+    +'<div class="banner">Admin view — sensitive account data. Handle per your privacy policy.</div>'
+    +'<div class="alias" style="margin-bottom:10px">'+avatarHTML(u,48)+'<div><div style="font-weight:800;font-size:16px">'+esc(u.name)+' <span class="statustag '+(u.status||'active')+'">'+(u.status||'active')+'</span></div><div class="meta">@'+esc(u.username)+' · L'+levelOf(u.points||0)+' · '+(u.reports||0)+' reports</div></div></div>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">📧 Email</div><div class="sub">'+esc(u.email||'—')+'</div></div></div>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">📱 Phone</div><div class="sub">'+esc(u.phone||'—')+'</div></div></div>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">📍 Last known location</div><div class="sub mono">'+lastLoc+' · '+fmtAgo(u.lastSeen||Date.now())+' ago</div></div></div>'
+    +'<div class="setrow"><div style="flex:1"><div class="lbl">🎂 Age band</div><div class="sub">'+esc(u.ageBand||'—')+' · joined '+fmtAgo(u.joined||Date.now())+' ago</div></div></div>'
+    +'<div class="section-label">Chat history ('+hist.length+')</div>'
+    +(hist.length?'<div class="chat" style="max-height:220px;overflow-y:auto;background:var(--surface-2);border-radius:14px;padding:10px">'+hist.map(m=>'<div class="msg them" style="max-width:88%">'+esc(m.text)+'<div style="font-size:9px;opacity:.6;margin-top:2px">'+fmtAgo(m.at)+' ago</div></div>').join('')+'</div>':'<div class="hint">No messages on record.</div>')
+    +'<div class="mini-actions" style="margin-top:12px">'
+    +(u.status!=='banned'?'<button class="danger" id="uaBan">Ban user</button>':'<button class="good" id="uaBan">Reinstate</button>')
+    +(u.status==='active'?'<button class="warn" id="uaRestrict">Restrict</button>':u.status==='restricted'?'<button class="good" id="uaRestrict">Lift limit</button>':'')
+    +'</div>';
+  document.getElementById('uaClose').onclick=closeUserAdmin;
+  document.getElementById('uaBan').onclick=()=>{const ban=u.status!=='banned';setUserStatus(id,ban?'banned':'active',ban?'Banned':'Reinstated');closeUserAdmin();if(document.getElementById('adminScreen').classList.contains('active'))renderAdmin();};
+  const ur=document.getElementById('uaRestrict');if(ur)ur.onclick=()=>{const res=u.status!=='restricted';setUserStatus(id,res?'restricted':'active',res?'Restricted':'Restriction lifted');closeUserAdmin();if(document.getElementById('adminScreen').classList.contains('active'))renderAdmin();};
+  userAdminScrim.classList.add('open');userAdminSheet.classList.add('open');
+}
+
+/* ============================================================
    EXPIRY JOB (§5.3) + realtime sim (§6.6)
    ============================================================ */
 function expiryTick(){
@@ -1816,6 +2313,8 @@ window.addEventListener('hashchange',handleHash);
    BOOT
    ============================================================ */
 function boot(){
+  try{const t=localStorage.getItem('pd_theme');if(t)state.settings.theme=t;}catch(e){}
+  applyTheme(state.settings.theme);
   seedUsers();
   state.posts=seedPosts(state.center);
   state.meetups=seedMeetups(state.center);
@@ -1832,14 +2331,33 @@ function boot(){
     {id:uid(),type:'meetup',targetId:'meet3',reason:'Inappropriate / unsafe',at:Date.now()-5400e3,status:'open'},
     {id:uid(),type:'user',targetId:'u5',reason:'Harassment',at:Date.now()-7200e3,status:'open'});
   if(state.users.u3)state.users.u3.reports=(state.users.u3.reports||0)+1; // host of meet3
+  // seed the new social surfaces
+  seedWhispers();seedStories();seedConversations();
+  // restore streak
+  try{const st=localStorage.getItem('pd_streak');if(st){const o=JSON.parse(st);me.streak=o.s;me.streakDay=o.d;}}catch(e){}
+  if(!me.streak){me.streak=4;me.streakDay=null;} // seeded demo streak
   // seed a couple of notifications
-  notify('follow','me','u4');notify('like','me','u6');state.notifications.forEach(n=>n.read=false);updateBell();
+  notify('follow','me','u4');notify('like','me','u6');state.notifications.forEach(n=>n.read=false);updateBell();updateDmDot();
   renderChips();
   document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');
   initMap();switchTab('map');updateMeetTab();
   if(!ageOK())showAgeGate();
+  else if(needsSetup())setTimeout(startSetup,300);
   setTimeout(spawnSuperSpot,2600); // weekly in production; shown shortly after launch for the demo
   setInterval(()=>{if(!superActive())spawnSuperSpot();},90000);
+}
+function seedConversations(){
+  const now=Date.now();
+  state.conversations=[
+    {id:uid(),group:false,members:['me','u6'],created_at:now-7200e3,unread:true,messages:[
+      {me:false,from:'u6',text:'yo that taco truck by the bridge is here again 🌮',at:now-5400e3},
+      {me:true,text:'no way, omw 🏃',at:now-5300e3},
+      {me:false,from:'u6',text:'grab me one too? 😅',at:now-600e3}]},
+    {id:uid(),group:true,name:'Priya, Theo',members:['me','u1','u8'],created_at:now-86400e3,messages:[
+      {me:false,from:'u1',text:'garden day saturday, who’s in?',at:now-8000e3},
+      {me:true,text:'in! bringing coffee ☕',at:now-7000e3},
+      {me:false,from:'u8',text:'🙌 see you both there',at:now-6000e3}]},
+  ];
 }
 boot();
 
