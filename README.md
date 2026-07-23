@@ -49,16 +49,20 @@ This build completes the app against the eight requested items:
 
 ## Feature tour
 
-- **Map** — free pan/pinch‑zoom, urgency‑coloured clustering, teardrop radar markers for
-  Fire/Hazard, meetups on the map, radius ring, long‑press to drop, live neighbourhood + coords.
-- **Drop** — crosshair placement, required photo, per‑category lifetime, spot‑type picker,
-  exact/50 m/block precision, live countdown + client‑side expiry.
+- **Map** — free pan/pinch‑zoom, urgency‑coloured clustering, radar markers for Hazards,
+  meetups on the map, a weekly **Super Spot** bonus, radius ring, live neighbourhood + coords.
+- **Drop** — tap Drop, aim the on‑map crosshair and *place the pin on the map itself*; the
+  composer then opens with the location already set (required photo, per‑category lifetime,
+  spot‑type picker, exact/50 m/block precision, live countdown + expiry).
+- **Super Spot** — a surprise bonus location appears within ~10 km; the first person to get
+  there and post what they see claims the reward and the Pathfinder badge.
 - **Feed / Search** — sort (Newest/Nearest/Top/Expiring), trending tags, and search across
   Pins / People / Tags.
 - **Detail** — like / save / follow, "I see it too" confirm on emergencies, comments,
   hashtag filtering, resolve for Lost/Found, and a per‑post moderation menu.
 - **Meet** — the 18+ gate, age‑band matching, anonymous aliases, block‑level venues,
-  request → accept → ephemeral chat → mutual reveal.
+  request → accept → chat → mutual reveal, plus a **Chats** tab that keeps your meetup
+  conversations so you can pick them back up.
 - **You** — points & levels, badge shelf, city leaderboard, Pins/Saved/Archive tabs,
   full settings (privacy, notifications, blocked/muted, data export, account deletion).
 

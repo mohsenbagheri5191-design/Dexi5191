@@ -132,7 +132,8 @@ img{max-width:100%}
 /* ---------- Cards ---------- */
 .card{background:var(--surface);border-radius:18px;padding:14px;margin-bottom:12px;border-left:4px solid var(--line);position:relative}
 .card .thumb{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;background:var(--surface-2);margin-bottom:10px}
-.card .row{display:flex;align-items:center;gap:8px}
+.card .row,.meet-card .row{display:flex;align-items:center;gap:8px}
+.meet-card .act-label{margin-right:auto}
 .card .title{font-family:var(--font-display);font-weight:800;font-size:16px;margin:2px 0 4px;letter-spacing:-.02em}
 .card .meta{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
 .card .body{font-size:14px;color:var(--paper);margin:6px 0 2px}
@@ -339,6 +340,26 @@ img{max-width:100%}
 .meet-marker .ring{position:absolute;inset:0;border-radius:50%;background:var(--meetup);border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#0b0e2e;font-weight:800;font-size:15px;box-shadow:0 6px 16px rgba(53,229,255,.55)}
 .meet-marker .pulse{position:absolute;inset:0;border-radius:50%;background:var(--meetup);opacity:.4;animation:radar 2.8s ease-out infinite;z-index:-1}
 
+/* ---------- Pin placement mode ---------- */
+#placeLayer{position:absolute;inset:0;z-index:22;display:none;pointer-events:none}
+#placeLayer.active{display:block}
+.place-cross{position:absolute;left:50%;top:calc(50% - 22px);transform:translate(-50%,-50%);width:60px;height:60px;pointer-events:none}
+.place-cross .ring{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border:2.5px solid var(--cyan);border-radius:50%;box-shadow:0 0 12px rgba(53,229,255,.7)}
+.place-cross .v{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);background:linear-gradient(var(--cyan),transparent 42%,transparent 58%,var(--cyan))}
+.place-cross .h{position:absolute;top:50%;left:0;right:0;height:2px;transform:translateY(-50%);background:linear-gradient(90deg,var(--cyan),transparent 42%,transparent 58%,var(--cyan))}
+.place-cross::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.place-bar{position:absolute;left:12px;right:12px;bottom:calc(var(--tabbar-h) + var(--safe-bottom) + 14px);background:linear-gradient(180deg,var(--surface),var(--ink));border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 -10px 40px rgba(0,0,0,.5);pointer-events:auto}
+.place-info .place-title{font-family:var(--font-display);font-weight:800;font-size:15px;margin-bottom:3px}
+.loc-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+
+/* ---------- Super Spot (weekly bonus) ---------- */
+.super-marker{width:42px;height:42px;position:relative;cursor:pointer}
+.super-marker .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);border:2px solid #fff;box-shadow:0 6px 20px rgba(255,176,32,.75)}
+.super-marker .pulse{position:absolute;inset:0;border-radius:50%;background:#FFD23F;opacity:.5;animation:radar 2.6s ease-out infinite;z-index:-1}
+.super-hero{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);box-shadow:0 10px 30px rgba(255,176,32,.5)}
+#superBanner{display:none;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,210,63,.18),rgba(255,176,32,.05));border:1px solid rgba(255,210,63,.4);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:600;line-height:1.35}
+
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 </style>
 </head>
@@ -396,6 +417,18 @@ img{max-width:100%}
   </div>
 
   <button id="fab" aria-label="Drop a pin">＋ Drop a pin</button>
+
+  <!-- PIN PLACEMENT MODE (drop directly on the main map) -->
+  <div id="placeLayer" aria-hidden="true">
+    <div class="place-cross"><span class="ring"></span><span class="v"></span><span class="h"></span></div>
+    <div class="place-bar">
+      <div class="place-info"><div class="place-title">Move the map to aim your pin</div><div class="mono" id="placeCoord" style="color:var(--cyan);font-size:12px">--.------ , --.------</div></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-ghost" style="flex:0 0 auto;width:96px" id="placeCancel">Cancel</button>
+        <button class="btn-primary" style="flex:1" id="placeConfirm">Place pin here</button>
+      </div>
+    </div>
+  </div>
 
   <!-- FEED -->
   <section class="screen" id="feedScreen" aria-hidden="true">
@@ -473,16 +506,15 @@ img{max-width:100%}
   <div class="handle"></div>
   <div class="sheet-body scroll">
     <div class="sheet-head"><h2>New pin</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="composerClose">Cancel</button></div>
+    <div id="superBanner">✨ You're posting at a <b>Super Spot</b> — publish to claim your bonus points.</div>
     <div class="field"><label>Category</label><div class="seg" id="catSeg"></div></div>
     <div class="field" id="subField"><label id="subLabel">What kind of spot?</label><div class="subgrid" id="subSeg"></div></div>
     <div class="field">
-      <label>Where — pan the map under the crosshair</label>
-      <div class="composer-map"><div id="composerMap"></div><div class="crosshair"><div class="ring"></div></div><div class="coordreadout mono" id="composerCoord">--.------ , --.------</div></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn-ghost" style="flex:1;height:40px" id="useMyLoc">Use my location</button>
-        <button class="btn-ghost" style="flex:1;height:40px" id="searchAddr">Search address</button>
+      <label>Location</label>
+      <div class="loc-card">
+        <div style="min-width:0"><div class="mono" id="composerCoord" style="font-size:13px;color:var(--cyan)">--.------ , --.------</div><div class="hint" id="composerHood" style="margin-top:2px">Pinned on the map</div></div>
+        <button class="btn-ghost" style="width:auto;height:38px;padding:0 14px;flex:0 0 auto" id="reposition">Reposition</button>
       </div>
-      <div class="hint" id="accuracyHint"></div>
     </div>
     <div class="field">
       <label>Photo <span style="color:var(--danger)">*required</span> (max 10)</label>
@@ -556,6 +588,13 @@ img{max-width:100%}
   <div class="sheet-body scroll" id="badgeBody"></div>
 </div>
 
+<!-- SUPER SPOT -->
+<div class="scrim" id="superScrim"></div>
+<div class="sheet" id="superSheet" role="dialog" aria-modal="true" aria-label="Super Spot">
+  <div class="handle"></div>
+  <div class="sheet-body scroll" id="superBody"></div>
+</div>
+
 <!-- ACTION MENU -->
 <div id="menuScrim"></div>
 <div id="menuSheet"><div id="menuGroups"></div><button class="menu-cancel" id="menuCancel">Cancel</button></div>
@@ -571,21 +610,22 @@ img{max-width:100%}
    ============================================================ */
 
 /* ---------- Categories (§3.3) ---------- */
+/* glyph = modern emoji used across the UI; mg = map-safe symbol for the GL text layer. */
 const CATS = {
-  social:{name:'Social',color:'#7C5CFF',glyph:'✦',meaning:'Events, tips, sightings'},
-  fire:{name:'Fire',color:'#FF4438',glyph:'▲',meaning:'Smoke, flames, evacuation',urgent:true},
-  hazard:{name:'Hazard',color:'#FFB020',glyph:'⚠',meaning:'Closures, outages, ice',urgent:true},
-  found:{name:'Found',color:'#22E5A3',glyph:'◆',meaning:'Found item, pet, person'},
-  lost:{name:'Lost',color:'#FF5CA8',glyph:'◇',meaning:'Lost item, pet, person'},
-  meetup:{name:'Meetup',color:'#35E5FF',glyph:'◎',meaning:'Anonymous invite (18+)'},
+  social:{name:'Social',color:'#7C5CFF',glyph:'💬',mg:'✦',meaning:'Tips, sightings, chatter'},
+  event:{name:'Event',color:'#B15CFF',glyph:'🎉',mg:'★',meaning:'Happening now — music, markets, meetups'},
+  hazard:{name:'Hazard',color:'#FFB020',glyph:'⚠️',mg:'⚠',meaning:'Closures, outages, ice, danger',urgent:true},
+  found:{name:'Found',color:'#22E5A3',glyph:'📦',mg:'◆',meaning:'Found item, pet, person'},
+  lost:{name:'Lost',color:'#FF5CA8',glyph:'🔍',mg:'◇',meaning:'Lost item, pet, person'},
+  meetup:{name:'Meetup',color:'#35E5FF',glyph:'🫂',mg:'◎',meaning:'Anonymous invite (18+)'},
 };
-const CAT_KEYS=['social','fire','hazard','found','lost','meetup'];
+const CAT_KEYS=['social','event','hazard','found','lost','meetup'];
 /* Rich social "spot types" (§5) — many useful, location-based categories to post.
    These keep the map legible (Social stays one colour) while giving posting real variety. */
 const SUBCATS={
   social:[
-    {id:'food',e:'🍜',n:'Food & Drink'},{id:'event',e:'🎉',n:'Live Event'},
-    {id:'music',e:'🎧',n:'Live Music'},{id:'deal',e:'🏷️',n:'Deal / Sale'},
+    {id:'food',e:'🍜',n:'Food & Drink'},{id:'music',e:'🎧',n:'Live Music'},
+    {id:'deal',e:'🏷️',n:'Deal / Sale'},
     {id:'free',e:'🎁',n:'Free Stuff'},{id:'view',e:'🌇',n:'View / Scenery'},
     {id:'sports',e:'⚽',n:'Sports / Pickup'},{id:'market',e:'🛍️',n:'Market / Pop-up'},
     {id:'nature',e:'🌳',n:'Park / Nature'},{id:'nightlife',e:'🍸',n:'Nightlife'},
@@ -599,7 +639,7 @@ function subOf(p){return p&&p.subcat?SUB_INDEX[p.subcat]:null;}
 const H=3600,D=86400;
 const LIFETIMES={
   social:{opts:[['6h',6*H],['24h',24*H],['3d',3*D],['7d',7*D],['30d',30*D],['forever',0]],def:7*D},
-  fire:{opts:[['1h',1*H],['3h',3*H],['6h',6*H],['12h',12*H]],def:6*H},
+  event:{opts:[['3h',3*H],['6h',6*H],['12h',12*H],['24h',24*H],['3d',3*D]],def:24*H},
   hazard:{opts:[['6h',6*H],['12h',12*H],['24h',24*H],['3d',3*D],['7d',7*D]],def:24*H},
   found:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
   lost:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
@@ -735,7 +775,7 @@ function seedPosts(center){
   const now=Date.now();
   const S=[
     {c:'social',sub:'music',t:'Free live jazz at the plaza tonight 8pm 🎷 #music #tonight',ex:near(120,80),a:'u1',pic:'jazz1',like:34,cm:5},
-    {c:'fire',t:'Smoke visible from the ridge — crews on scene, avoid Elm St #fire',ex:near(-260,340),a:'u2',pic:'smoke1',conf:6,life:6*H,prec:'exact'},
+    {c:'event',sub:null,t:'Night market is live on the ridge tonight — food, lights, live band 🎶 #nightmarket',ex:near(-260,340),a:'u2',pic:'market1',like:47,cm:6,life:12*H},
     {c:'hazard',t:'Water main break, road closed at 4th & Oak. Detour via Pine #closure',ex:near(430,-180),a:'u3',conf:3,pic:'road1',life:24*H},
     {c:'found',t:'Found a very good orange cat near the library, no collar 🐈 #foundpet',ex:near(-380,-120),a:'u4',pic:'cat1',like:12},
     {c:'lost',t:'Lost silver house keys w/ a blue tag around the park path #lost',ex:near(210,420),a:'u5',pic:'keys1',like:3},
@@ -813,36 +853,34 @@ function filteredPosts(){
     return true;
   });
 }
-function toFC(posts){return {type:'FeatureCollection',features:posts.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:p.display_location},properties:{id:p.id,category:p.category,glyph:CATS[p.category].glyph}}))};}
+function toFC(posts){return {type:'FeatureCollection',features:posts.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:p.display_location},properties:{id:p.id,category:p.category,glyph:CATS[p.category].mg}}))};}
 
 let mapOverlaysBound=false;
 function addMapOverlays(){
   if(!map)return;
   if(!map.getSource('pins'))map.addSource('pins',{type:'geojson',data:toFC(filteredPosts()),cluster:true,clusterRadius:55,clusterMaxZoom:16,
-    clusterProperties:{fire:['+',['case',['==',['get','category'],'fire'],1,0]],hazard:['+',['case',['==',['get','category'],'hazard'],1,0]]}});
+    clusterProperties:{hazard:['+',['case',['==',['get','category'],'hazard'],1,0]]}});
   if(!map.getSource('radius'))map.addSource('radius',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
   const addL=spec=>{if(!map.getLayer(spec.id))map.addLayer(spec);};
   addL({id:'radius-fill',type:'fill',source:'radius',paint:{'fill-color':'#35E5FF','fill-opacity':0.05}});
   addL({id:'radius-line',type:'line',source:'radius',paint:{'line-color':'#35E5FF','line-width':1.5,'line-dasharray':[3,3],'line-opacity':0.7}});
-  addL({id:'clusters',type:'circle',source:'pins',filter:['has','point_count'],paint:{'circle-color':['case',['>',['get','fire'],0],'#FF4438',['>',['get','hazard'],0],'#FFB020','#7C5CFF'],'circle-radius':['step',['get','point_count'],20,10,26,25,32],'circle-stroke-width':3,'circle-stroke-color':'#EDEBFF'}});
+  addL({id:'clusters',type:'circle',source:'pins',filter:['has','point_count'],paint:{'circle-color':['case',['>',['get','hazard'],0],'#FFB020','#7C5CFF'],'circle-radius':['step',['get','point_count'],20,10,26,25,32],'circle-stroke-width':3,'circle-stroke-color':'#EDEBFF'}});
   addL({id:'cluster-count',type:'symbol',source:'pins',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-font':['Open Sans Bold'],'text-size':15},paint:{'text-color':'#0b0e2e'}});
-  addL({id:'pin-dot',type:'circle',source:'pins',filter:['!',['has','point_count']],paint:{'circle-radius':13,'circle-color':['match',['get','category'],'social','#7C5CFF','fire','#FF4438','hazard','#FFB020','found','#22E5A3','lost','#FF5CA8','meetup','#35E5FF','#7C5CFF'],'circle-stroke-width':2,'circle-stroke-color':'#EDEBFF'}});
+  addL({id:'pin-dot',type:'circle',source:'pins',filter:['!',['has','point_count']],paint:{'circle-radius':13,'circle-color':['match',['get','category'],'social','#7C5CFF','event','#B15CFF','hazard','#FFB020','found','#22E5A3','lost','#FF5CA8','meetup','#35E5FF','#7C5CFF'],'circle-stroke-width':2,'circle-stroke-color':'#EDEBFF'}});
   addL({id:'pin-glyph',type:'symbol',source:'pins',filter:['!',['has','point_count']],layout:{'text-field':['get','glyph'],'text-font':['Open Sans Bold'],'text-size':14,'text-allow-overlap':true},paint:{'text-color':'#0b0e2e'}});
   if(!mapOverlaysBound){
     mapOverlaysBound=true;
-    map.on('click','clusters',e=>{const f=map.queryRenderedFeatures(e.point,{layers:['clusters']})[0];map.getSource('pins').getClusterExpansionZoom(f.properties.cluster_id).then(z=>map.easeTo({center:f.geometry.coordinates,zoom:z}));});
-    map.on('click','pin-dot',e=>{if(e.features[0])openDetail(e.features[0].properties.id);});
+    map.on('click','clusters',e=>{if(state.placing)return;const f=map.queryRenderedFeatures(e.point,{layers:['clusters']})[0];map.getSource('pins').getClusterExpansionZoom(f.properties.cluster_id).then(z=>map.easeTo({center:f.geometry.coordinates,zoom:z}));});
+    map.on('click','pin-dot',e=>{if(state.placing)return;if(e.features[0])openDetail(e.features[0].properties.id);});
     ['clusters','pin-dot','pin-glyph'].forEach(l=>{map.on('mouseenter',l,()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave',l,()=>map.getCanvas().style.cursor='');});
-    let pt=null;
-    map.on('touchstart',e=>{pt=setTimeout(()=>openComposer([e.lngLat.lng,e.lngLat.lat]),550);});
-    map.on('touchend',()=>clearTimeout(pt));map.on('touchmove',()=>clearTimeout(pt));
-    map.on('mousedown',e=>{pt=setTimeout(()=>openComposer([e.lngLat.lng,e.lngLat.lat]),550);});
-    map.on('mouseup',()=>clearTimeout(pt));map.on('mousemove',()=>clearTimeout(pt));
+    // Pin placement now happens via the Drop button + on-map crosshair, so map
+    // gestures (pan/pinch-zoom) never accidentally open the composer.
+    map.on('move',()=>{if(state.placing)updatePlaceCoord();});
     map.on('moveend',debounce(()=>{refreshUrgent();refreshMeetMarkers();},300));
     map.on('idle',debounce(updateLocationBar,400));
     tryGeolocate(true);setTimeout(handleHash,400);
   }
-  drawRadius();refreshUrgent();refreshMeetMarkers();updateLocationBar();
+  drawRadius();refreshUrgent();refreshMeetMarkers();refreshSuperMarker();updateLocationBar();
 }
 function initMap(){
   map=new maplibregl.Map({container:'map',style:BASE_STYLE,center:state.center,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:{compact:true}});
@@ -917,22 +955,40 @@ document.getElementById('radiusPill').onclick=()=>{state.radiusIdx=(state.radius
    COMPOSER (§5)
    ============================================================ */
 const composerScrim=document.getElementById('composerScrim'),composerSheet=document.getElementById('composerSheet');
-function openComposer(pre){
+function openComposer(loc){
   if(!ageOK()){showAgeGate();return;}
-  state.composer={media:[],category:'social',subcat:null,lifetime:LIFETIMES.social.def,precision:'approx_50m'};
-  renderCatSeg();renderSubSeg();renderLifeSeg();renderPrecision();renderMediaStrip();
-  document.getElementById('postText').value='';document.getElementById('accuracyHint').textContent='';updatePublish();
+  const where=(loc&&loc.length===2)?loc.slice():((state.composer&&state.composer.location)||(state.me?[state.me.lng,state.me.lat]:state.center.slice()));
+  state.composer={media:[],category:'social',subcat:null,lifetime:LIFETIMES.social.def,precision:'approx_50m',location:where,superId:null};
+  const sb=document.getElementById('superBanner');if(sb)sb.style.display='none';
+  renderCatSeg();renderSubSeg();renderLifeSeg();renderPrecision();renderMediaStrip();updateComposerLoc();
+  document.getElementById('postText').value='';updatePublish();
   composerScrim.classList.add('open');composerSheet.classList.add('open');
-  const start=pre||(state.me?[state.me.lng,state.me.lat]:state.center);
-  setTimeout(()=>{
-    if(!composerMap){composerMap=new maplibregl.Map({container:'composerMap',style:BASE_STYLE,center:start,zoom:16,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:false});composerMap.touchZoomRotate.disableRotation();
-      composerMap.on('move',()=>{const c=composerMap.getCenter();document.getElementById('composerCoord').textContent=fmtCoord(c.lng,c.lat,6);});
-      composerMap.on('load',()=>{composerMap.resize();const c=composerMap.getCenter();document.getElementById('composerCoord').textContent=fmtCoord(c.lng,c.lat,6);});
-    }else{composerMap.resize();composerMap.jumpTo({center:start,zoom:16});document.getElementById('composerCoord').textContent=fmtCoord(start[0],start[1],6);}
-  },360);
 }
+function updateComposerLoc(){const l=state.composer&&state.composer.location;if(!l)return;document.getElementById('composerCoord').textContent=fmtCoord(l[0],l[1],6);const h=HOODS[Math.abs(hashStr(Math.round(l[0]*50)+','+Math.round(l[1]*50)))%HOODS.length];document.getElementById('composerHood').textContent='Near '+h;}
 function closeComposer(){composerScrim.classList.remove('open');composerSheet.classList.remove('open');}
 composerScrim.onclick=closeComposer;document.getElementById('composerClose').onclick=closeComposer;
+document.getElementById('reposition').onclick=()=>startPlacement('edit');
+
+/* ---------- Pin placement on the main map (§2) ---------- */
+function startPlacement(mode){
+  if(!ageOK()){showAgeGate();return;}
+  if(currentTab()!=='map')switchTab('map');
+  composerScrim.classList.remove('open');composerSheet.classList.remove('open');
+  state.placing=true;state.placeMode=mode||'new';
+  const layer=document.getElementById('placeLayer');layer.classList.add('active');layer.setAttribute('aria-hidden','false');
+  document.getElementById('fab').style.display='none';
+  const start=(state.placeMode==='edit'&&state.composer&&state.composer.location)?state.composer.location:(state.me?[state.me.lng,state.me.lat]:state.center);
+  if(map)map.easeTo({center:start,zoom:Math.max(map.getZoom?map.getZoom():16,16)});
+  setTimeout(updatePlaceCoord,80);
+}
+function updatePlaceCoord(){if(!map)return;const c=map.getCenter();const el=document.getElementById('placeCoord');if(el)el.textContent=fmtCoord(c.lng,c.lat,6);}
+function endPlacement(){state.placing=false;const layer=document.getElementById('placeLayer');layer.classList.remove('active');layer.setAttribute('aria-hidden','true');document.getElementById('fab').style.display=currentTab()==='map'?'flex':'none';}
+function confirmPlacement(){if(!map)return;const c=map.getCenter(),loc=[c.lng,c.lat],mode=state.placeMode;endPlacement();
+  if(mode==='edit'&&state.composer){state.composer.location=loc;updateComposerLoc();composerScrim.classList.add('open');composerSheet.classList.add('open');}
+  else openComposer(loc);
+}
+document.getElementById('placeConfirm').onclick=confirmPlacement;
+document.getElementById('placeCancel').onclick=()=>{const mode=state.placeMode;endPlacement();if(mode==='edit'&&state.composer){composerScrim.classList.add('open');composerSheet.classList.add('open');}};
 function renderCatSeg(){const seg=document.getElementById('catSeg');seg.innerHTML='';for(const k of CAT_KEYS){const c=CATS[k];const b=document.createElement('button');const on=state.composer.category===k;b.setAttribute('aria-pressed',on?'true':'false');if(on)b.style.background=c.color;b.innerHTML='<span style="color:'+(on?'#0b0e2e':c.color)+'">'+c.glyph+'</span>'+c.name;
   b.onclick=()=>{if(k==='meetup'){toast('Use the Meet tab to post an anonymous meetup');return;}state.composer.category=k;state.composer.subcat=null;state.composer.lifetime=LIFETIMES[k].def;renderCatSeg();renderSubSeg();renderLifeSeg();};seg.appendChild(b);}}
 function renderSubSeg(){
@@ -952,20 +1008,18 @@ document.getElementById('addMedia').onclick=()=>document.getElementById('fileInp
 document.getElementById('fileInput').onchange=e=>{const files=[...e.target.files].slice(0,10-state.composer.media.length);for(const f of files){state.composer.media.push({url:URL.createObjectURL(f),alt:'',file:f});}renderMediaStrip();updatePublish();e.target.value='';};
 function updatePublish(){const btn=document.getElementById('publishBtn');const hasP=state.composer.media.length>0,hasT=document.getElementById('postText').value.trim().length>0;btn.disabled=!(hasP&&hasT);btn.textContent=!hasP?'Add a photo to publish':(!hasT?'Write something to publish':'Publish pin');}
 document.getElementById('postText').addEventListener('input',updatePublish);
-document.getElementById('useMyLoc').onclick=()=>{if(!navigator.geolocation){toast('Geolocation not available');return;}navigator.geolocation.getCurrentPosition(pos=>{const {longitude,latitude,accuracy}=pos.coords;if(composerMap)composerMap.easeTo({center:[longitude,latitude],zoom:17});document.getElementById('accuracyHint').innerHTML='Accuracy ±'+Math.round(accuracy)+' m'+(accuracy>50?' — move outdoors for a sharper fix.':' ✓');},()=>toast('Could not get your location'),{enableHighAccuracy:true,timeout:8000});};
-document.getElementById('searchAddr').onclick=()=>{const q=prompt('Search an address or place (demo geocoder)');if(!q||!composerMap)return;const c=composerMap.getCenter();composerMap.easeTo({center:[c.lng+(Math.random()-.5)*0.01,c.lat+(Math.random()-.5)*0.01],zoom:16});toast('Flew to "'+q+'" — fine-tune with the crosshair');};
 document.getElementById('publishBtn').onclick=()=>{
-  const cat=state.composer.category;const c=composerMap?composerMap.getCenter():{lng:state.center[0],lat:state.center[1]};
-  if(cat==='fire'||cat==='hazard'){const lvl=levelOf(myPoints());if(lvl<2&&!me.contactVerified){toast('Emergency posting needs level 2 or a verified contact');return;}}
+  const cat=state.composer.category;const loc=(state.composer.location)||state.center;const c={lng:loc[0],lat:loc[1]};
+  if(cat==='hazard'){const lvl=levelOf(myPoints());if(lvl<2&&!me.contactVerified){toast('Hazard posting needs level 2 or a verified contact');return;}}
   const text=document.getElementById('postText').value.trim();
   const post=makePost({category:cat,subcat:state.composer.subcat,text,exact:[c.lng,c.lat],precision:state.composer.precision,lifetime:state.composer.lifetime,authorId:'me',media:state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}))});
   state.posts.unshift(post);award('create_post',10,post.id);
-  closeComposer();refreshPins();map.easeTo({center:post.display_location,zoom:16});
-  toast(cat==='fire'||cat==='hazard'?'Emergency pin dropped — neighbours notified':'Pin dropped 📍 +10 pts');
-  maybeBadgeToast();setTimeout(()=>openDetail(post.id),500);
+  closeComposer();refreshPins();if(map)map.easeTo({center:post.display_location,zoom:16});
+  toast(cat==='hazard'?'Hazard pin dropped — neighbours notified':'Pin dropped 📍 +10 pts');
+  maybeBadgeToast();maybeClaimSuperSpot(post);setTimeout(()=>openDetail(post.id),500);
 };
-document.getElementById('fab').onclick=()=>openComposer();
-document.getElementById('tabDrop').onclick=e=>{e.preventDefault();openComposer();};
+document.getElementById('fab').onclick=()=>startPlacement('new');
+document.getElementById('tabDrop').onclick=e=>{e.preventDefault();startPlacement('new');};
 
 /* ============================================================
    DETAIL SHEET
@@ -1078,7 +1132,7 @@ function notify(type,toUser,ref){
   // only surface notifications addressed to "me" in this single-user demo
   const map={like:['♥','liked your pin'],comment:['💬','commented on your pin'],follow:['➕','started following you'],
     comment_removed:['🗑','Your comment was removed by the post owner'],meetup_req:['🤝','wants to meet up'],
-    meetup_acc:['✅','accepted your meetup'],meetup_msg:['✉️','sent a message'],badge:['🏅','You earned a badge'],level:['⭐','You reached a new level'],nearby:['📍','New pin near you'],emergency:['🚨','Emergency near you']};
+    meetup_acc:['✅','accepted your meetup'],meetup_msg:['✉️','sent a message'],badge:['🏅','You earned a badge'],level:['⭐','You reached a new level'],nearby:['📍','New pin near you'],emergency:['🚨','Emergency near you'],super:['✨','A Super Spot appeared near you'],super_won:['🏆','You claimed a Super Spot!']};
   if(toUser!=='me'&&['like','comment','follow'].includes(type))return; // to others → not shown here
   const [ic,txt]=map[type]||['🔔','Notification'];
   state.notifications.unshift({id:uid(),type,ic,text:txt,ref,at:Date.now(),read:false});
@@ -1230,6 +1284,7 @@ function badgeDefs(){
     mk('gold','🗼','Watchtower','Keep the city safe — confirm 50 emergencies.',confirms,50),
     mk('gold','🕊️','Guardian','Reunite someone with what they lost.',reunions,1),
     mk('silver','🔗','Connector','Grow a following of 25 neighbours.',followers,25),
+    mk('gold','🧭','Pathfinder','Be first to claim a weekly Super Spot.',me.superClaims||0,1),
     mk('silver','🛡️','Trusted','Earn 500 reputation points.',myPoints(),500),
     mk('platinum','👑','Local Legend','Reach the top level: Cartographer.',myPoints(),10000),
   ];
@@ -1264,7 +1319,7 @@ badgeScrim.onclick=closeBadgeDetail;
 function showBadges(){const body=document.getElementById('lbBody');document.querySelector('#lbScreen h1').textContent='Badges';const defs=badgeDefs();const earned=defs.filter(b=>b.have).length;
   body.innerHTML='<div class="pill-note" style="margin-bottom:10px">'+earned+' of '+defs.length+' badges earned</div><div class="badgegrid">'+defs.map(badgeCardHTML).join('')+'</div><h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Points ledger</h3>'+ledgerHTML();
   bindBadgeCards(body);showScreen('lb');}
-function ledgerHTML(){if(!state.pointEvents.length)return emptyMsg('No points yet — drop a pin to start.');const labels={create_post:'Created a post',confirm_emergency:'Confirmed an emergency',comment:'Commented',lost_resolved:'Lost pin resolved',found_match:'Found match'};return state.pointEvents.slice(0,30).map(e=>'<div class="lbrow"><div style="flex:1">'+(labels[e.action]||e.action)+'<div class="meta">'+fmtAgo(e.at)+' ago</div></div><div class="pts">+'+e.points+'</div></div>').join('');}
+function ledgerHTML(){if(!state.pointEvents.length)return emptyMsg('No points yet — drop a pin to start.');const labels={create_post:'Created a post',confirm_emergency:'Confirmed an emergency',comment:'Commented',lost_resolved:'Lost pin resolved',found_match:'Found match',super_claim:'✨ Claimed a Super Spot'};return state.pointEvents.slice(0,30).map(e=>'<div class="lbrow"><div style="flex:1">'+(labels[e.action]||e.action)+'<div class="meta">'+fmtAgo(e.at)+' ago</div></div><div class="pts">+'+e.points+'</div></div>').join('');}
 
 /* ============================================================
    LEADERBOARD (§9.4)
@@ -1304,15 +1359,45 @@ function meetupVisible(m){ // server-side match: caller's band must be in the ho
   return m.bands.includes(myBand());
 }
 function pickRealUser(){const ids=Object.keys(state.users).filter(x=>x!=='me');return ids[Math.floor(Math.random()*ids.length)];}
+let meetView='meetups';
+function myChats(){
+  return state.meetups.filter(m=>{
+    if(state.blocked.has(m.hostId))return false;
+    const acc=m.requests.find(r=>r.status==='accepted');
+    return acc&&(m.mine||acc.byMe);
+  }).sort((a,b)=>{const la=a.messages.length?a.messages[a.messages.length-1].at:a.created_at,lb=b.messages.length?b.messages[b.messages.length-1].at:b.created_at;return lb-la;});
+}
+function chatRow(m){
+  const acc=m.requests.find(r=>r.status==='accepted');
+  const otherName=m.mine?(acc&&acc.alias?acc.alias:'Guest'):m.hostAlias;
+  const otherAv=m.mine?(acc&&acc.avatar?acc.avatar:1):m.hostAvatar;
+  const last=m.messages.length?m.messages[m.messages.length-1]:null;
+  const preview=last?((last.me?'You: ':'')+last.text):'No messages yet — say hi 👋';
+  const ended=m.status==='expired'||m.expires_at<=Date.now();
+  return '<div class="meet-card" data-id="'+m.id+'"><div class="row" style="justify-content:space-between"><span class="act-label">◎ '+esc(m.activity)+'</span><span class="meta">'+(ended?'ended':fmtAgo(last?last.at:m.created_at)+' ago')+'</span></div>'
+    +'<div class="alias"><div class="av">'+presetAvatar(otherAv)+'</div><div style="min-width:0"><div style="font-weight:700;font-size:13.5px">'+esc(otherName)+'</div><div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(preview)+'</div></div></div>'
+    +'<div class="meta">'+esc(m.venue)+(ended?' · conversation archived':'')+'</div></div>';
+}
 function renderMeet(){
   const body=document.getElementById('meetBody');
   if(state.settings.under18Sim||!me.isAdult){body.innerHTML='<div class="empty"><div class="big">Meetups are 18+</div><div>This feature is unavailable on your account. There is no under-18 option, by design.</div></div>';return;}
+  const chats=myChats();
+  let html='<div class="segtabs" id="meetTabs"><button class="'+(meetView==='meetups'?'on':'')+'" data-v="meetups">Meetups</button><button class="'+(meetView==='chats'?'on':'')+'" data-v="chats">Chats'+(chats.length?' ('+chats.length+')':'')+'</button></div>';
+  if(meetView==='chats'){
+    html+='<div class="safety">💬 Your meetup conversations live here so you can pick up where you left off. They archive when a meetup fully ends.</div>';
+    html+=chats.length?chats.map(chatRow).join(''):emptyMsg('No conversations yet. Request or host a meetup to start chatting.');
+    body.innerHTML=html;
+    body.querySelectorAll('#meetTabs button').forEach(b=>b.onclick=()=>{meetView=b.dataset.v;renderMeet();});
+    body.querySelectorAll('.meet-card[data-id]').forEach(c=>c.onclick=()=>openMeetDetail(c.dataset.id));
+    return;
+  }
   const list=state.meetups.filter(m=>m.status!=='expired'&&m.expires_at>Date.now()).filter(m=>m.mine||meetupVisible(m));
-  let html='<div class="safety">You are shown as an anonymous alias. Only people in a matching age band can see your meetups. Meet in public, tell someone where you\'re going, leave whenever you want.</div>';
+  html+='<div class="safety">You are shown as an anonymous alias. Only people in a matching age band can see your meetups. Meet in public, tell someone where you\'re going, leave whenever you want.</div>';
   html+='<button class="btn-primary" id="newMeet" style="margin-bottom:14px">＋ Post a meetup</button>';
   html+='<div class="meta" style="margin:0 4px 8px">Showing meetups for your band: '+myBand()+'</div>';
   html+=list.length?list.map(meetCard).join(''):emptyMsg('No meetups nearby for your band yet.');
   body.innerHTML=html;
+  body.querySelectorAll('#meetTabs button').forEach(b=>b.onclick=()=>{meetView=b.dataset.v;renderMeet();});
   document.getElementById('newMeet').onclick=openMeetComposer;
   body.querySelectorAll('.meet-card[data-id]').forEach(c=>c.onclick=()=>openMeetDetail(c.dataset.id));
 }
@@ -1369,6 +1454,28 @@ function simulateInboundRequest(id){const m=state.meetups.find(x=>x.id===id);if(
 function openMeetDetail(id){const m=state.meetups.find(x=>x.id===id);if(!m)return;state.currentMeet=id;renderMeetDetail(m);mdScrim.classList.add('open');mdSheet.classList.add('open');}
 function closeMeetDetail(){mdScrim.classList.remove('open');mdSheet.classList.remove('open');state.currentMeet=null;}
 mdScrim.onclick=closeMeetDetail;
+/* Admin review of a reported meetup — shows content without joining, with moderation actions. */
+function openMeetReview(id){
+  const m=state.meetups.find(x=>x.id===id);if(!m){toast('Meetup no longer exists');return;}
+  const host=userOf(m.hostId);
+  const body=document.getElementById('mdBody');
+  body.innerHTML='<div class="sheet-head"><h2>🛡️ Review meetup</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="mrClose">Close</button></div>'
+    +'<div class="banner">Admin view — the host and members are not notified.</div>'
+    +'<div class="alias"><div class="av" style="width:44px;height:44px">'+presetAvatar(m.hostAvatar)+'</div><div><div style="font-weight:700">'+esc(m.activity)+'</div><div class="meta">'+esc(m.venue)+' · band '+m.ageBand+' · '+m.status+'</div></div></div>'
+    +'<div class="meta" style="margin:4px 0">Host account: <b>'+esc(host.name)+'</b> (@'+esc(host.username||'user')+') · '+(host.reports||0)+' reports · '+(host.status||'active')+'</div>'
+    +(m.note?'<div class="detail-text" style="font-size:14.5px">“'+esc(m.note)+'”</div>':'<div class="hint">No note provided.</div>')
+    +'<div class="meta" style="margin:8px 0">'+m.requests.length+' request(s) · '+m.messages.length+' chat message(s)</div>'
+    +'<div class="mini-actions" style="margin-top:12px">'
+      +'<button class="danger" id="mrRemove">Remove meetup</button>'
+      +'<button class="danger" id="mrBan">Ban host</button>'
+      +'<button id="mrProfile">Host profile</button>'
+    +'</div>';
+  document.getElementById('mrClose').onclick=closeMeetDetail;
+  document.getElementById('mrRemove').onclick=()=>{m.status='expired';toast('Meetup removed');refreshMeetMarkers();closeMeetDetail();if(document.getElementById('adminScreen').classList.contains('active'))renderAdmin();};
+  document.getElementById('mrBan').onclick=()=>{setUserStatus(m.hostId,'banned','Host banned');closeMeetDetail();if(document.getElementById('adminScreen').classList.contains('active'))renderAdmin();};
+  document.getElementById('mrProfile').onclick=()=>{closeMeetDetail();openUserProfile(m.hostId);};
+  mdScrim.classList.add('open');mdSheet.classList.add('open');
+}
 function renderMeetDetail(m){
   const body=document.getElementById('mdBody');const mine=m.mine;const dist=metresBetween(state.center,m.display_location);
   const accepted=m.requests.find(r=>r.status==='accepted');
@@ -1528,12 +1635,13 @@ function openAdmin(){if(!me.isAdmin){toast('Admin access only');return;}adminTab
 function reportCardHTML(r){
   let tgt='content';
   if(r.type==='post'){const p=getPost(r.targetId);tgt='a pin'+(p?' by '+esc(userOf(p.authorId).name):'');}
-  else if(r.type==='meetup')tgt='a meetup';
+  else if(r.type==='meetup'){const m=state.meetups.find(x=>x.id===r.targetId);tgt=m?('meetup “'+esc(m.activity)+'” · '+esc(m.venue)):'a meetup';}
   else tgt='user '+esc(userOf(r.targetId).name);
   return '<div class="report-card"><div style="font-weight:700;font-size:13.5px">⚑ '+esc(r.reason)+'</div><div class="meta" style="margin-top:2px">On '+tgt+' · '+fmtAgo(r.at)+' ago · <span class="statustag '+(r.status==='open'?'restricted':'active')+'">'+r.status+'</span></div>'
     +(r.status==='open'?'<div class="mini-actions">'
       +(r.type==='post'?'<button class="danger" data-rmpost="'+r.id+'">Remove pin</button>':'')
-      +'<button class="danger" data-rban="'+r.id+'">Ban user</button>'
+      +(r.type==='meetup'?'<button class="danger" data-rmmeet="'+r.id+'">Remove meetup</button>':'')
+      +'<button class="danger" data-rban="'+r.id+'">Ban host</button>'
       +'<button data-openrep="'+r.id+'">Review</button>'
       +'<button class="good" data-dismiss="'+r.id+'">Dismiss</button></div>':'')
     +'</div>';
@@ -1582,16 +1690,17 @@ function renderAdmin(){
   body.querySelectorAll('[data-rmpost]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.rmpost);if(r){const p=getPost(r.targetId);if(p)p.status='removed';r.status='resolved';toast('Pin removed');refreshPins();renderAdmin();}});
   body.querySelectorAll('[data-rban]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.rban);if(r){let uid2=r.targetId;if(r.type==='post'){const p=getPost(r.targetId);uid2=p&&p.authorId;}else if(r.type==='meetup'){const m=state.meetups.find(x=>x.id===r.targetId);uid2=m&&m.hostId;}if(uid2)setUserStatus(uid2,'banned','User banned');r.status='resolved';renderAdmin();}});
   body.querySelectorAll('[data-dismiss]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.dismiss);if(r)r.status='dismissed';toast('Report dismissed');renderAdmin();});
-  body.querySelectorAll('[data-openrep]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.openrep);if(!r)return;if(r.type==='post'&&getPost(r.targetId)){switchTab('map');openDetail(r.targetId);}else if(r.type==='user'){openUserProfile(r.targetId);}else toast('Open the Meet tab to review this meetup');});
+  body.querySelectorAll('[data-rmmeet]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.rmmeet);if(r){const m=state.meetups.find(x=>x.id===r.targetId);if(m)m.status='expired';r.status='resolved';toast('Meetup removed');refreshMeetMarkers();renderAdmin();}});
+  body.querySelectorAll('[data-openrep]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.openrep);if(!r)return;if(r.type==='post'&&getPost(r.targetId)){switchTab('map');openDetail(r.targetId);}else if(r.type==='user'){openUserProfile(r.targetId);}else if(r.type==='meetup'){openMeetReview(r.targetId);}});
 }
-document.getElementById('adminBack').onclick=()=>switchTab('profile');
+document.getElementById('adminBack').onclick=()=>{showScreen('settings');renderSettings();};
 
 /* ============================================================
    NAV / TABS
    ============================================================ */
 function currentTab(){const t=document.querySelector('.tab.active');return t?t.dataset.tab:'map';}
 const SCREENS={feed:'feedScreen',search:'searchScreen',meet:'meetScreen',alerts:'alertScreen',profile:'profileScreen',settings:'settingsScreen',lb:'lbScreen',list:'listScreen',admin:'adminScreen'};
-function showScreen(name){Object.values(SCREENS).forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.setAttribute('aria-hidden','true');});if(SCREENS[name]){const el=document.getElementById(SCREENS[name]);el.classList.add('active');el.setAttribute('aria-hidden','false');}const showMap=name==='map';document.getElementById('fab').style.display=showMap?'flex':'none';document.getElementById('mapctrls').style.display=showMap?'flex':'none';document.getElementById('topbar').style.display=showMap?'flex':'none';if(showMap&&map)setTimeout(()=>map.resize(),50);}
+function showScreen(name){if(name!=='map'&&state.placing)endPlacement();Object.values(SCREENS).forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.setAttribute('aria-hidden','true');});if(SCREENS[name]){const el=document.getElementById(SCREENS[name]);el.classList.add('active');el.setAttribute('aria-hidden','false');}const showMap=name==='map';document.getElementById('fab').style.display=(showMap&&!state.placing)?'flex':'none';document.getElementById('mapctrls').style.display=showMap?'flex':'none';document.getElementById('topbar').style.display=showMap?'flex':'none';if(showMap&&map)setTimeout(()=>map.resize(),50);}
 function switchTab(name){
   const tabName=(name==='alerts'||name==='search'||name==='settings'||name==='lb'||name==='list'||name==='admin')?null:name;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',tabName&&t.dataset.tab===tabName));
@@ -1609,6 +1718,68 @@ document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab==='drop')return;t
 document.getElementById('zoomIn').onclick=()=>map&&map.zoomIn();
 document.getElementById('zoomOut').onclick=()=>map&&map.zoomOut();
 document.getElementById('recenter').onclick=()=>{if(state.me)map.easeTo({center:[state.me.lng,state.me.lat],zoom:15});else tryGeolocate(false);};
+
+/* ============================================================
+   SUPER SPOT (§4) — weekly random bonus location
+   A surprise spot appears within ~10 km, notifies nearby users; the first to
+   travel there and post what they see claims the reward. (Weekly in production;
+   sped up here for the demo.)
+   ============================================================ */
+const SUPER_REWARD=100;
+let superMarker=null;
+function spawnSuperSpot(){
+  const base=(state.me?[state.me.lng,state.me.lat]:state.center);
+  const dist=2000+Math.random()*7000,ang=Math.random()*2*Math.PI; // 2–9 km, accessible range
+  const loc=[base[0]+(dist*Math.sin(ang))/(111320*Math.cos(base[1]*Math.PI/180)),base[1]+(dist*Math.cos(ang))/111320];
+  state.superSpot={id:uid(),location:loc,created_at:Date.now(),expires_at:Date.now()+3*D*1000,claimed:false,reward:SUPER_REWARD};
+  refreshSuperMarker();
+  notify('super','me',null);
+  toast('✨ A Super Spot appeared '+fmtDist(dist)+' away — first to check in wins +'+SUPER_REWARD+' pts');
+}
+function superActive(){const ss=state.superSpot;return ss&&!ss.claimed&&ss.expires_at>Date.now();}
+function refreshSuperMarker(){
+  if(superMarker){superMarker.remove();superMarker=null;}
+  if(!map||!superActive())return;
+  const el=document.createElement('div');el.className='super-marker';el.setAttribute('role','button');el.setAttribute('aria-label','Weekly Super Spot bonus');
+  el.innerHTML='<div class="pulse"></div><div class="core">✨</div>';
+  el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openSuperSpot();});
+  superMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(state.superSpot.location).addTo(map);
+}
+const superScrim=document.getElementById('superScrim'),superSheet=document.getElementById('superSheet');
+function closeSuperSheet(){superScrim.classList.remove('open');superSheet.classList.remove('open');}
+superScrim.onclick=closeSuperSheet;
+function openSuperSpot(){
+  const ss=state.superSpot;if(!superActive())return;
+  const dist=metresBetween(state.center,ss.location);
+  const left=Math.max(0,Math.floor((ss.expires_at-Date.now())/86400000));
+  document.getElementById('superBody').innerHTML=
+    '<div class="sheet-head"><h2>✨ Super Spot</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="ssClose">Close</button></div>'
+    +'<div class="super-hero"><div class="super-badge">✨</div><div><div style="font-family:var(--font-display);font-weight:800;font-size:19px">Weekly Super Spot</div><div class="meta">'+fmtDist(dist)+' away · '+left+'d left</div></div></div>'
+    +'<div class="detail-text" style="font-size:14.5px">A surprise bonus location has appeared near you. Be the <b>first to get there</b>, post a photo of the best thing you see, and claim <b>+'+ss.reward+' points</b> plus the <b>Pathfinder</b> badge. First come, first served.</div>'
+    +'<div class="safety">🧭 Only real check-ins count — you post from the spot itself. Stay aware of your surroundings and only go somewhere you feel safe.</div>'
+    +'<button class="btn-primary" id="ssGo" style="margin-top:6px">Show me the way</button>'
+    +'<button class="btn-ghost" id="ssClaim" style="margin-top:8px">I\'m here — claim it</button>';
+  document.getElementById('ssClose').onclick=closeSuperSheet;
+  document.getElementById('ssGo').onclick=()=>{closeSuperSheet();switchTab('map');if(map)map.easeTo({center:ss.location,zoom:16});toast('Head to the glowing spot, then tap it to claim');};
+  document.getElementById('ssClaim').onclick=startSuperClaim;
+  superScrim.classList.add('open');superSheet.classList.add('open');
+}
+function startSuperClaim(){
+  const ss=state.superSpot;if(!superActive())return;
+  const from=state.me?[state.me.lng,state.me.lat]:state.center;
+  const d=metresBetween(from,ss.location);
+  if(d>400){closeSuperSheet();switchTab('map');if(map)map.easeTo({center:ss.location,zoom:16});toast('You\'re '+fmtDist(d)+' from the Super Spot — travel there, then claim');return;}
+  closeSuperSheet();openComposer(ss.location.slice());state.composer.superId=ss.id;
+  const bn=document.getElementById('superBanner');if(bn)bn.style.display='flex';
+  toast('You made it! Post the best thing you see to claim +'+ss.reward+' pts');
+}
+function maybeClaimSuperSpot(post){
+  const sid=state.composer&&state.composer.superId;if(!sid)return;
+  const ss=state.superSpot;if(!ss||ss.id!==sid||ss.claimed)return;
+  ss.claimed=true;award('super_claim',ss.reward,post.id);me.superClaims=(me.superClaims||0)+1;
+  refreshSuperMarker();notify('super_won','me',post.id);
+  setTimeout(()=>toast('🏆 Super Spot claimed! +'+ss.reward+' points'),800);
+}
 
 /* ============================================================
    EXPIRY JOB (§5.3) + realtime sim (§6.6)
@@ -1648,6 +1819,9 @@ function boot(){
   seedUsers();
   state.posts=seedPosts(state.center);
   state.meetups=seedMeetups(state.center);
+  // seed one active conversation so the Chats tab has history to show
+  (function(){const cm=state.meetups[0];if(!cm)return;cm.requests.push({id:uid(),alias:aliasFor(),avatar:3,status:'accepted',byMe:true,at:Date.now()-3600e3});cm.status='matched';
+    cm.messages.push({me:false,text:'Hey! Still on for coffee around 4?',at:Date.now()-3500e3},{me:true,text:'Yes! See you at the counter ☕',at:Date.now()-3400e3},{me:false,text:'Perfect 🙌',at:Date.now()-3300e3});})();
   // me follows a few neighbours (some follow back → friends)
   ['u1','u2','u6','u8'].forEach(id=>state.following.add(id));
   me.points=90; // from seeded activity
@@ -1655,13 +1829,17 @@ function boot(){
   state.users.u5.reports=2;state.users.u3.reports=1;
   state.reports.push(
     {id:uid(),type:'post',targetId:'seed4',reason:'Spam / misleading',at:Date.now()-3600e3,status:'open'},
+    {id:uid(),type:'meetup',targetId:'meet3',reason:'Inappropriate / unsafe',at:Date.now()-5400e3,status:'open'},
     {id:uid(),type:'user',targetId:'u5',reason:'Harassment',at:Date.now()-7200e3,status:'open'});
+  if(state.users.u3)state.users.u3.reports=(state.users.u3.reports||0)+1; // host of meet3
   // seed a couple of notifications
   notify('follow','me','u4');notify('like','me','u6');state.notifications.forEach(n=>n.read=false);updateBell();
   renderChips();
   document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');
   initMap();switchTab('map');updateMeetTab();
   if(!ageOK())showAgeGate();
+  setTimeout(spawnSuperSpot,2600); // weekly in production; shown shortly after launch for the demo
+  setInterval(()=>{if(!superActive())spawnSuperSpot();},90000);
 }
 boot();
 
