@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#090B24" />
+<title>Pin Drop</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<style>
+:root{
+  --void:#090B24; --ink:#10133A; --surface:#191D4D; --surface-2:#232866; --line:rgba(255,255,255,.09);
+  --paper:#EDEBFF; --muted:#9AA0D6;
+  --social:#7C5CFF; --fire:#FF4438; --hazard:#FFB020; --found:#22E5A3; --lost:#FF5CA8; --meetup:#35E5FF;
+  --cyan:#35E5FF; --success:#22E5A3; --danger:#FF4438;
+  --font-display:'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono:'Space Mono', ui-monospace, monospace;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --tabbar-h:66px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overscroll-behavior:none}
+body{background:var(--void);color:var(--paper);font-family:var(--font-body);font-size:16px;line-height:1.48;-webkit-font-smoothing:antialiased;touch-action:manipulation}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+input,textarea,select{font-family:inherit;font-size:16px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--font-mono)}
+.display{font-family:var(--font-display);letter-spacing:-.02em}
+.scroll{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+img{max-width:100%}
+
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--ink);max-width:560px;margin:0 auto}
+
+/* ---------- Top bar ---------- */
+#topbar{position:absolute;left:0;right:0;z-index:20;top:calc(var(--safe-top) + 8px);padding:0 12px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#topbar > *{pointer-events:auto}
+.searchrow{display:flex;gap:8px;align-items:center}
+.searchfield{flex:1;min-width:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:14px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line)}
+.searchfield svg{flex:0 0 auto;opacity:.8}
+.searchfield input{flex:1;min-width:0;background:none;border:none;color:var(--paper);font-size:16px;padding:0}
+.searchfield input::placeholder{color:var(--muted)}
+.loc{flex:0 0 auto;text-align:right;line-height:1.05;max-width:44%;overflow:hidden}
+.loc .hood{font-family:var(--font-display);font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc .coord{font-family:var(--font-mono);font-size:10px;color:var(--cyan);white-space:nowrap}
+.iconbtn{flex:0 0 auto;width:44px;height:44px;border-radius:14px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative}
+.badge-dot{position:absolute;top:8px;right:9px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--fire);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono)}
+.radiuspill{flex:0 0 auto;height:44px;padding:0 12px;border-radius:14px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);font-family:var(--font-mono);font-size:12.5px;color:var(--cyan);display:flex;align-items:center;gap:6px}
+.chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chiprow::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;height:34px;min-height:34px;padding:0 14px;border-radius:99px;display:flex;align-items:center;gap:7px;white-space:nowrap;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper);transition:transform .12s ease}
+.chip .glyph{font-size:13px;line-height:1}
+.chip[aria-pressed="true"]{color:#0b0e2e;border-color:transparent}
+.chip:active{transform:scale(.96)}
+
+/* ---------- Map ---------- */
+#map{position:absolute;inset:0;background:var(--void)}
+#map canvas{touch-action:none}
+.maplibregl-ctrl-attrib{font-size:10px}
+.maplibregl-ctrl-bottom-left{margin-bottom:calc(var(--tabbar-h) + var(--safe-bottom))}
+#mapctrls{position:absolute;right:12px;z-index:15;bottom:calc(var(--tabbar-h) + var(--safe-bottom) + 84px);display:flex;flex-direction:column;gap:10px;align-items:center}
+.ctrlbtn{width:46px;height:46px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);color:var(--paper);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.ctrlbtn.zoomgroup{height:auto;flex-direction:column;padding:2px 0;gap:0}
+.zoomgroup button{width:44px;height:40px;font-size:22px;display:flex;align-items:center;justify-content:center;color:var(--paper)}
+.zoomgroup .divider{height:1px;width:26px;background:var(--line)}
+.ctrlbtn.recenter{color:var(--cyan)}
+#fab{position:absolute;left:50%;transform:translateX(-50%);z-index:16;bottom:calc(var(--tabbar-h) + var(--safe-bottom) + 16px);height:56px;padding:0 22px;border-radius:18px;display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:800;font-size:15.5px;color:#0b0e2e;background:linear-gradient(135deg,var(--social),var(--lost));box-shadow:0 10px 30px rgba(124,92,255,.5)}
+#fab:active{transform:translateX(-50%) scale(.97)}
+.me-dot{width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #0b0e2e;box-shadow:0 0 0 4px rgba(53,229,255,.25)}
+
+/* ---------- Teardrop markers ---------- */
+.pin{width:34px;height:34px;position:relative;cursor:pointer}
+.pin .drop{position:absolute;inset:0;border-radius:50% 50% 50% 6px;transform:rotate(45deg);border:2px solid #fff}
+.pin .glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0b0e2e;font-weight:700}
+.pin .radar{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none;z-index:-1}
+@keyframes radar{from{transform:scale(.5);opacity:.9}to{transform:scale(2.6);opacity:0}}
+.pin.urgent .radar{animation:radar 2.4s ease-out infinite}
+.pin.meet .drop{border-radius:50%}
+
+/* ---------- Sheets ---------- */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(4,5,18,.55);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s;max-width:560px;margin:0 auto}
+.scrim.open{opacity:1;visibility:visible}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:560px;margin:0 auto;max-height:88vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--surface),var(--ink));border-radius:28px 28px 0 0;border-top:1px solid var(--line);box-shadow:0 -20px 60px rgba(0,0,0,.5);transform:translateY(102%);transition:transform .34s cubic-bezier(.22,1,.36,1);padding-bottom:calc(var(--safe-bottom) + 8px)}
+.sheet.open{transform:translateY(0)}
+.handle{width:44px;height:5px;border-radius:99px;background:rgba(255,255,255,.22);margin:10px auto 4px}
+.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 18px 18px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px}
+.sheet-head h2{font-family:var(--font-display);font-size:20px;margin:0;font-weight:800}
+
+/* action sheet (menu) */
+#menuScrim{position:fixed;inset:0;z-index:50;background:rgba(4,5,18,.5);opacity:0;visibility:hidden;transition:.2s;max-width:560px;margin:0 auto}
+#menuScrim.open{opacity:1;visibility:visible}
+#menuSheet{position:fixed;left:12px;right:12px;bottom:calc(var(--safe-bottom) + 12px);z-index:51;max-width:536px;margin:0 auto;transform:translateY(20px);opacity:0;transition:.2s;pointer-events:none}
+#menuScrim.open ~ #menuSheet{transform:translateY(0);opacity:1;pointer-events:auto}
+.menu-group{background:var(--surface);border-radius:18px;overflow:hidden;border:1px solid var(--line);margin-bottom:8px}
+.menu-item{width:100%;text-align:left;padding:15px 18px;font-size:15.5px;font-weight:600;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.menu-item:last-child{border-bottom:none}
+.menu-item.danger{color:var(--danger)}
+.menu-cancel{width:100%;padding:16px;background:var(--surface-2);border-radius:18px;font-weight:700;border:1px solid var(--line)}
+
+/* ---------- Screens ---------- */
+.screen{position:absolute;inset:0;z-index:18;background:var(--ink);display:none;flex-direction:column}
+.screen.active{display:flex}
+.screen-head{padding:calc(var(--safe-top) + 14px) 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.screen-head .back{width:36px;height:36px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.screen-head h1{font-family:var(--font-display);font-weight:800;font-size:22px;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.screen-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(var(--tabbar-h) + var(--safe-bottom) + 16px)}
+
+/* segmented control */
+.segtabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;margin:0 0 12px}
+.segtabs button{flex:1;height:36px;border-radius:10px;font-weight:700;font-size:13px;color:var(--muted)}
+.segtabs button.on{background:var(--surface-2);color:var(--paper)}
+
+/* ---------- Tab bar ---------- */
+#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;max-width:560px;margin:0 auto;height:calc(var(--tabbar-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);display:flex;background:var(--ink);border-top:1px solid var(--line)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10px;font-weight:600;position:relative}
+.tab.active{color:var(--paper)}
+.tab.active svg{color:var(--cyan)}
+.tab svg{width:23px;height:23px}
+.tab .tdot{position:absolute;top:8px;right:calc(50% - 18px);min-width:8px;height:8px;border-radius:99px;background:var(--fire)}
+
+/* ---------- Cards ---------- */
+.card{background:var(--surface);border-radius:18px;padding:14px;margin-bottom:12px;border-left:4px solid var(--line);position:relative}
+.card .thumb{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;background:var(--surface-2);margin-bottom:10px}
+.card .row{display:flex;align-items:center;gap:8px}
+.card .title{font-family:var(--font-display);font-weight:800;font-size:16px;margin:2px 0 4px;letter-spacing:-.02em}
+.card .meta{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.card .body{font-size:14px;color:var(--paper);margin:6px 0 2px}
+.catbadge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:99px}
+.kebab{position:absolute;top:12px;right:10px;width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+
+/* ---------- Forms ---------- */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.input,.textarea,.select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;color:var(--paper);padding:12px 14px;font-size:16px}
+.textarea{min-height:84px;resize:vertical;line-height:1.5}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{padding:9px 13px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper);display:flex;align-items:center;gap:7px}
+.seg button[aria-pressed="true"]{border-color:transparent;color:#0b0e2e}
+.pillbtn[aria-pressed="true"]{background:var(--social);border-color:transparent;color:#0b0e2e}
+.btn-primary{width:100%;height:52px;border-radius:18px;font-family:var(--font-display);font-weight:800;font-size:16px;color:#0b0e2e;background:linear-gradient(135deg,var(--social),var(--lost));box-shadow:0 10px 30px rgba(124,92,255,.4)}
+.btn-primary:disabled{opacity:.4;box-shadow:none;filter:grayscale(.4)}
+.btn-ghost{width:100%;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);font-weight:600;color:var(--paper)}
+.btn-danger{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,68,56,.4);background:rgba(255,68,56,.12);font-weight:700;color:var(--danger)}
+
+.composer-map{position:relative;height:220px;border-radius:16px;overflow:hidden;border:1px solid var(--line);margin-bottom:6px}
+#composerMap,#meetMap{position:absolute;inset:0}
+.crosshair{position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%);pointer-events:none;z-index:5}
+.crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--cyan);box-shadow:0 0 6px rgba(53,229,255,.8)}
+.crosshair::before{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%)}
+.crosshair::after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%)}
+.crosshair .ring{position:absolute;inset:11px;border:2px solid var(--cyan);border-radius:50%}
+.coordreadout{position:absolute;left:8px;bottom:8px;z-index:6;font-family:var(--font-mono);font-size:11px;color:var(--cyan);background:rgba(9,11,36,.8);padding:5px 9px;border-radius:10px;border:1px solid var(--line)}
+.mediastrip{display:flex;gap:8px;overflow-x:auto;padding:2px 0}
+.mediastrip::-webkit-scrollbar{display:none}
+.thumbcell{position:relative;flex:0 0 auto;width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.thumbcell img{width:100%;height:100%;object-fit:cover}
+.thumbcell .rm{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(9,11,36,.85);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+.addcell{flex:0 0 auto;width:72px;height:72px;border-radius:12px;border:1px dashed rgba(255,255,255,.28);background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);font-size:10.5px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
+.pill-note{display:inline-block;font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 11px;margin-top:4px}
+
+/* ---------- Detail ---------- */
+.detail-media{width:100%;border-radius:16px;background:var(--surface-2);margin-bottom:12px;aspect-ratio:4/3;object-fit:cover}
+.author{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.avatar{width:42px;height:42px;border-radius:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;background:var(--surface-2)}
+.avatar svg{width:100%;height:100%}
+.author .nm{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:6px}
+.author .sub{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.flair{font-size:12px}
+.countdown{font-family:var(--font-mono);font-size:13px;color:var(--cyan);font-weight:700}
+.detail-text{font-size:15.5px;line-height:1.5;margin:10px 0}
+.detail-text a{color:var(--cyan);text-decoration:none;font-weight:600}
+.actions{display:flex;gap:8px;margin:14px 0 8px}
+.act{flex:1;height:46px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:7px;font-weight:700;font-size:13.5px;color:var(--paper)}
+.act.on{color:#0b0e2e;border-color:transparent}
+.act.like.on{background:var(--lost)}
+.act.save.on{background:var(--cyan)}
+.act.confirm.emph{background:var(--fire);color:#0b0e2e;border-color:transparent}
+.act.follow.on{background:var(--social);color:#0b0e2e;border-color:transparent}
+.comment{padding:10px 0;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.comment .avatar{width:32px;height:32px;border-radius:11px;font-size:15px}
+.comment .c-nm{font-weight:700;font-size:13px}
+.comment .c-tx{font-size:14px;margin-top:2px}
+.comment .c-del{margin-left:auto;color:var(--muted);font-size:12px;flex:0 0 auto}
+.commentbar{display:flex;gap:8px;margin-top:10px}
+.commentbar input{flex:1}
+.commentbar button{flex:0 0 auto;padding:0 16px;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:700}
+
+/* ---------- Notifications ---------- */
+.notif{display:flex;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line);align-items:flex-start}
+.notif.unread{background:linear-gradient(90deg,rgba(53,229,255,.06),transparent)}
+.notif .ic{width:38px;height:38px;border-radius:12px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface-2)}
+.notif .tx{font-size:14px}
+.notif .tm{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+
+/* ---------- Meetups ---------- */
+.meet-card{background:var(--surface);border-radius:18px;padding:14px;margin-bottom:12px;border:1px solid rgba(53,229,255,.25)}
+.meet-card .act-label{font-family:var(--font-display);font-weight:800;font-size:17px}
+.alias{display:flex;align-items:center;gap:10px;margin:8px 0}
+.alias .av{width:38px;height:38px;border-radius:12px;flex:0 0 auto}
+.safety{background:rgba(53,229,255,.08);border:1px solid rgba(53,229,255,.28);border-radius:14px;padding:12px;font-size:12.5px;line-height:1.5;color:var(--paper);margin:10px 0}
+.chat{display:flex;flex-direction:column;gap:8px;padding:10px 0}
+.msg{max-width:78%;padding:9px 13px;border-radius:16px;font-size:14.5px;line-height:1.4}
+.msg.them{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:5px}
+.msg.me{align-self:flex-end;background:var(--social);color:#0b0e2e;border-bottom-right-radius:5px}
+.agechip{padding:8px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-weight:600;font-size:13.5px}
+.agechip[aria-pressed="true"]{background:var(--cyan);color:#0b0e2e;border-color:transparent}
+
+/* ---------- Settings ---------- */
+.setrow{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:14px;margin-bottom:8px;border:1px solid var(--line)}
+.setrow .lbl{flex:1;font-weight:600;font-size:14.5px}
+.setrow .sub{font-size:11.5px;color:var(--muted);margin-top:2px;font-weight:400}
+.switch{width:48px;height:28px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);position:relative;flex:0 0 auto;transition:.2s}
+.switch.on{background:var(--cyan)}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on::after{left:22px}
+.section-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 4px 8px}
+
+/* ---------- Rewards ---------- */
+.statgrid{display:flex;justify-content:space-around;margin-top:14px}
+.statgrid .n{font-family:var(--font-display);font-size:22px;font-weight:800}
+.levelbar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin:8px 0}
+.levelbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--social),var(--cyan))}
+.badgegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.badge{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 8px;text-align:center}
+.badge.locked{opacity:.4}
+.badge .bi{font-size:26px}
+.badge .bn{font-size:11px;font-weight:700;margin-top:4px}
+.badge .bp{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);margin-top:2px}
+.lbrow{display:flex;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--line)}
+.lbrow .rk{font-family:var(--font-display);font-weight:800;font-size:18px;width:28px;text-align:center}
+.lbrow .pts{margin-left:auto;font-family:var(--font-mono);font-weight:700;color:var(--cyan)}
+
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty .big{font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--paper);margin-bottom:6px}
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface-2) 50%,var(--surface) 75%);background-size:200% 100%;animation:sk 1.3s infinite;border-radius:12px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);z-index:70;bottom:calc(var(--tabbar-h) + var(--safe-bottom) + 20px);background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .2s,transform .2s,visibility .2s;max-width:88%;text-align:center}
+#toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(-4px)}
+
+/* ---------- Age gate (§4 / 18+) ---------- */
+#ageGate{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px calc(var(--safe-bottom) + 26px);text-align:center;max-width:560px;margin:0 auto}
+#ageGate.show{display:flex}
+#ageGate .glyphmark{width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:22px}
+#ageGate h1{font-family:var(--font-display);font-weight:800;font-size:27px;margin:0 0 8px;letter-spacing:-.02em}
+#ageGate p{color:var(--muted);font-size:14.5px;line-height:1.55;max-width:320px;margin:0 0 22px}
+#ageGate .gate-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px}
+#ageGate .band-grid{display:none;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:340px;margin-bottom:8px}
+#ageGate.pickband .band-grid{display:flex}
+#ageGate.pickband .gate-primary,#ageGate.pickband .gate-sub{display:none}
+#ageGate .agechip{cursor:pointer}
+#ageGate .legal{font-size:11px;color:var(--muted);opacity:.8;margin-top:18px;max-width:320px;line-height:1.5}
+#ageBlock{display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+#ageGate.blocked .gate-actions,#ageGate.blocked .band-grid,#ageGate.blocked>h1,#ageGate.blocked>p,#ageGate.blocked>.glyphmark,#ageGate.blocked .legal{display:none}
+#ageGate.blocked #ageBlock{display:flex}
+
+/* ---------- Avatar picker ---------- */
+.av-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+.av-opt{aspect-ratio:1;border-radius:18px;overflow:hidden;border:2px solid transparent;position:relative;background:var(--surface-2);padding:0}
+.av-opt svg,.av-opt img{width:100%;height:100%;display:block;object-fit:cover}
+.av-opt[aria-pressed="true"]{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(53,229,255,.25)}
+.av-opt .chk{position:absolute;right:4px;bottom:4px;width:20px;height:20px;border-radius:50%;background:var(--cyan);color:#0b0e2e;font-size:12px;display:none;align-items:center;justify-content:center;font-weight:800}
+.av-opt[aria-pressed="true"] .chk{display:flex}
+.av-upload{aspect-ratio:1;border-radius:18px;border:1px dashed rgba(255,255,255,.28);background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:10.5px;font-weight:600}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar.tappable{cursor:pointer;position:relative}
+.avatar .edit-pip{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:var(--cyan);color:#0b0e2e;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--ink)}
+
+/* ---------- Redesigned badges (§7) ---------- */
+.badgegrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.badge{padding:14px 8px 12px;transition:transform .12s ease;cursor:pointer;overflow:hidden;position:relative}
+.badge:active{transform:scale(.96)}
+.badge .medal{width:58px;height:58px;margin:0 auto 8px;position:relative}
+.badge .medal svg{width:100%;height:100%}
+.badge.locked{opacity:1}
+.badge.locked .medal{filter:grayscale(1) brightness(.6)}
+.badge.locked .bn{color:var(--muted)}
+.badge .bn{font-size:11.5px;font-weight:800;font-family:var(--font-display);letter-spacing:-.01em}
+.badge .bp{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);margin-top:3px}
+.badge .miniprog{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin:6px 4px 0}
+.badge .miniprog>i{display:block;height:100%;background:linear-gradient(90deg,var(--social),var(--cyan))}
+.badge .tier{position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em}
+.badge-hero{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px}
+.badge-hero .medal{width:76px;height:76px;flex:0 0 auto}
+.badge-hero .medal svg{width:100%;height:100%}
+
+/* ---------- Subcategory picker (§5) ---------- */
+.subgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.subopt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 6px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);font-size:11.5px;font-weight:600;color:var(--paper);text-align:center;line-height:1.15}
+.subopt .se{font-size:21px;line-height:1}
+.subopt[aria-pressed="true"]{border-color:var(--cyan);background:rgba(53,229,255,.12)}
+.subbadge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--paper)}
+
+/* ---------- Followers / user lists ---------- */
+.ulist-row{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid var(--line)}
+.ulist-row .nm{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:6px}
+.ulist-row .sub{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:1px}
+.ulist-row .fbtn{flex:0 0 auto;height:34px;padding:0 14px;border-radius:11px;font-weight:700;font-size:12.5px;border:1px solid var(--line);background:var(--surface-2);color:var(--paper)}
+.ulist-row .fbtn.on{background:var(--social);color:#0b0e2e;border-color:transparent}
+.statlink{cursor:pointer}
+.statlink .n{transition:color .15s}
+.statlink:active .n{color:var(--cyan)}
+
+/* ---------- Admin dashboard (§8) ---------- */
+.admin-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.metric .n{font-family:var(--font-display);font-weight:800;font-size:26px}
+.metric .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+.metric.warn .n{color:var(--hazard)}.metric.bad .n{color:var(--danger)}
+.admin-row{display:flex;align-items:center;gap:11px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.admin-row .nm{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
+.admin-row .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.statustag{font-family:var(--font-mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em}
+.statustag.active{background:rgba(34,229,163,.16);color:var(--success)}
+.statustag.restricted{background:rgba(255,176,32,.16);color:var(--hazard)}
+.statustag.banned{background:rgba(255,68,56,.16);color:var(--danger)}
+.report-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--danger);border-radius:14px;padding:12px;margin-bottom:8px}
+.mini-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.mini-actions button{flex:1;min-width:88px;height:38px;border-radius:11px;font-weight:700;font-size:12.5px;border:1px solid var(--line);background:var(--surface-2);color:var(--paper)}
+.mini-actions button.warn{border-color:rgba(255,176,32,.4);color:var(--hazard)}
+.mini-actions button.danger{border-color:rgba(255,68,56,.4);color:var(--danger)}
+.mini-actions button.good{border-color:rgba(34,229,163,.4);color:var(--success)}
+.banner{display:flex;gap:10px;align-items:center;background:rgba(255,68,56,.1);border:1px solid rgba(255,68,56,.3);border-radius:14px;padding:12px 14px;font-size:13px;margin-bottom:12px}
+
+/* meetup map marker */
+.meet-marker{width:32px;height:32px;position:relative;cursor:pointer}
+.meet-marker .ring{position:absolute;inset:0;border-radius:50%;background:var(--meetup);border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#0b0e2e;font-weight:800;font-size:15px;box-shadow:0 6px 16px rgba(53,229,255,.55)}
+.meet-marker .pulse{position:absolute;inset:0;border-radius:50%;background:var(--meetup);opacity:.4;animation:radar 2.8s ease-out infinite;z-index:-1}
+
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+
+<!-- AGE GATE (18+) -->
+<div id="ageGate" role="dialog" aria-modal="true" aria-label="Age verification">
+  <div class="glyphmark">📍</div>
+  <h1 class="display">Welcome to Pin&nbsp;Drop</h1>
+  <p>Pin Drop is a live neighbourhood map for people <b>18 and older</b>. Before you come in, confirm your age — we only ask once.</p>
+  <div class="band-grid" id="gateBands"></div>
+  <div class="gate-actions">
+    <button class="btn-primary gate-primary" id="gateYes">I'm 18 or older</button>
+    <button class="btn-ghost gate-sub" id="gateNo">I'm under 18</button>
+  </div>
+  <div class="legal">By continuing you confirm you're 18+ and agree to the Community Guidelines. Meetups and social features are for adults only.</div>
+  <div id="ageBlock">
+    <div class="glyphmark" style="background:linear-gradient(135deg,var(--danger),var(--hazard))">🔒</div>
+    <h1 class="display" style="font-size:24px;margin:0">Come back at 18</h1>
+    <p style="margin-top:8px">Pin Drop is an 18+ community, so we can't let you in just yet. There's no under-18 mode, by design. Thanks for understanding.</p>
+  </div>
+</div>
+
+<div id="app">
+  <div id="map" aria-label="Map of nearby pins"></div>
+
+  <div id="topbar">
+    <div class="searchrow">
+      <div class="searchfield">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" type="search" placeholder="Search pins, people, #tags" aria-label="Search" />
+        <div class="loc" id="locLabel">
+          <div class="hood" id="hoodName">Locating…</div>
+          <div class="coord" id="coordLabel">--.---- , --.----</div>
+        </div>
+      </div>
+      <button class="iconbtn" id="bellBtn" aria-label="Notifications">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="badge-dot" id="bellDot" style="display:none">0</span>
+      </button>
+      <button class="radiuspill" id="radiusPill" aria-label="Change search radius">◎ 1&nbsp;km</button>
+    </div>
+    <div class="chiprow" id="chipRow" role="group" aria-label="Category filters"></div>
+  </div>
+
+  <div id="mapctrls">
+    <div class="ctrlbtn zoomgroup">
+      <button id="zoomIn" aria-label="Zoom in">+</button>
+      <div class="divider"></div>
+      <button id="zoomOut" aria-label="Zoom out">−</button>
+    </div>
+    <button class="ctrlbtn recenter" id="recenter" aria-label="Recenter on me">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    </button>
+  </div>
+
+  <button id="fab" aria-label="Drop a pin">＋ Drop a pin</button>
+
+  <!-- FEED -->
+  <section class="screen" id="feedScreen" aria-hidden="true">
+    <div class="screen-head"><h1>Feed</h1></div>
+    <div class="screen-body scroll" id="feedBody"></div>
+  </section>
+
+  <!-- SEARCH -->
+  <section class="screen" id="searchScreen" aria-hidden="true">
+    <div class="screen-head"><button class="back" id="searchBack">←</button>
+      <div class="searchfield" style="flex:1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput2" type="search" placeholder="Search pins, people, #tags" aria-label="Search" /></div>
+    </div>
+    <div class="screen-body scroll" id="searchBody"></div>
+  </section>
+
+  <!-- MEETUPS -->
+  <section class="screen" id="meetScreen" aria-hidden="true">
+    <div class="screen-head"><h1>Meetups</h1></div>
+    <div class="screen-body scroll" id="meetBody"></div>
+  </section>
+
+  <!-- ALERTS -->
+  <section class="screen" id="alertScreen" aria-hidden="true">
+    <div class="screen-head"><h1>Alerts</h1><button class="back" id="markAll" style="width:auto;padding:0 12px;font-size:12px">Mark all</button></div>
+    <div class="screen-body scroll" id="alertBody"></div>
+  </section>
+
+  <!-- PROFILE -->
+  <section class="screen" id="profileScreen" aria-hidden="true">
+    <div class="screen-head" id="profileHead"><h1>Profile</h1><button class="back" id="settingsBtn" style="width:auto;padding:0 12px;font-size:12px">Settings</button></div>
+    <div class="screen-body scroll" id="profileBody"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="screen" id="settingsScreen" aria-hidden="true">
+    <div class="screen-head"><button class="back" id="settingsBack">←</button><h1>Settings</h1></div>
+    <div class="screen-body scroll" id="settingsBody"></div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section class="screen" id="lbScreen" aria-hidden="true">
+    <div class="screen-head"><button class="back" id="lbBack">←</button><h1>Leaderboard</h1></div>
+    <div class="screen-body scroll" id="lbBody"></div>
+  </section>
+
+  <!-- FOLLOWERS / FOLLOWING / FRIENDS -->
+  <section class="screen" id="listScreen" aria-hidden="true">
+    <div class="screen-head"><button class="back" id="listBack">←</button><h1 id="listTitle">Followers</h1></div>
+    <div class="screen-body scroll" id="listBody"></div>
+  </section>
+
+  <!-- ADMIN DASHBOARD -->
+  <section class="screen" id="adminScreen" aria-hidden="true">
+    <div class="screen-head"><button class="back" id="adminBack">←</button><h1>Admin</h1></div>
+    <div class="screen-body scroll" id="adminBody"></div>
+  </section>
+
+  <nav id="tabbar" aria-label="Primary">
+    <button class="tab active" data-tab="map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg>Map</button>
+    <button class="tab" data-tab="feed">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Feed</button>
+    <button class="tab" data-tab="drop" id="tabDrop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.6 7-12a7 7 0 1 0-14 0c0 5.4 7 12 7 12Z"/><circle cx="12" cy="9" r="2.4"/></svg>Drop</button>
+    <button class="tab" data-tab="meet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="10" r="2.6"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5M14 20c0-2.2 1-3.6 3-4"/></svg>Meet</button>
+    <button class="tab" data-tab="profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</button>
+  </nav>
+</div>
+
+<!-- COMPOSER -->
+<div class="scrim" id="composerScrim"></div>
+<div class="sheet" id="composerSheet" role="dialog" aria-modal="true" aria-label="Create a pin">
+  <div class="handle"></div>
+  <div class="sheet-body scroll">
+    <div class="sheet-head"><h2>New pin</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="composerClose">Cancel</button></div>
+    <div class="field"><label>Category</label><div class="seg" id="catSeg"></div></div>
+    <div class="field" id="subField"><label id="subLabel">What kind of spot?</label><div class="subgrid" id="subSeg"></div></div>
+    <div class="field">
+      <label>Where — pan the map under the crosshair</label>
+      <div class="composer-map"><div id="composerMap"></div><div class="crosshair"><div class="ring"></div></div><div class="coordreadout mono" id="composerCoord">--.------ , --.------</div></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-ghost" style="flex:1;height:40px" id="useMyLoc">Use my location</button>
+        <button class="btn-ghost" style="flex:1;height:40px" id="searchAddr">Search address</button>
+      </div>
+      <div class="hint" id="accuracyHint"></div>
+    </div>
+    <div class="field">
+      <label>Photo <span style="color:var(--danger)">*required</span> (max 10)</label>
+      <div class="mediastrip" id="mediaStrip"><button class="addcell" id="addMedia"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>
+      <input type="file" id="fileInput" accept="image/*" multiple hidden />
+    </div>
+    <div class="field"><label>Say something</label><textarea class="textarea" id="postText" placeholder="What's here? Add #hashtags…" maxlength="1000"></textarea></div>
+    <div class="field"><label>How long does this pin stay live?</label><div class="seg" id="lifeSeg"></div><div class="pill-note" id="lifeNote">This pin disappears in 7 days</div></div>
+    <div class="field">
+      <label>Who can see the exact spot?</label>
+      <div class="seg" id="precisionSeg">
+        <button class="pillbtn" data-p="exact">Exact spot</button>
+        <button class="pillbtn" aria-pressed="true" data-p="approx_50m">Within 50 m</button>
+        <button class="pillbtn" data-p="block">Block level</button>
+      </div>
+      <div class="hint">We strip EXIF/GPS from photos and publish only your chosen precision. Your exact spot is never shared.</div>
+    </div>
+    <button class="btn-primary" id="publishBtn" disabled>Add a photo to publish</button>
+  </div>
+</div>
+
+<!-- MEETUP COMPOSER -->
+<div class="scrim" id="meetScrim"></div>
+<div class="sheet" id="meetSheet" role="dialog" aria-modal="true" aria-label="Create a meetup">
+  <div class="handle"></div>
+  <div class="sheet-body scroll">
+    <div class="sheet-head"><h2>New meetup</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="meetClose">Cancel</button></div>
+    <div class="safety">👋 18+ only. Meetups always use <b>block-level</b> location — your exact spot is never shown. Meet in public, tell someone where you're going, leave whenever you want.</div>
+    <div class="field"><label>Activity</label><select class="select" id="meetActivity"></select></div>
+    <div class="field"><label>Where (snaps to a public place)</label>
+      <div class="composer-map" style="height:180px"><div id="meetMap"></div><div class="crosshair"><div class="ring"></div></div><div class="coordreadout mono" id="meetCoord">--.------ , --.------</div></div>
+      <div class="hint" id="venueHint">Nearest public venue will be used.</div>
+    </div>
+    <div class="field"><label>Who can see this? (your band + one adjacent)</label><div class="seg" id="meetBands"></div></div>
+    <div class="field"><label>Note (optional, moderated)</label><input class="input" id="meetNote" placeholder="e.g. relaxed pace, bring water" maxlength="140"></div>
+    <div class="field"><label>Lifetime</label><div class="seg" id="meetLife"></div></div>
+    <button class="btn-primary" id="meetPublish">Post meetup</button>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="scrim" id="detailScrim"></div>
+<div class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-label="Pin detail">
+  <div class="handle"></div>
+  <div class="sheet-body scroll" id="detailBody"></div>
+</div>
+
+<!-- MEETUP DETAIL / CHAT -->
+<div class="scrim" id="mdScrim"></div>
+<div class="sheet" id="mdSheet" role="dialog" aria-modal="true" aria-label="Meetup detail">
+  <div class="handle"></div>
+  <div class="sheet-body scroll" id="mdBody"></div>
+</div>
+
+<!-- AVATAR PICKER -->
+<div class="scrim" id="avScrim"></div>
+<div class="sheet" id="avSheet" role="dialog" aria-modal="true" aria-label="Choose an avatar">
+  <div class="handle"></div>
+  <div class="sheet-body scroll">
+    <div class="sheet-head"><h2>Your avatar</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="avClose">Done</button></div>
+    <div class="hint" style="margin:0 0 12px">Tap an avatar to make it yours, or upload a photo. Each one is generated art — no two people look the same.</div>
+    <div class="av-grid" id="avGrid"></div>
+    <input type="file" id="avFile" accept="image/*" hidden />
+  </div>
+</div>
+
+<!-- BADGE DETAIL -->
+<div class="scrim" id="badgeScrim"></div>
+<div class="sheet" id="badgeSheet" role="dialog" aria-modal="true" aria-label="Badge detail">
+  <div class="handle"></div>
+  <div class="sheet-body scroll" id="badgeBody"></div>
+</div>
+
+<!-- ACTION MENU -->
+<div id="menuScrim"></div>
+<div id="menuSheet"><div id="menuGroups"></div><button class="menu-cancel" id="menuCancel">Cancel</button></div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Pin Drop — fully functional phone prototype (client-side).
+   All flows run in-browser with mock data. Server calls from
+   the §12 API are marked inline where a backend would take over.
+   ============================================================ */
+
+/* ---------- Categories (§3.3) ---------- */
+const CATS = {
+  social:{name:'Social',color:'#7C5CFF',glyph:'✦',meaning:'Events, tips, sightings'},
+  fire:{name:'Fire',color:'#FF4438',glyph:'▲',meaning:'Smoke, flames, evacuation',urgent:true},
+  hazard:{name:'Hazard',color:'#FFB020',glyph:'⚠',meaning:'Closures, outages, ice',urgent:true},
+  found:{name:'Found',color:'#22E5A3',glyph:'◆',meaning:'Found item, pet, person'},
+  lost:{name:'Lost',color:'#FF5CA8',glyph:'◇',meaning:'Lost item, pet, person'},
+  meetup:{name:'Meetup',color:'#35E5FF',glyph:'◎',meaning:'Anonymous invite (18+)'},
+};
+const CAT_KEYS=['social','fire','hazard','found','lost','meetup'];
+/* Rich social "spot types" (§5) — many useful, location-based categories to post.
+   These keep the map legible (Social stays one colour) while giving posting real variety. */
+const SUBCATS={
+  social:[
+    {id:'food',e:'🍜',n:'Food & Drink'},{id:'event',e:'🎉',n:'Live Event'},
+    {id:'music',e:'🎧',n:'Live Music'},{id:'deal',e:'🏷️',n:'Deal / Sale'},
+    {id:'free',e:'🎁',n:'Free Stuff'},{id:'view',e:'🌇',n:'View / Scenery'},
+    {id:'sports',e:'⚽',n:'Sports / Pickup'},{id:'market',e:'🛍️',n:'Market / Pop-up'},
+    {id:'nature',e:'🌳',n:'Park / Nature'},{id:'nightlife',e:'🍸',n:'Nightlife'},
+    {id:'art',e:'🎨',n:'Art / Culture'},{id:'study',e:'☕',n:'Study / Coworking'},
+    {id:'pets',e:'🐾',n:'Pets'},{id:'help',e:'🤝',n:'Help / Volunteer'},
+    {id:'tip',e:'💡',n:'Local Tip'},
+  ],
+};
+const SUB_INDEX={};Object.values(SUBCATS).flat().forEach(s=>SUB_INDEX[s.id]=s);
+function subOf(p){return p&&p.subcat?SUB_INDEX[p.subcat]:null;}
+const H=3600,D=86400;
+const LIFETIMES={
+  social:{opts:[['6h',6*H],['24h',24*H],['3d',3*D],['7d',7*D],['30d',30*D],['forever',0]],def:7*D},
+  fire:{opts:[['1h',1*H],['3h',3*H],['6h',6*H],['12h',12*H]],def:6*H},
+  hazard:{opts:[['6h',6*H],['12h',12*H],['24h',24*H],['3d',3*D],['7d',7*D]],def:24*H},
+  found:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
+  lost:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
+  meetup:{opts:[['1h',1*H],['3h',3*H],['6h',6*H],['12h',12*H],['24h',24*H]],def:3*H},
+};
+const ACTIVITIES=['Coffee','Lunch','Dinner','Drinks','Walk','Hiking','Running','Cycling','Gym session','Basketball','Soccer','Tennis','Swimming','Dog walk','Board games','Video games','Live music','Movie','Museum or gallery','Study session','Language exchange','Photography walk','Farmers market','Bookstore browse','Fishing','Skating','Yoga','Volunteering','Coworking','Just chat'];
+const AGE_BANDS=['18-24','25-34','35-44','45-54','55-64','65+'];
+const RADII=[[100,'100 m'],[500,'500 m'],[1000,'1 km'],[5000,'5 km'],[10000,'10 km'],[null,'City']];
+const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Preset SVG avatars (§6) — richer original art, more variety ---------- */
+const AV_GRADS=[['#7C5CFF','#35E5FF'],['#FF5CA8','#7C5CFF'],['#22E5A3','#35E5FF'],['#FFB020','#FF5CA8'],
+  ['#35E5FF','#22E5A3'],['#FF4438','#FFB020'],['#7C5CFF','#FF5CA8'],['#22E5A3','#7C5CFF'],
+  ['#FFB020','#35E5FF'],['#FF5CA8','#22E5A3'],['#5B8CFF','#B15CFF'],['#00D4B8','#0A9CF5'],
+  ['#FF7A45','#FFD23F'],['#B15CFF','#FF5CA8'],['#2BD4C4','#7C5CFF'],['#FFD23F','#FF7AC6'],
+  ['#4EA8FF','#22E5A3'],['#FF6B9D','#FFC24B']];
+const AV_ART=[
+  '<circle cx="32" cy="27" r="9" fill="#fff"/><path d="M17 48c0-9 7-13 15-13s15 4 15 13Z" fill="#fff"/>', /* person */
+  '<circle cx="24" cy="30" r="4" fill="#fff"/><circle cx="40" cy="30" r="4" fill="#fff"/><path d="M23 40q9 8 18 0" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>', /* smiley */
+  '<path d="M32 15c9 0 15 6 15 15 0 8-6 12-6 17H23c0-5-6-9-6-17 0-9 6-15 15-15Z" fill="#fff"/><circle cx="26" cy="30" r="2.6" fill="#0b0e2e"/><circle cx="38" cy="30" r="2.6" fill="#0b0e2e"/>', /* robot head */
+  '<path d="M32 14c11 4 15 10 15 20s-7 16-15 16-15-6-15-16 4-16 15-20Z" fill="#fff"/><path d="M26 33h12M32 27v12" stroke="#0b0e2e" stroke-width="2.4" stroke-linecap="round"/>', /* leaf/plus */
+  '<path d="M20 24l12-8 12 8v14l-12 8-12-8Z" fill="#fff"/><circle cx="32" cy="31" r="5" fill="#0b0e2e"/>', /* gem */
+  '<circle cx="32" cy="32" r="15" fill="#fff"/><path d="M32 20v12l8 5" stroke="#0b0e2e" stroke-width="3" fill="none" stroke-linecap="round"/>', /* clock */
+  '<path d="M32 16l5 10 11 2-8 8 2 11-10-6-10 6 2-11-8-8 11-2Z" fill="#fff"/>', /* star */
+  '<circle cx="32" cy="30" r="12" fill="#fff"/><path d="M20 46c3-6 7-8 12-8s9 2 12 8" stroke="#fff" stroke-width="4" fill="none"/><circle cx="27" cy="28" r="2.4" fill="#0b0e2e"/><circle cx="37" cy="28" r="2.4" fill="#0b0e2e"/>', /* avatar face */
+  '<path d="M16 40 48 20 34 44 30 36Z" fill="#fff"/>', /* plane */
+  '<rect x="18" y="24" width="28" height="20" rx="5" fill="#fff"/><circle cx="26" cy="34" r="4" fill="#0b0e2e"/><circle cx="38" cy="34" r="4" fill="#0b0e2e"/>', /* camera */
+  '<path d="M32 46V28M32 30c-6-2-10-8-8-14 6 0 10 6 8 14M32 32c6-3 12-2 14 3-5 4-11 3-14-3" fill="#fff"/>', /* monstera */
+  '<circle cx="32" cy="32" r="14" fill="#fff"/><path d="M32 18v28M18 32h28M22 22 42 42M42 22 22 42" stroke="#0b0e2e" stroke-width="1.5"/>', /* disco */
+  '<path d="M34 14 20 36h10l-4 16 18-26H32l6-12Z" fill="#fff"/>', /* bolt */
+  '<path d="M40 20a14 14 0 1 0 6 18 11 11 0 0 1-6-18Z" fill="#fff"/><rect x="36" y="28" width="12" height="4" rx="2" fill="#0b0e2e"/>', /* moon shades */
+  '<path d="M32 44c-8-6-13-11-13-18a7 7 0 0 1 13-3 7 7 0 0 1 13 3c0 7-5 12-13 18Z" fill="#fff"/>', /* heart */
+  '<path d="M22 42V26l10-8 10 8v16Z" fill="#fff"/><rect x="28" y="32" width="8" height="10" fill="#0b0e2e"/>', /* house */
+  '<circle cx="32" cy="26" r="8" fill="#fff"/><path d="M20 30c-3 4-3 10 2 12M44 30c3 4 3 10-2 12" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M22 48c2-7 5-10 10-10s8 3 10 10Z" fill="#fff"/>', /* explorer */
+  '<path d="M32 16c6 0 8 5 8 9s5 4 5 9-4 8-13 8-13-3-13-8 5-5 5-9 2-9 8-9Z" fill="#fff"/><circle cx="27" cy="32" r="2.2" fill="#0b0e2e"/><circle cx="37" cy="32" r="2.2" fill="#0b0e2e"/>', /* fox */
+];
+const AV_COUNT=AV_ART.length;
+function presetAvatar(i){
+  const idx=((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT;
+  const g=AV_GRADS[idx%AV_GRADS.length], art=AV_ART[idx], id='g'+i+'_'+Math.random().toString(36).slice(2,6);
+  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+g[0]+'"/><stop offset="1" stop-color="'+g[1]+'"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#'+id+')"/>'+art+'</svg>';
+}
+function avatarInner(user){
+  if(user.avatarPhoto) return '<img src="'+user.avatarPhoto+'" alt="avatar">';
+  if(user.avatarPreset) return presetAvatar(user.avatarPreset);
+  return user.avatar||'🙂';
+}
+function avatarHTML(user,size){
+  size=size||42;
+  const bg=(!user.avatarPreset&&!user.avatarPhoto)?';background:linear-gradient(135deg,'+(user.color||'#7C5CFF')+',#232866)':'';
+  return '<div class="avatar" style="width:'+size+'px;height:'+size+'px'+bg+'">'+avatarInner(user)+'</div>';
+}
+
+/* ---------- Utils ---------- */
+function uid(){return Math.random().toString(36).slice(2,10);}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtCoord(lng,lat,dp){dp=dp||4;return lat.toFixed(dp)+' , '+lng.toFixed(dp);}
+function metresBetween(a,b){const R=6371000,toR=x=>x*Math.PI/180;const dLat=toR(b[1]-a[1]),dLng=toR(b[0]-a[0]);const s=Math.sin(dLat/2)**2+Math.cos(toR(a[1]))*Math.cos(toR(b[1]))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(s)));}
+function fmtDist(m){return m<1000?Math.round(m)+' m':(m/1000).toFixed(m<10000?1:0)+' km';}
+function fmtAgo(t){const s=Math.floor((Date.now()-t)/1000);if(s<60)return 'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d';}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2400);}
+function fuzz([lng,lat],m){const r=m*Math.sqrt(Math.random()),a=Math.random()*2*Math.PI;return [lng+(r*Math.sin(a))/(111320*Math.cos(lat*Math.PI/180)),lat+(r*Math.cos(a))/111320];}
+function blockSnap([lng,lat]){const g=0.0016;return [Math.round(lng/g)*g,Math.round(lat/g)*g];}
+function displayLocation(exact,precision){if(precision==='exact')return exact.slice();if(precision==='block')return blockSnap(exact);return fuzz(exact,50);}
+function countdownText(p){if(!p.expires_at)return 'Stays forever';const ms=p.expires_at-Date.now();if(ms<=0)return 'Expired';const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);if(d>0)return 'Expires in '+d+'d '+h+'h';if(h>0)return 'Expires in '+h+'h '+m+'m';return 'Expires in '+m+'m';}
+function lifetimeLabel(sec){if(!sec)return 'forever';if(sec>=D)return (sec/D)+' days';return (sec/H)+' hours';}
+function parseHashtags(text){const set=new Set();const re=/#([\p{L}\p{N}_]+)/gu;let m;while((m=re.exec(text)))set.add(m[1].toLowerCase());return [...set];}
+function linkify(text){return esc(text).replace(/#([\p{L}\p{N}_]+)/gu,(f,t)=>'<a href="#" data-tag="'+esc(t.toLowerCase())+'">'+esc(f)+'</a>');}
+function debounce(fn,ms){let t;return function(){const a=arguments,c=this;clearTimeout(t);t=setTimeout(()=>fn.apply(c,a),ms);};}
+function bandAdjacent(band){const i=AGE_BANDS.indexOf(band);const out=[band];if(i>0)out.push(AGE_BANDS[i-1]);if(i<AGE_BANDS.length-1)out.push(AGE_BANDS[i+1]);return out;}
+function aliasFor(){const adj=['Amber','Cobalt','Jade','Coral','Slate','Indigo','Mint','Violet','Ember','Cyan'];const noun=['Fox','Heron','Otter','Lynx','Wren','Marten','Falcon','Vole','Crane','Moth'];return adj[Math.floor(Math.random()*adj.length)]+' '+noun[Math.floor(Math.random()*noun.length)]+' '+(10+Math.floor(Math.random()*89));}
+
+/* ---------- State ---------- */
+const me={id:'me',name:'You',username:'you',avatarPreset:1,color:'#7C5CFF',bio:'Dropping pins around town.',ageBand:'25-34',isAdult:true,isAdmin:true,status:'active',joined:Date.now()};
+const state={
+  activeCats:new Set(),radiusIdx:2,center:[-122.4194,37.7749],me:null,
+  posts:[],meetups:[],users:{},notifications:[],pointEvents:[],reports:[],
+  following:new Set(),blocked:new Set(),muted:new Set(),saved:new Set(),
+  viewProfile:'me',prevTab:'map',ageVerified:false,
+  composer:{media:[],category:'social',subcat:null,lifetime:LIFETIMES.social.def,precision:'approx_50m'},
+  meetForm:{activity:'Coffee',bands:new Set(['25-34']),lifetime:3*H,note:''},
+  settings:{pinHistoryPublic:true,leaderboardOptIn:true,quietHours:true,under18Sim:false,
+    notif:{like:true,comment:true,follow:true,nearby:true,emergency:true,meetup:true,badge:true}},
+};
+
+/* ---------- Seed users (with a small follow graph so lists are real) ---------- */
+function seedUsers(){
+  const list=[
+    {id:'u1',name:'Priya N',username:'priya',color:'#7C5CFF',bio:'Local gig hunter 🎧',ageBand:'25-34',points:1240,follows:['u2','u6','me','u8']},
+    {id:'u2',name:'Marco T',username:'marco',color:'#FF4438',bio:'Volunteer responder 🚒',ageBand:'35-44',points:3400,follows:['u1','u3','me']},
+    {id:'u3',name:'Dana R',username:'dana',color:'#FFB020',bio:'Watches the roads ⚠️',ageBand:'45-54',points:980,follows:['u2','u7']},
+    {id:'u4',name:'Sam K',username:'sam',color:'#22E5A3',bio:'Reuniting pets 🐈',ageBand:'25-34',points:640,follows:['u6','u8','me']},
+    {id:'u5',name:'Ivy L',username:'ivy',color:'#FF5CA8',bio:'Always losing keys 🔑',ageBand:'18-24',points:120,follows:['u1','u6','me']},
+    {id:'u6',name:'Leo P',username:'leo',color:'#B15CFF',bio:'Street food scout 🌮',ageBand:'25-34',points:2100,follows:['u1','u2','u8','me']},
+    {id:'u7',name:'Nora W',username:'nora',color:'#FFB020',bio:'Winter safety 🧊',ageBand:'55-64',points:770,follows:['u3','u2']},
+    {id:'u8',name:'Theo M',username:'theo',color:'#22E5A3',bio:'Community garden 🌱',ageBand:'35-44',points:1520,follows:['u1','u6','u4','me']},
+  ];
+  list.forEach((u,i)=>{u.isAdult=true;u.avatarPreset=(i%AV_COUNT)+2;u.status=u.status||'active';u.reports=u.reports||0;state.users[u.id]=u;});
+  state.users['me']=me;
+}
+function userOf(id){return state.users[id]||{id,name:'Someone',avatar:'🙂',color:'#7C5CFF',username:'user',status:'active'};}
+/* Follow graph helpers (§4) */
+function followingIdsOf(id){if(id==='me')return [...state.following];const u=userOf(id);return (u.follows||[]).slice();}
+function followsBool(a,b){return followingIdsOf(a).includes(b);}
+function followersOf(id){return Object.keys(state.users).filter(x=>x!==id&&followsBool(x,id));}
+function friendsOf(id){const fset=new Set(followingIdsOf(id));return followersOf(id).filter(x=>fset.has(x));}
+function isBanned(id){return userOf(id).status==='banned';}
+
+/* ---------- Points/level (§9) ---------- */
+function levelOf(points){return points>=10000?5:points>=3000?4:points>=1000?3:points>=250?2:1;}
+const LEVEL_NAMES=['','Newcomer','Local','Regular','Landmark','Cartographer'];
+const LEVEL_MIN=[0,0,250,1000,3000,10000];
+function award(action,points,ref){
+  state.pointEvents.unshift({id:uid(),action,points,ref,at:Date.now()});
+  me.points=(me.points||0)+points;
+}
+function myPoints(){return me.points||0;}
+
+/* ---------- Post factory + seed ---------- */
+function makePost(o){
+  const exact=o.exact;const display=o.display||displayLocation(exact,o.precision||'approx_50m');
+  const life=(o.lifetime===undefined)?LIFETIMES[o.category].def:o.lifetime;const created=o.created_at||Date.now();
+  return {id:o.id||uid(),authorId:o.authorId||'me',category:o.category,subcat:o.subcat||null,text:o.text||'',media:o.media||[],
+    exact_location:exact,display_location:display,precision:o.precision||'approx_50m',status:'active',
+    created_at:created,lifetime_seconds:life,expires_at:life?created+life*1000:null,
+    like_count:o.like_count||0,liked:false,saved:false,confirm_count:o.confirm_count||0,confirmed:false,
+    repliesOff:false,comments:o.comments||[],tags:parseHashtags(o.text||'')};
+}
+function pic(seed,w,h){return 'https://picsum.photos/seed/'+seed+'/'+(w||800)+'/'+(h||600);}
+function seedPosts(center){
+  const [clng,clat]=center;
+  const near=(dx,dy)=>[clng+dx/(111320*Math.cos(clat*Math.PI/180)),clat+dy/111320];
+  const now=Date.now();
+  const S=[
+    {c:'social',sub:'music',t:'Free live jazz at the plaza tonight 8pm 🎷 #music #tonight',ex:near(120,80),a:'u1',pic:'jazz1',like:34,cm:5},
+    {c:'fire',t:'Smoke visible from the ridge — crews on scene, avoid Elm St #fire',ex:near(-260,340),a:'u2',pic:'smoke1',conf:6,life:6*H,prec:'exact'},
+    {c:'hazard',t:'Water main break, road closed at 4th & Oak. Detour via Pine #closure',ex:near(430,-180),a:'u3',conf:3,pic:'road1',life:24*H},
+    {c:'found',t:'Found a very good orange cat near the library, no collar 🐈 #foundpet',ex:near(-380,-120),a:'u4',pic:'cat1',like:12},
+    {c:'lost',t:'Lost silver house keys w/ a blue tag around the park path #lost',ex:near(210,420),a:'u5',pic:'keys1',like:3},
+    {c:'social',sub:'food',t:'Best tacos truck just parked by the bridge, get here 🌮 #food #tip',ex:near(-140,-360),a:'u6',pic:'taco1',like:58,cm:9},
+    {c:'hazard',t:'Icy patch on the north stairwell, take it slow #ice',ex:near(560,120),a:'u7',conf:2,pic:'ice1',life:12*H},
+    {c:'social',sub:'nature',t:'Community garden open day Saturday, seedlings free 🌱 #garden',ex:near(-520,260),a:'u8',pic:'gard1',like:21,cm:3},
+    {c:'found',t:'Found a phone on the number 12 bus, handed to the depot #found',ex:near(700,-320),a:'u4',pic:'phone1',like:8},
+    {c:'social',sub:'view',t:'Sunset viewpoint is unreal right now 🌇 #views',ex:near(-90,520),a:'u1',pic:'sun1',like:41,cm:2},
+    {c:'social',sub:'deal',t:'Bookshop clearance — everything half price til Sunday 📚 #deal',ex:near(300,-90),a:'u6',pic:'book1',like:17,cm:1},
+    {c:'social',sub:'sports',t:'Pickup basketball at the courts, 6pm, all welcome 🏀 #pickup',ex:near(-260,-40),a:'u8',pic:'ball1',like:24,cm:4},
+  ];
+  return S.map((s,i)=>makePost({id:'seed'+i,category:s.c,subcat:s.sub,text:s.t,exact:s.ex,precision:s.prec||'approx_50m',
+    authorId:s.a,lifetime:s.life,media:[{url:pic(s.pic,900,700),alt:s.t.slice(0,60)}],
+    like_count:s.like||0,confirm_count:s.conf||0,created_at:now-(i+1)*90000,
+    comments:s.cm?Array.from({length:Math.min(s.cm,3)},(_,k)=>({id:uid(),authorId:['u5','u6','u7','u8'][k%4],text:['On my way!','Thanks for the heads up','Still there?','Saved this 🙌'][k%4],created_at:now-k*60000})):[]}));
+}
+function seedMeetups(center){
+  const [clng,clat]=center;const near=(dx,dy)=>blockSnap([clng+dx/(111320*Math.cos(clat*Math.PI/180)),clat+dy/111320]);
+  const now=Date.now();
+  const M=[
+    {act:'Coffee',band:'25-34',ex:near(200,150),host:'u6',venue:'Blue Bottle · Mint Plaza',life:3*H,note:'relaxed, laptop-friendly'},
+    {act:'Running',band:'25-34',ex:near(-300,200),host:'u1',venue:'Embarcadero path',life:2*H,note:'easy 5k pace'},
+    {act:'Board games',band:'35-44',ex:near(350,-260),host:'u8',venue:'Central Library',life:6*H,note:''},
+    {act:'Drinks',band:'45-54',ex:near(-150,-300),host:'u3',venue:'The Alembic',life:4*H,note:'after 7pm'},
+    {act:'Photography walk',band:'25-34',ex:near(480,320),host:'u4',venue:'Dolores Park',life:5*H,note:'bring any camera'},
+  ];
+  return M.map((m,i)=>{
+    const host=userOf(m.host);
+    return {id:'meet'+i,hostId:m.host,activity:m.act,note:m.note,ageBand:m.band,bands:bandAdjacent(m.band),
+      display_location:m.ex,venue:m.venue,status:'open',created_at:now-(i+1)*120000,expires_at:now+m.life*1000,
+      hostAlias:aliasFor(),hostAvatar:((i)%10)+1,requests:[],messages:[],revealHost:false,revealGuest:false,mine:false};
+  });
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+let map,composerMap,meetMap,urgentMarkers=[],meetMarkers=[],meMarker=null;
+/* Dark-but-legible basemap: CARTO's dark-matter *vector* style (same keyless CDN the
+   raster used), recoloured on load so water, parks and buildings are clearly visible. */
+const BASE_STYLE='https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+/* Raster fallback if the vector basemap can't load (keeps the map from ever going blank). */
+const RASTER_FALLBACK={version:8,glyphs:'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  sources:{cartoR:{type:'raster',tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png','https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png','https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],tileSize:256,attribution:'© OpenStreetMap © CARTO'}},
+  layers:[{id:'bg',type:'background',paint:{'background-color':'#0B0F30'}},{id:'cartoR',type:'raster',source:'cartoR',paint:{'raster-opacity':1}}]};
+function enhanceBasemap(m){
+  try{
+    const bg='#0B0F30',water='#1B4E86',green='#1E5B3C',bld='#2A3170';
+    const layers=(m.getStyle()&&m.getStyle().layers)||[];
+    for(const L of layers){
+      const id=(L.id||'').toLowerCase(),sl=(L['source-layer']||'').toLowerCase(),key=id+' '+sl,t=L.type;
+      if(t==='background'){m.setPaintProperty(L.id,'background-color',bg);continue;}
+      const isLabel=/label|name|place|poi|housenumber/.test(key);
+      const isWater=/water|ocean|sea|lake|river|bay|pond|reservoir|marine|waterway/.test(key)&&!isLabel;
+      const isGreen=/park|wood|grass|forest|golf|pitch|cemetery|garden|nature|greenspace|scrub|meadow|orchard|farmland|recreation|zoo/.test(key)&&!isLabel;
+      const isBld=/building/.test(key)&&!isLabel;
+      try{
+        if(t==='fill'){
+          if(isWater){m.setPaintProperty(L.id,'fill-color',water);m.setPaintProperty(L.id,'fill-opacity',0.95);}
+          else if(isGreen){m.setPaintProperty(L.id,'fill-color',green);m.setPaintProperty(L.id,'fill-opacity',0.9);}
+          else if(isBld){m.setPaintProperty(L.id,'fill-color',bld);m.setPaintProperty(L.id,'fill-opacity',0.9);}
+        }else if(t==='fill-extrusion'&&isBld){m.setPaintProperty(L.id,'fill-extrusion-color',bld);m.setPaintProperty(L.id,'fill-extrusion-opacity',0.92);}
+        else if(t==='line'&&isWater){m.setPaintProperty(L.id,'line-color',water);}
+      }catch(e){}
+    }
+  }catch(e){}
+}
+
+function visiblePosts(){return state.posts.filter(p=>p.status==='active'&&(!p.expires_at||p.expires_at>Date.now())&&!state.blocked.has(p.authorId)&&!state.muted.has(p.authorId)&&!isBanned(p.authorId));}
+function filteredPosts(){
+  const r=RADII[state.radiusIdx][0];
+  return visiblePosts().filter(p=>{
+    if(state.activeCats.size&&!state.activeCats.has(p.category))return false;
+    if(r!=null&&metresBetween(state.center,p.display_location)>r)return false;
+    return true;
+  });
+}
+function toFC(posts){return {type:'FeatureCollection',features:posts.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:p.display_location},properties:{id:p.id,category:p.category,glyph:CATS[p.category].glyph}}))};}
+
+let mapOverlaysBound=false;
+function addMapOverlays(){
+  if(!map)return;
+  if(!map.getSource('pins'))map.addSource('pins',{type:'geojson',data:toFC(filteredPosts()),cluster:true,clusterRadius:55,clusterMaxZoom:16,
+    clusterProperties:{fire:['+',['case',['==',['get','category'],'fire'],1,0]],hazard:['+',['case',['==',['get','category'],'hazard'],1,0]]}});
+  if(!map.getSource('radius'))map.addSource('radius',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+  const addL=spec=>{if(!map.getLayer(spec.id))map.addLayer(spec);};
+  addL({id:'radius-fill',type:'fill',source:'radius',paint:{'fill-color':'#35E5FF','fill-opacity':0.05}});
+  addL({id:'radius-line',type:'line',source:'radius',paint:{'line-color':'#35E5FF','line-width':1.5,'line-dasharray':[3,3],'line-opacity':0.7}});
+  addL({id:'clusters',type:'circle',source:'pins',filter:['has','point_count'],paint:{'circle-color':['case',['>',['get','fire'],0],'#FF4438',['>',['get','hazard'],0],'#FFB020','#7C5CFF'],'circle-radius':['step',['get','point_count'],20,10,26,25,32],'circle-stroke-width':3,'circle-stroke-color':'#EDEBFF'}});
+  addL({id:'cluster-count',type:'symbol',source:'pins',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-font':['Open Sans Bold'],'text-size':15},paint:{'text-color':'#0b0e2e'}});
+  addL({id:'pin-dot',type:'circle',source:'pins',filter:['!',['has','point_count']],paint:{'circle-radius':13,'circle-color':['match',['get','category'],'social','#7C5CFF','fire','#FF4438','hazard','#FFB020','found','#22E5A3','lost','#FF5CA8','meetup','#35E5FF','#7C5CFF'],'circle-stroke-width':2,'circle-stroke-color':'#EDEBFF'}});
+  addL({id:'pin-glyph',type:'symbol',source:'pins',filter:['!',['has','point_count']],layout:{'text-field':['get','glyph'],'text-font':['Open Sans Bold'],'text-size':14,'text-allow-overlap':true},paint:{'text-color':'#0b0e2e'}});
+  if(!mapOverlaysBound){
+    mapOverlaysBound=true;
+    map.on('click','clusters',e=>{const f=map.queryRenderedFeatures(e.point,{layers:['clusters']})[0];map.getSource('pins').getClusterExpansionZoom(f.properties.cluster_id).then(z=>map.easeTo({center:f.geometry.coordinates,zoom:z}));});
+    map.on('click','pin-dot',e=>{if(e.features[0])openDetail(e.features[0].properties.id);});
+    ['clusters','pin-dot','pin-glyph'].forEach(l=>{map.on('mouseenter',l,()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave',l,()=>map.getCanvas().style.cursor='');});
+    let pt=null;
+    map.on('touchstart',e=>{pt=setTimeout(()=>openComposer([e.lngLat.lng,e.lngLat.lat]),550);});
+    map.on('touchend',()=>clearTimeout(pt));map.on('touchmove',()=>clearTimeout(pt));
+    map.on('mousedown',e=>{pt=setTimeout(()=>openComposer([e.lngLat.lng,e.lngLat.lat]),550);});
+    map.on('mouseup',()=>clearTimeout(pt));map.on('mousemove',()=>clearTimeout(pt));
+    map.on('moveend',debounce(()=>{refreshUrgent();refreshMeetMarkers();},300));
+    map.on('idle',debounce(updateLocationBar,400));
+    tryGeolocate(true);setTimeout(handleHash,400);
+  }
+  drawRadius();refreshUrgent();refreshMeetMarkers();updateLocationBar();
+}
+function initMap(){
+  map=new maplibregl.Map({container:'map',style:BASE_STYLE,center:state.center,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:{compact:true}});
+  map.touchZoomRotate.disableRotation();
+  let usedFallback=false;
+  // style.load fires on the initial style and again after any setStyle() — so overlays survive a fallback swap.
+  map.on('style.load',()=>{enhanceBasemap(map);addMapOverlays();});
+  map.on('load',()=>{enhanceBasemap(map);addMapOverlays();}); // belt-and-braces for the first render
+  // If the vector basemap can't load, drop to the raster basemap so the map is never blank.
+  setTimeout(()=>{try{if(!usedFallback&&map&&map.isStyleLoaded&&!map.isStyleLoaded()){usedFallback=true;toast('Loading a lighter map…');map.setStyle(RASTER_FALLBACK);}}catch(e){}},6500);
+}
+function refreshPins(){if(map&&map.getSource('pins'))map.getSource('pins').setData(toFC(filteredPosts()));refreshUrgent();refreshMeetMarkers();if(document.getElementById('feedScreen').classList.contains('active'))renderFeed();}
+/* Meetups on the map (§1): anonymous cyan markers, gated to 18+ and matching age band.
+   Tapping opens the anonymous meetup — it never links to a real account profile. */
+function meetVisibleOnMap(m){
+  if(state.settings.under18Sim||!me.isAdult)return false;
+  if(m.status==='expired'||m.expires_at<=Date.now())return false;
+  if(state.blocked.has(m.hostId))return false;
+  if(state.activeCats.size&&!state.activeCats.has('meetup'))return false;
+  const r=RADII[state.radiusIdx][0];
+  if(r!=null&&metresBetween(state.center,m.display_location)>r)return false;
+  return m.mine||meetupVisible(m);
+}
+function refreshMeetMarkers(){
+  meetMarkers.forEach(mk=>mk.remove());meetMarkers=[];if(!map)return;
+  const b=map.getBounds();
+  const list=state.meetups.filter(meetVisibleOnMap).filter(m=>{const[lng,lat]=m.display_location;return lng>=b.getWest()&&lng<=b.getEast()&&lat>=b.getSouth()&&lat<=b.getNorth();}).slice(0,40);
+  for(const m of list){
+    const el=document.createElement('div');el.className='meet-marker';el.setAttribute('role','button');
+    el.setAttribute('aria-label','Meetup: '+m.activity+', '+fmtDist(metresBetween(state.center,m.display_location))+' away');
+    el.innerHTML='<div class="pulse"></div><div class="ring">◎</div>';
+    el.addEventListener('click',ev=>{ev.stopPropagation();openMeetDetail(m.id);});
+    meetMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(m.display_location).addTo(map));
+  }
+}
+function refreshUrgent(){
+  urgentMarkers.forEach(m=>m.remove());urgentMarkers=[];if(!map)return;const b=map.getBounds();
+  const u=filteredPosts().filter(p=>CATS[p.category].urgent).filter(p=>{const [lng,lat]=p.display_location;return lng>=b.getWest()&&lng<=b.getEast()&&lat>=b.getSouth()&&lat<=b.getNorth();}).slice(0,30);
+  for(const p of u){const cat=CATS[p.category];const el=document.createElement('div');el.className='pin urgent';el.setAttribute('role','button');
+    el.setAttribute('aria-label',cat.name+' pin by '+userOf(p.authorId).name+', '+fmtDist(metresBetween(state.center,p.display_location))+' away');
+    el.innerHTML='<div class="radar" style="background:'+cat.color+';opacity:.5"></div><div class="drop" style="background:'+cat.color+';box-shadow:0 6px 16px '+cat.color+'88"></div><div class="glyph">'+cat.glyph+'</div>';
+    el.addEventListener('click',ev=>{ev.stopPropagation();openDetail(p.id);});
+    urgentMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(p.display_location).addTo(map));}
+}
+function circlePoly(center,m,pts){pts=pts||64;const c=[],[lng,lat]=center;for(let i=0;i<=pts;i++){const a=i/pts*2*Math.PI;c.push([lng+(m*Math.sin(a))/(111320*Math.cos(lat*Math.PI/180)),lat+(m*Math.cos(a))/111320]);}return {type:'Feature',geometry:{type:'Polygon',coordinates:[c]},properties:{}};}
+function drawRadius(){if(!map||!map.getSource('radius'))return;const r=RADII[state.radiusIdx][0];map.getSource('radius').setData(r==null?{type:'FeatureCollection',features:[]}:{type:'FeatureCollection',features:[circlePoly(state.center,r)]});}
+const HOODS=['Mission District','SoMa','Nob Hill','Hayes Valley','North Beach','Dogpatch','The Castro','Richmond','Sunset','Marina'];
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i)|0;}return h;}
+function updateLocationBar(){if(!map)return;const c=map.getCenter();state.center=[c.lng,c.lat];const h=HOODS[Math.abs(hashStr(Math.round(c.lng*50)+','+Math.round(c.lat*50)))%HOODS.length];document.getElementById('hoodName').textContent=h;document.getElementById('coordLabel').textContent=fmtCoord(c.lng,c.lat,4);drawRadius();}
+function tryGeolocate(silent){
+  if(!navigator.geolocation){if(!silent)toast('Geolocation not available');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{const {longitude,latitude}=pos.coords;state.me={lng:longitude,lat:latitude,accuracy:pos.coords.accuracy};
+    if(!meMarker){const el=document.createElement('div');el.className='me-dot';el.setAttribute('aria-label','You are here');meMarker=new maplibregl.Marker({element:el}).setLngLat([longitude,latitude]).addTo(map);}else meMarker.setLngLat([longitude,latitude]);
+    if(!silent)map.easeTo({center:[longitude,latitude],zoom:15});},
+    ()=>{if(!silent)toast('Could not get location — using default city');},{enableHighAccuracy:true,timeout:8000,maximumAge:30000});
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+function renderChips(){
+  const row=document.getElementById('chipRow');row.innerHTML='';
+  const all=document.createElement('button');all.className='chip';const allOn=state.activeCats.size===0;all.setAttribute('aria-pressed',allOn?'true':'false');if(allOn)all.style.background='var(--paper)';all.textContent='All';
+  all.onclick=()=>{state.activeCats.clear();renderChips();refreshPins();};row.appendChild(all);
+  for(const k of CAT_KEYS){const c=CATS[k];const b=document.createElement('button');const on=state.activeCats.has(k);b.className='chip';b.setAttribute('aria-pressed',on?'true':'false');if(on)b.style.background=c.color;
+    b.innerHTML='<span class="glyph" style="color:'+(on?'#0b0e2e':c.color)+'">'+c.glyph+'</span>'+c.name;
+    b.onclick=()=>{if(state.activeCats.has(k))state.activeCats.delete(k);else state.activeCats.add(k);renderChips();refreshPins();};row.appendChild(b);}
+}
+document.getElementById('radiusPill').onclick=()=>{state.radiusIdx=(state.radiusIdx+1)%RADII.length;document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');drawRadius();refreshPins();toast('Radius: '+RADII[state.radiusIdx][1]);};
+
+/* ============================================================
+   COMPOSER (§5)
+   ============================================================ */
+const composerScrim=document.getElementById('composerScrim'),composerSheet=document.getElementById('composerSheet');
+function openComposer(pre){
+  if(!ageOK()){showAgeGate();return;}
+  state.composer={media:[],category:'social',subcat:null,lifetime:LIFETIMES.social.def,precision:'approx_50m'};
+  renderCatSeg();renderSubSeg();renderLifeSeg();renderPrecision();renderMediaStrip();
+  document.getElementById('postText').value='';document.getElementById('accuracyHint').textContent='';updatePublish();
+  composerScrim.classList.add('open');composerSheet.classList.add('open');
+  const start=pre||(state.me?[state.me.lng,state.me.lat]:state.center);
+  setTimeout(()=>{
+    if(!composerMap){composerMap=new maplibregl.Map({container:'composerMap',style:BASE_STYLE,center:start,zoom:16,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:false});composerMap.touchZoomRotate.disableRotation();
+      composerMap.on('move',()=>{const c=composerMap.getCenter();document.getElementById('composerCoord').textContent=fmtCoord(c.lng,c.lat,6);});
+      composerMap.on('load',()=>{composerMap.resize();const c=composerMap.getCenter();document.getElementById('composerCoord').textContent=fmtCoord(c.lng,c.lat,6);});
+    }else{composerMap.resize();composerMap.jumpTo({center:start,zoom:16});document.getElementById('composerCoord').textContent=fmtCoord(start[0],start[1],6);}
+  },360);
+}
+function closeComposer(){composerScrim.classList.remove('open');composerSheet.classList.remove('open');}
+composerScrim.onclick=closeComposer;document.getElementById('composerClose').onclick=closeComposer;
+function renderCatSeg(){const seg=document.getElementById('catSeg');seg.innerHTML='';for(const k of CAT_KEYS){const c=CATS[k];const b=document.createElement('button');const on=state.composer.category===k;b.setAttribute('aria-pressed',on?'true':'false');if(on)b.style.background=c.color;b.innerHTML='<span style="color:'+(on?'#0b0e2e':c.color)+'">'+c.glyph+'</span>'+c.name;
+  b.onclick=()=>{if(k==='meetup'){toast('Use the Meet tab to post an anonymous meetup');return;}state.composer.category=k;state.composer.subcat=null;state.composer.lifetime=LIFETIMES[k].def;renderCatSeg();renderSubSeg();renderLifeSeg();};seg.appendChild(b);}}
+function renderSubSeg(){
+  const field=document.getElementById('subField'),seg=document.getElementById('subSeg'),subs=SUBCATS[state.composer.category];
+  if(!subs){field.style.display='none';return;}
+  field.style.display='block';document.getElementById('subLabel').textContent='What kind of spot? (optional)';
+  seg.innerHTML='';subs.forEach(s=>{const b=document.createElement('button');b.className='subopt';const on=state.composer.subcat===s.id;b.setAttribute('aria-pressed',on?'true':'false');
+    b.innerHTML='<span class="se">'+s.e+'</span>'+s.n;
+    b.onclick=()=>{state.composer.subcat=(state.composer.subcat===s.id)?null:s.id;renderSubSeg();};seg.appendChild(b);});
+}
+function renderLifeSeg(){const seg=document.getElementById('lifeSeg');seg.innerHTML='';const conf=LIFETIMES[state.composer.category];for(const [label,sec] of conf.opts){const b=document.createElement('button');b.className='pillbtn';const on=state.composer.lifetime===sec;b.setAttribute('aria-pressed',on?'true':'false');b.textContent=label;b.onclick=()=>{state.composer.lifetime=sec;renderLifeSeg();};seg.appendChild(b);}document.getElementById('lifeNote').textContent=state.composer.lifetime?('This pin disappears in '+lifetimeLabel(state.composer.lifetime)):'This pin stays forever';}
+function renderPrecision(){document.querySelectorAll('#precisionSeg .pillbtn').forEach(b=>{const on=b.dataset.p===state.composer.precision;b.setAttribute('aria-pressed',on?'true':'false');b.onclick=()=>{state.composer.precision=b.dataset.p;renderPrecision();};});}
+function renderMediaStrip(){const strip=document.getElementById('mediaStrip');strip.querySelectorAll('.thumbcell').forEach(n=>n.remove());const add=document.getElementById('addMedia');
+  state.composer.media.forEach((m,i)=>{const cell=document.createElement('div');cell.className='thumbcell';cell.innerHTML='<img src="'+m.url+'" alt="'+esc(m.alt||'')+'"><button class="rm" aria-label="Remove photo">×</button>';cell.querySelector('.rm').onclick=()=>{URL.revokeObjectURL(m.url);state.composer.media.splice(i,1);renderMediaStrip();updatePublish();};strip.insertBefore(cell,add);});
+  add.style.display=state.composer.media.length>=10?'none':'flex';}
+document.getElementById('addMedia').onclick=()=>document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange=e=>{const files=[...e.target.files].slice(0,10-state.composer.media.length);for(const f of files){state.composer.media.push({url:URL.createObjectURL(f),alt:'',file:f});}renderMediaStrip();updatePublish();e.target.value='';};
+function updatePublish(){const btn=document.getElementById('publishBtn');const hasP=state.composer.media.length>0,hasT=document.getElementById('postText').value.trim().length>0;btn.disabled=!(hasP&&hasT);btn.textContent=!hasP?'Add a photo to publish':(!hasT?'Write something to publish':'Publish pin');}
+document.getElementById('postText').addEventListener('input',updatePublish);
+document.getElementById('useMyLoc').onclick=()=>{if(!navigator.geolocation){toast('Geolocation not available');return;}navigator.geolocation.getCurrentPosition(pos=>{const {longitude,latitude,accuracy}=pos.coords;if(composerMap)composerMap.easeTo({center:[longitude,latitude],zoom:17});document.getElementById('accuracyHint').innerHTML='Accuracy ±'+Math.round(accuracy)+' m'+(accuracy>50?' — move outdoors for a sharper fix.':' ✓');},()=>toast('Could not get your location'),{enableHighAccuracy:true,timeout:8000});};
+document.getElementById('searchAddr').onclick=()=>{const q=prompt('Search an address or place (demo geocoder)');if(!q||!composerMap)return;const c=composerMap.getCenter();composerMap.easeTo({center:[c.lng+(Math.random()-.5)*0.01,c.lat+(Math.random()-.5)*0.01],zoom:16});toast('Flew to "'+q+'" — fine-tune with the crosshair');};
+document.getElementById('publishBtn').onclick=()=>{
+  const cat=state.composer.category;const c=composerMap?composerMap.getCenter():{lng:state.center[0],lat:state.center[1]};
+  if(cat==='fire'||cat==='hazard'){const lvl=levelOf(myPoints());if(lvl<2&&!me.contactVerified){toast('Emergency posting needs level 2 or a verified contact');return;}}
+  const text=document.getElementById('postText').value.trim();
+  const post=makePost({category:cat,subcat:state.composer.subcat,text,exact:[c.lng,c.lat],precision:state.composer.precision,lifetime:state.composer.lifetime,authorId:'me',media:state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}))});
+  state.posts.unshift(post);award('create_post',10,post.id);
+  closeComposer();refreshPins();map.easeTo({center:post.display_location,zoom:16});
+  toast(cat==='fire'||cat==='hazard'?'Emergency pin dropped — neighbours notified':'Pin dropped 📍 +10 pts');
+  maybeBadgeToast();setTimeout(()=>openDetail(post.id),500);
+};
+document.getElementById('fab').onclick=()=>openComposer();
+document.getElementById('tabDrop').onclick=e=>{e.preventDefault();openComposer();};
+
+/* ============================================================
+   DETAIL SHEET
+   ============================================================ */
+const detailScrim=document.getElementById('detailScrim'),detailSheet=document.getElementById('detailSheet');
+function getPost(id){return state.posts.find(p=>p.id===id);}
+function openDetail(id){const p=getPost(id);if(!p)return;state.currentPostId=id;renderDetail(p);detailScrim.classList.add('open');detailSheet.classList.add('open');}
+function closeDetail(){detailScrim.classList.remove('open');detailSheet.classList.remove('open');state.currentPostId=null;}
+detailScrim.onclick=closeDetail;
+function renderDetail(p){
+  const cat=CATS[p.category],author=userOf(p.authorId),mine=p.authorId==='me',dist=metresBetween(state.center,p.display_location),media=p.media[0];
+  const following=state.following.has(p.authorId);
+  const body=document.getElementById('detailBody');
+  const sub=subOf(p);
+  body.innerHTML=
+    (media?'<img class="detail-media" src="'+media.url+'" alt="'+esc(media.alt||p.text)+'">':'')
+    +'<div class="author"><div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer" data-openuser="'+p.authorId+'">'+avatarHTML(author,42)
+    +'<div style="flex:1"><div class="nm">'+esc(author.name)+' '+badgeFlair(author)+(mine?'<span class="mono" style="color:var(--muted);font-size:11px">· you</span>':'')+'</div><div class="sub">'+fmtDist(dist)+' away · '+fmtCoord(p.display_location[0],p.display_location[1],4)+'</div></div></div>'
+    +'<button class="kebab" id="postMenu" aria-label="More">⋯</button>'
+    +'<span class="catbadge" style="background:'+cat.color+';color:#0b0e2e">'+cat.glyph+' '+cat.name+'</span></div>'
+    +(sub?'<div style="margin:-4px 0 8px"><span class="subbadge">'+sub.e+' '+esc(sub.n)+'</span></div>':'')
+    +'<div class="countdown" id="cdown">'+countdownText(p)+'</div>'
+    +'<div class="detail-text">'+linkify(p.text)+'</div>'
+    +'<div class="actions">'
+      +(cat.urgent?'<button class="act confirm '+(p.confirmed?'':'emph')+'" id="confirmBtn">▲ '+(p.confirmed?'Confirmed':'I see it too')+' · '+p.confirm_count+'</button>':'<button class="act like '+(p.liked?'on':'')+'" id="likeBtn">♥ '+p.like_count+'</button>')
+      +'<button class="act save '+(p.saved?'on':'')+'" id="saveBtn">🔖 '+(p.saved?'Saved':'Save')+'</button>'
+      +(mine?'':'<button class="act follow '+(following?'on':'')+'" id="followBtn">'+(following?'Following':'Follow')+'</button>')
+    +'</div>'
+    +((p.category==='lost'||p.category==='found')&&mine?'<button class="btn-ghost" id="resolveBtn" style="margin-bottom:8px">Mark resolved</button>':'')
+    +(mine?'<button class="btn-ghost" id="extendBtn" style="margin-bottom:8px">Extend / shorten lifetime</button>':'')
+    +'<h3 class="display" style="font-size:16px;font-weight:800;margin:14px 0 4px">Comments · '+p.comments.length+'</h3>'
+    +'<div id="commentList"></div>'
+    +(p.repliesOff?'<div class="hint">Replies are turned off for this pin.</div>':'<div class="commentbar"><input class="input" id="commentInput" placeholder="Add a comment…"><button id="commentSend">Send</button></div>');
+  renderComments(p);
+  body.querySelectorAll('a[data-tag]').forEach(a=>a.onclick=e=>{e.preventDefault();filterByTag(a.dataset.tag);});
+  body.querySelector('#postMenu').onclick=()=>openPostMenu(p);
+  const au=body.querySelector('[data-openuser]');if(au)au.onclick=()=>{closeDetail();openUserProfile(au.dataset.openuser);};
+  const like=body.querySelector('#likeBtn');if(like)like.onclick=()=>{p.liked=!p.liked;p.like_count+=p.liked?1:-1;if(p.liked&&!mine)notify('like',p.authorId,p.id);renderDetail(p);};
+  const conf=body.querySelector('#confirmBtn');if(conf)conf.onclick=()=>{if(p.confirmed)return;const d=metresBetween(state.me?[state.me.lng,state.me.lat]:state.center,p.display_location);if(d>1500){toast('Get closer to confirm (server-verified distance)');return;}p.confirmed=true;p.confirm_count++;if(p.expires_at)p.expires_at+=3600*1000;award('confirm_emergency',4,p.id);toast('Confirmed — pin extended · +4 pts');renderDetail(p);refreshPins();};
+  body.querySelector('#saveBtn').onclick=()=>{p.saved=!p.saved;if(p.saved)state.saved.add(p.id);else state.saved.delete(p.id);toast(p.saved?'Saved to your collection':'Removed');renderDetail(p);};
+  const fol=body.querySelector('#followBtn');if(fol)fol.onclick=()=>{toggleFollow(p.authorId);renderDetail(p);};
+  const res=body.querySelector('#resolveBtn');if(res)res.onclick=()=>{p.status='resolved';award(p.category==='found'?'found_match':'lost_resolved',p.category==='found'?75:50,p.id);toast('Marked resolved 🎉 '+(p.category==='found'?'+75':'+50')+' pts');closeDetail();refreshPins();};
+  const ext=body.querySelector('#extendBtn');if(ext)ext.onclick=()=>extendLifetime(p);
+  if(!p.repliesOff){const send=body.querySelector('#commentSend'),inp=body.querySelector('#commentInput');const go=()=>{const t=inp.value.trim();if(!t)return;p.comments.push({id:uid(),authorId:'me',text:t,created_at:Date.now()});if(!mine){award('comment',2,p.id);notify('comment',p.authorId,p.id);}inp.value='';renderDetail(p);refreshPins();};send.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
+}
+function renderComments(p){
+  const list=document.getElementById('commentList');if(!list)return;
+  if(!p.comments.length){list.innerHTML='<div class="empty" style="padding:16px"><div>No comments yet — be the first.</div></div>';return;}
+  list.innerHTML='';
+  p.comments.forEach(c=>{const cu=userOf(c.authorId);const mineC=c.authorId==='me',ownerP=p.authorId==='me';
+    const row=document.createElement('div');row.className='comment';
+    row.innerHTML='<div style="display:flex;gap:10px;flex:1;cursor:pointer" data-openuser="'+c.authorId+'">'+avatarHTML(cu,32)+'<div style="flex:1"><div class="c-nm">'+esc(cu.name)+'</div><div class="c-tx">'+linkify(c.text)+'</div></div></div>'+((mineC||ownerP)?'<button class="c-del">Delete</button>':'');
+    const del=row.querySelector('.c-del');if(del)del.onclick=()=>{p.comments=p.comments.filter(x=>x.id!==c.id);if(ownerP&&!mineC)notify('comment_removed',c.authorId,p.id);toast('Comment deleted');renderDetail(p);refreshPins();};
+    const cl=row.querySelector('[data-openuser]');if(cl)cl.onclick=()=>{closeDetail();openUserProfile(c.authorId);};
+    row.querySelectorAll('a[data-tag]').forEach(a=>a.onclick=e=>{e.preventDefault();filterByTag(a.dataset.tag);});
+    list.appendChild(row);});
+}
+function extendLifetime(p){const conf=LIFETIMES[p.category];const choice=prompt('New lifetime ('+conf.opts.map(o=>o[0]).join(', ')+'):');if(!choice)return;const f=conf.opts.find(o=>o[0].toLowerCase()===choice.trim().toLowerCase());if(!f){toast('Not a valid option for '+CATS[p.category].name);return;}p.lifetime_seconds=f[1];p.expires_at=f[1]?p.created_at+f[1]*1000:null;toast('Lifetime updated');renderDetail(p);refreshPins();}
+
+/* Post action menu (§8.4) */
+function openPostMenu(p){
+  const mine=p.authorId==='me';const items=[];
+  if(mine){
+    items.push(['✏️','Edit text',()=>{const t=prompt('Edit text',p.text);if(t!=null){p.text=t;p.tags=parseHashtags(t);renderDetail(p);refreshPins();}}]);
+    items.push([p.repliesOff?'💬':'🚫',p.repliesOff?'Turn replies on':'Turn off replies',()=>{p.repliesOff=!p.repliesOff;toast(p.repliesOff?'Replies off':'Replies on');renderDetail(p);}]);
+    items.push(['🗑','Delete pin',()=>{if(confirm('Delete this pin? Media is removed.')){p.status='removed';toast('Pin deleted');closeDetail();refreshPins();}},'danger']);
+  }else{
+    items.push(['↗','Share',()=>sharePost(p)]);
+    items.push(['🔖',p.saved?'Unsave':'Save',()=>{p.saved=!p.saved;p.saved?state.saved.add(p.id):state.saved.delete(p.id);renderDetail(p);}]);
+    items.push(['🔕',state.muted.has(p.authorId)?'Unmute author':'Mute author',()=>{toggleMute(p.authorId);closeDetail();refreshPins();}]);
+    items.push(['🚫',state.blocked.has(p.authorId)?'Unblock author':'Block author',()=>{toggleBlock(p.authorId);closeDetail();refreshPins();},'danger']);
+    items.push(['⚑','Report pin',()=>reportFlow('post',p.id),'danger']);
+  }
+  openMenu([items]);
+}
+function sharePost(p){const url=location.origin+location.pathname+'#pin/'+p.id;if(navigator.share){navigator.share({title:'Pin Drop',text:p.text,url}).catch(()=>{});}else{try{navigator.clipboard.writeText(url);}catch(e){}toast('Link copied: …/#pin/'+p.id);}}
+
+/* ============================================================
+   ACTION MENU
+   ============================================================ */
+const menuScrim=document.getElementById('menuScrim');
+function openMenu(groups){
+  const wrap=document.getElementById('menuGroups');wrap.innerHTML='';
+  groups.forEach(g=>{const box=document.createElement('div');box.className='menu-group';g.forEach(([ic,label,fn,cls])=>{const b=document.createElement('button');b.className='menu-item'+(cls?' '+cls:'');b.innerHTML='<span>'+ic+'</span>'+esc(label);b.onclick=()=>{closeMenu();fn();};box.appendChild(b);});wrap.appendChild(box);});
+  menuScrim.classList.add('open');
+}
+function closeMenu(){menuScrim.classList.remove('open');}
+menuScrim.onclick=closeMenu;document.getElementById('menuCancel').onclick=closeMenu;
+
+/* ============================================================
+   SOCIAL: follow / block / mute / report / notifications
+   ============================================================ */
+function toggleFollow(id){if(state.following.has(id)){state.following.delete(id);toast('Unfollowed');}else{state.following.add(id);const u=userOf(id);u.followers=(u.followers||0)+1;notify('follow',id,'me');toast('Following '+userOf(id).name);}}
+function toggleBlock(id){if(state.blocked.has(id)){state.blocked.delete(id);toast('Unblocked');}else{state.blocked.add(id);state.following.delete(id);toast('Blocked — their pins are hidden both ways');}}
+function toggleMute(id){if(state.muted.has(id)){state.muted.delete(id);toast('Unmuted');}else{state.muted.add(id);toast('Muted — content hidden, they aren\'t notified');}}
+function reportFlow(type,id){
+  const reasons=['Spam','Harassment','False emergency','Unsafe / dangerous','Other'];
+  openMenu([reasons.map(r=>['⚑',r,()=>{toast('Report submitted — thank you. Our team will review.');
+    state.reports.unshift({id:uid(),type,targetId:id,reason:r,at:Date.now(),status:'open'});
+    // bump the target user's report counter so admins can triage
+    let targetUser=null;
+    if(type==='post'){const p=getPost(id);targetUser=p&&p.authorId;}
+    else if(type==='meetup'){const m=state.meetups.find(x=>x.id===id);targetUser=m&&m.hostId;}
+    else targetUser=id;
+    if(targetUser&&state.users[targetUser])state.users[targetUser].reports=(state.users[targetUser].reports||0)+1;
+    if(type==='post'){const p=getPost(id);if(p){p.report_count=(p.report_count||0)+1;if(p.report_count>=3){p.status='hidden';toast('This post reached 3 reports and is now hidden pending review');closeDetail();refreshPins();}}}
+  }])]);
+}
+function notify(type,toUser,ref){
+  // only surface notifications addressed to "me" in this single-user demo
+  const map={like:['♥','liked your pin'],comment:['💬','commented on your pin'],follow:['➕','started following you'],
+    comment_removed:['🗑','Your comment was removed by the post owner'],meetup_req:['🤝','wants to meet up'],
+    meetup_acc:['✅','accepted your meetup'],meetup_msg:['✉️','sent a message'],badge:['🏅','You earned a badge'],level:['⭐','You reached a new level'],nearby:['📍','New pin near you'],emergency:['🚨','Emergency near you']};
+  if(toUser!=='me'&&['like','comment','follow'].includes(type))return; // to others → not shown here
+  const [ic,txt]=map[type]||['🔔','Notification'];
+  state.notifications.unshift({id:uid(),type,ic,text:txt,ref,at:Date.now(),read:false});
+  updateBell();
+}
+function updateBell(){const n=state.notifications.filter(x=>!x.read).length;const dot=document.getElementById('bellDot');dot.style.display=n?'flex':'none';dot.textContent=n>9?'9+':n;const td=document.getElementById('alertDot');if(td)td.style.display=n?'block':'none';}
+
+/* ============================================================
+   FEED (§7)
+   ============================================================ */
+let feedSort='new',feedTag=null;
+function postCard(p){
+  const cat=CATS[p.category],author=userOf(p.authorId),dist=metresBetween(state.center,p.display_location),media=p.media[0];
+  const sub=subOf(p);
+  return '<div class="card" style="border-left-color:'+cat.color+'" data-id="'+p.id+'">'
+    +(media?'<img class="thumb" src="'+media.url+'" alt="'+esc(media.alt||p.text)+'">':'')
+    +'<div class="row" style="justify-content:space-between;gap:6px"><span style="display:flex;gap:6px;flex-wrap:wrap"><span class="catbadge" style="background:'+cat.color+'22;color:'+cat.color+'">'+cat.glyph+' '+cat.name+'</span>'+(sub?'<span class="subbadge">'+sub.e+' '+esc(sub.n)+'</span>':'')+'</span><span class="meta" style="flex:0 0 auto">'+fmtDist(dist)+' · '+countdownText(p).replace('Expires in','⏱')+'</span></div>'
+    +'<div class="title">'+esc(author.name)+' '+badgeFlair(author)+'</div>'
+    +'<div class="body">'+linkify(p.text)+'</div>'
+    +'<div class="meta" style="margin-top:8px">'+(cat.urgent?('▲ '+p.confirm_count+' confirms'):('♥ '+p.like_count))+' · 💬 '+p.comments.length+'</div></div>';
+}
+function sortPosts(posts){
+  const a=posts.slice();
+  if(feedSort==='new')a.sort((x,y)=>y.created_at-x.created_at);
+  if(feedSort==='near')a.sort((x,y)=>metresBetween(state.center,x.display_location)-metresBetween(state.center,y.display_location));
+  if(feedSort==='liked')a.sort((x,y)=>(y.like_count+y.confirm_count)-(x.like_count+x.confirm_count));
+  if(feedSort==='expiring')a.sort((x,y)=>(x.expires_at||1e15)-(y.expires_at||1e15));
+  return a;
+}
+function renderFeed(){
+  const body=document.getElementById('feedBody');
+  let posts=filteredPosts();if(feedTag)posts=posts.filter(p=>p.tags.includes(feedTag));
+  posts=sortPosts(posts);
+  const tagCount={};filteredPosts().forEach(p=>p.tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
+  const trending=Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  let html='';
+  html+='<div class="segtabs" id="sortTabs">'+[['new','Newest'],['near','Nearest'],['liked','Top'],['expiring','Expiring']].map(([k,l])=>'<button class="'+(feedSort===k?'on':'')+'" data-s="'+k+'">'+l+'</button>').join('')+'</div>';
+  if(feedTag)html+='<div class="pill-note" style="margin-bottom:10px">Filtering #'+esc(feedTag)+' · <a href="#" id="clearTag" style="color:var(--cyan)">clear</a></div>';
+  if(trending.length&&!feedTag)html+='<div style="margin-bottom:12px"><div class="meta" style="margin-bottom:6px">Trending near you</div><div class="chiprow">'+trending.map(([t])=>'<button class="chip" data-tag="'+esc(t)+'"><span class="glyph" style="color:var(--cyan)">#</span>'+esc(t)+'</button>').join('')+'</div></div>';
+  html+=posts.length?posts.map(postCard).join(''):'<div class="empty"><div class="big">No pins here yet</div><div>Widen your radius or drop the first one.</div></div>';
+  body.innerHTML=html;
+  body.querySelectorAll('#sortTabs button').forEach(b=>b.onclick=()=>{feedSort=b.dataset.s;renderFeed();});
+  const ct=body.querySelector('#clearTag');if(ct)ct.onclick=e=>{e.preventDefault();feedTag=null;renderFeed();};
+  body.querySelectorAll('.card[data-id]').forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
+  body.querySelectorAll('[data-tag]').forEach(b=>b.onclick=()=>{feedTag=b.dataset.tag;renderFeed();});
+}
+function filterByTag(tag){closeDetail();feedTag=tag;switchTab('feed');renderFeed();toast('Filtering #'+tag+' within '+RADII[state.radiusIdx][1]);}
+
+/* ============================================================
+   SEARCH (§7.3)
+   ============================================================ */
+let searchTab='pins';
+function openSearch(){if(!document.getElementById('searchScreen').classList.contains('active')){state.prevTab=currentTab();showScreen('search');renderSearch();setTimeout(()=>document.getElementById('searchInput2').focus(),80);}}
+document.getElementById('searchInput').addEventListener('focus',e=>{e.target.blur();openSearch();});
+document.getElementById('searchInput2').addEventListener('input',()=>renderSearch());
+document.getElementById('searchBack').onclick=()=>{document.getElementById('searchInput2').blur();switchTab(state.prevTab||'map');};
+function renderSearch(){
+  const q=document.getElementById('searchInput2').value.trim().toLowerCase().replace(/^#/,'');
+  const body=document.getElementById('searchBody');
+  let html='<div class="segtabs" id="searchTabs">'+[['pins','Pins'],['people','People'],['tags','Tags']].map(([k,l])=>'<button class="'+(searchTab===k?'on':'')+'" data-s="'+k+'">'+l+'</button>').join('')+'</div>';
+  if(!q){html+='<div class="empty"><div class="big">Search Pin Drop</div><div>Try a word, a @name, or a #tag.</div></div>';body.innerHTML=html;bindSearchTabs();return;}
+  if(searchTab==='pins'){const res=visiblePosts().filter(p=>p.text.toLowerCase().includes(q));html+=res.length?res.map(postCard).join(''):emptyMsg('No pins match “'+esc(q)+'”');}
+  else if(searchTab==='people'){const res=Object.values(state.users).filter(u=>u.id!=='me'&&((u.name||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)));html+=res.length?res.map(u=>userRow(u)).join(''):emptyMsg('No people match');}
+  else{const tags={};visiblePosts().forEach(p=>p.tags.forEach(t=>tags[t]=(tags[t]||0)+1));const res=Object.entries(tags).filter(([t])=>t.includes(q)).sort((a,b)=>b[1]-a[1]);html+=res.length?res.map(([t,c])=>'<div class="card" data-tag="'+esc(t)+'" style="border-left-color:var(--cyan)"><div class="title">#'+esc(t)+'</div><div class="meta">'+c+' pins nearby</div></div>').join(''):emptyMsg('No tags match');}
+  body.innerHTML=html;bindSearchTabs();
+  body.querySelectorAll('.card[data-id]').forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
+  body.querySelectorAll('.card[data-tag]').forEach(c=>c.onclick=()=>{document.getElementById('searchInput').blur();filterByTag(c.dataset.tag);});
+  body.querySelectorAll('[data-user]').forEach(c=>c.onclick=()=>openUserProfile(c.dataset.user));
+}
+function bindSearchTabs(){document.querySelectorAll('#searchTabs button').forEach(b=>b.onclick=()=>{searchTab=b.dataset.s;renderSearch();});}
+function emptyMsg(m){return '<div class="empty"><div>'+m+'</div></div>';}
+function userRow(u){const following=state.following.has(u.id);return '<div class="card" data-user="'+u.id+'" style="border-left-color:'+(u.color||'#7C5CFF')+';display:flex;align-items:center;gap:12px">'+avatarHTML(u,44)+'<div style="flex:1;min-width:0"><div class="title" style="margin:0">'+esc(u.name)+' '+badgeFlair(u)+'</div><div class="meta">@'+esc(u.username||'user')+' · L'+levelOf(u.points||0)+' · '+followersOf(u.id).length+' followers</div></div><span class="catbadge" style="background:'+(following?'var(--social)':'var(--surface-2)')+';color:'+(following?'#0b0e2e':'var(--paper)')+'">'+(following?'Following':'Follow')+'</span></div>';}
+
+/* ============================================================
+   PROFILE (§8.2) — self + others
+   ============================================================ */
+let profileTab='pins';
+function openUserProfile(id){state.viewProfile=id;profileTab='pins';document.querySelector('#profileHead h1').textContent=id==='me'?'Profile':userOf(id).name;document.getElementById('settingsBtn').style.display=id==='me'?'block':'none';switchTab('profile');}
+function renderProfile(){
+  const id=state.viewProfile,u=userOf(id),mine=id==='me',body=document.getElementById('profileBody');
+  const myPostsAll=state.posts.filter(p=>p.authorId===id);
+  const active=myPostsAll.filter(p=>p.status==='active'&&(!p.expires_at||p.expires_at>Date.now()));
+  const points=mine?myPoints():(u.points||0);const lvl=levelOf(points);
+  const nextMin=LEVEL_MIN[Math.min(lvl+1,5)],prevMin=LEVEL_MIN[lvl];const prog=lvl>=5?1:(points-prevMin)/Math.max(1,(nextMin-prevMin));
+  const following=state.following.has(id),blocked=state.blocked.has(id),muted=state.muted.has(id);
+  let html='<div class="card" style="border-left-color:'+(u.color||'var(--social)')+';text-align:center">'
+    +'<div style="margin:6px auto;width:76px" '+(mine?'id="profileAvatar"':'')+'>'+(mine?'<div class="avatar tappable" style="width:76px;height:76px">'+avatarInner(u)+'<span class="edit-pip">✎</span></div>':avatarHTML(u,76))+'</div>'
+    +'<div class="display" style="font-size:20px;font-weight:800">'+esc(u.name)+' '+badgeFlair(u)+'</div>'
+    +'<div class="meta">@'+esc(u.username||'user')+' · '+LEVEL_NAMES[lvl]+'</div>'
+    +(u.bio?'<div style="font-size:13.5px;color:var(--muted);margin-top:6px">'+esc(u.bio)+'</div>':'')
+    +(isBanned(id)?'<div class="pill-note" style="color:var(--danger);margin-top:8px">🔒 This account is banned</div>':'')
+    +'<div class="statgrid"><div><div class="n">'+active.length+'</div><div class="meta">pins</div></div>'
+      +'<div class="statlink" data-list="followers"><div class="n">'+followersOf(id).length+'</div><div class="meta">followers</div></div>'
+      +'<div class="statlink" data-list="following"><div class="n">'+followingIdsOf(id).length+'</div><div class="meta">following</div></div>'
+      +'<div><div class="n mono">'+points+'</div><div class="meta">points</div></div></div>'
+    +'<div class="levelbar"><i style="width:'+Math.round(prog*100)+'%"></i></div><div class="meta">'+(lvl>=5?'Max level':((nextMin-points)+' pts to '+LEVEL_NAMES[lvl+1]))+'</div>';
+  if(mine){html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-ghost" id="viewBadges">Badges</button><button class="btn-ghost" id="viewLb">Leaderboard</button></div>';}
+  else{html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="'+(following?'btn-ghost':'btn-primary')+'" id="pFollow" style="height:44px">'+(following?'Following':'Follow')+'</button><button class="btn-ghost" id="pMenu" style="width:52px;flex:0 0 auto">⋯</button></div>';}
+  html+='</div>';
+  html+='<div class="segtabs" id="pTabs">'+[['pins','Pins'],['saved','Saved'],mine?['archive','Archive']:null].filter(Boolean).map(([k,l])=>'<button class="'+(profileTab===k?'on':'')+'" data-s="'+k+'">'+l+'</button>').join('')+'</div>';
+  let list=[];
+  if(profileTab==='pins')list=active;
+  else if(profileTab==='saved')list=mine?state.posts.filter(p=>state.saved.has(p.id)):[];
+  else list=myPostsAll.filter(p=>p.status==='expired'||(p.expires_at&&p.expires_at<=Date.now())||p.status==='resolved');
+  html+='<div id="pList">'+(list.length?list.map(postCard).join(''):emptyMsg(profileTab==='saved'?'Nothing saved yet':profileTab==='archive'?'No expired pins yet':'No pins yet'))+'</div>';
+  html+='<h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Badge shelf</h3><div class="badgegrid">'+badgeShelf(id,4)+'</div>';
+  body.innerHTML=html;
+  const vb=body.querySelector('#viewBadges');if(vb)vb.onclick=()=>showBadges();
+  const vl=body.querySelector('#viewLb');if(vl)vl.onclick=()=>showLeaderboard();
+  body.querySelectorAll('[data-list]').forEach(el=>el.onclick=()=>openUserList(id,el.dataset.list));
+  const pa=body.querySelector('#profileAvatar');if(pa)pa.onclick=openAvatarPicker;
+  bindBadgeCards(body);
+  const pf=body.querySelector('#pFollow');if(pf)pf.onclick=()=>{toggleFollow(id);renderProfile();};
+  const pm=body.querySelector('#pMenu');if(pm)pm.onclick=()=>openMenu([[['🔕',muted?'Unmute':'Mute',()=>{toggleMute(id);renderProfile();}],['🚫',blocked?'Unblock':'Block',()=>{toggleBlock(id);renderProfile();},'danger'],['⚑','Report user',()=>reportFlow('user',id),'danger']]]);
+  body.querySelectorAll('#pTabs button').forEach(b=>b.onclick=()=>{profileTab=b.dataset.s;renderProfile();});
+  body.querySelectorAll('.card[data-id]').forEach(c=>c.onclick=()=>openDetail(c.dataset.id));
+}
+document.getElementById('settingsBtn').onclick=()=>{showScreen('settings');renderSettings();};
+
+/* ============================================================
+   BADGES (§9.3)
+   ============================================================ */
+const TIERS={bronze:['#E8A75C','#A85F26'],silver:['#E6ECF7','#98A4BD'],gold:['#FFD873','#E0961A'],platinum:['#8B6BFF','#35E5FF']};
+const TIER_LABEL={bronze:'Bronze',silver:'Silver',gold:'Gold',platinum:'Elite'};
+function medalSVG(tier,glyph){
+  const g=TIERS[tier]||TIERS.bronze,id='m'+Math.random().toString(36).slice(2,7);
+  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+g[0]+'"/><stop offset="1" stop-color="'+g[1]+'"/></linearGradient></defs>'
+    +'<path d="M32 3 57 17.5v29L32 61 7 46.5v-29Z" fill="url(#'+id+')" stroke="rgba(255,255,255,.55)" stroke-width="1.6"/>'
+    +'<path d="M32 12 49 22v20L32 52 15 42V22Z" fill="rgba(11,14,46,.16)"/>'
+    +'<text x="32" y="41" text-anchor="middle" font-size="24">'+glyph+'</text></svg>';
+}
+function badgeDefs(){
+  const mine=state.posts.filter(p=>p.authorId==='me');
+  const photos=mine.filter(p=>p.media.length).length;
+  const confirms=state.pointEvents.filter(e=>e.action==='confirm_emergency').length;
+  const reunions=mine.filter(p=>(p.category==='found'||p.category==='lost')&&p.status==='resolved').length;
+  const followers=followersOf('me').length;
+  const night=mine.some(p=>{const h=new Date(p.created_at).getHours();return h>=22||h<4;});
+  const socialTypes=new Set(mine.filter(p=>p.subcat).map(p=>p.subcat)).size;
+  const mk=(tier,glyph,name,desc,cur,goal,have)=>({tier,glyph,name,desc,cur:Math.min(cur,goal),goal,have:have===undefined?cur>=goal:have});
+  return [
+    mk('bronze','✦','First Drop','Drop your very first pin on the map.',mine.length,1),
+    mk('silver','🗺️','Cartographer','Chart the city with 10 pins.',mine.length,10),
+    mk('gold','🏙️','City Chronicler','Become a local voice with 50 pins.',mine.length,50),
+    mk('silver','📸','Shutterbug','Add photos to 25 of your pins.',photos,25),
+    mk('bronze','🦉','Night Owl','Post something after 10pm.',night?1:0,1),
+    mk('silver','🎭','Tastemaker','Post 5 different kinds of social spots.',socialTypes,5),
+    mk('silver','🛟','First Responder','Confirm 5 nearby emergencies.',confirms,5),
+    mk('gold','🗼','Watchtower','Keep the city safe — confirm 50 emergencies.',confirms,50),
+    mk('gold','🕊️','Guardian','Reunite someone with what they lost.',reunions,1),
+    mk('silver','🔗','Connector','Grow a following of 25 neighbours.',followers,25),
+    mk('silver','🛡️','Trusted','Earn 500 reputation points.',myPoints(),500),
+    mk('platinum','👑','Local Legend','Reach the top level: Cartographer.',myPoints(),10000),
+  ];
+}
+function badgeCardHTML(b){
+  const pct=b.have?100:Math.round(b.cur/b.goal*100);
+  return '<button class="badge'+(b.have?'':' locked')+'" data-badge="'+esc(b.name)+'">'
+    +'<span class="tier" style="background:'+TIERS[b.tier][0]+'33;color:'+TIERS[b.tier][0]+'">'+TIER_LABEL[b.tier]+'</span>'
+    +'<div class="medal">'+medalSVG(b.tier,b.glyph)+'</div>'
+    +'<div class="bn">'+esc(b.name)+'</div>'
+    +(b.have?'<div class="bp">✓ Earned</div>':'<div class="miniprog"><i style="width:'+pct+'%"></i></div><div class="bp">'+b.cur+' / '+b.goal+'</div>')
+    +'</button>';
+}
+function badgeShelf(id,limit){const defs=badgeDefs();const earned=defs.filter(b=>b.have);const show=(earned.length>=(limit||4)?earned:earned.concat(defs.filter(b=>!b.have))).slice(0,limit||8);return show.map(badgeCardHTML).join('');}
+function badgeFlair(u){const p=u.id==='me'?myPoints():(u.points||0);if(p>=10000)return '<span class="flair" title="Local Legend">👑</span>';if(p>=3000)return '<span class="flair" title="Landmark">🏅</span>';if(p>=1000)return '<span class="flair" title="Regular">✦</span>';return '';}
+function maybeBadgeToast(){const mine=state.posts.filter(p=>p.authorId==='me');if(mine.length===1){notify('badge','me','first_drop');toast('🏅 Badge earned: First Drop');}}
+function bindBadgeCards(scope){scope.querySelectorAll('[data-badge]').forEach(el=>el.onclick=()=>{const b=badgeDefs().find(x=>x.name===el.dataset.badge);if(b)openBadgeDetail(b);});}
+const badgeScrim=document.getElementById('badgeScrim'),badgeSheet=document.getElementById('badgeSheet');
+function openBadgeDetail(b){
+  const pct=b.have?100:Math.round(b.cur/b.goal*100);
+  document.getElementById('badgeBody').innerHTML='<div class="sheet-head"><h2>Badge</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="badgeClose">Close</button></div>'
+    +'<div class="badge-hero"><div class="medal'+(b.have?'':' locked')+'" style="'+(b.have?'':'filter:grayscale(1) brightness(.6)')+'">'+medalSVG(b.tier,b.glyph)+'</div>'
+    +'<div><div style="font-family:var(--font-display);font-weight:800;font-size:19px">'+esc(b.name)+'</div>'
+    +'<span class="tier" style="position:static;display:inline-block;margin-top:4px;background:'+TIERS[b.tier][0]+'33;color:'+TIERS[b.tier][0]+'">'+TIER_LABEL[b.tier]+' tier</span></div></div>'
+    +'<div class="detail-text" style="font-size:14.5px">'+esc(b.desc)+'</div>'
+    +(b.have?'<div class="pill-note" style="color:var(--success)">✓ Unlocked — nice work</div>':'<div class="levelbar"><i style="width:'+pct+'%"></i></div><div class="meta">'+b.cur+' of '+b.goal+' · '+(b.goal-b.cur)+' to go</div>');
+  document.getElementById('badgeClose').onclick=closeBadgeDetail;
+  badgeScrim.classList.add('open');badgeSheet.classList.add('open');
+}
+function closeBadgeDetail(){badgeScrim.classList.remove('open');badgeSheet.classList.remove('open');}
+badgeScrim.onclick=closeBadgeDetail;
+function showBadges(){const body=document.getElementById('lbBody');document.querySelector('#lbScreen h1').textContent='Badges';const defs=badgeDefs();const earned=defs.filter(b=>b.have).length;
+  body.innerHTML='<div class="pill-note" style="margin-bottom:10px">'+earned+' of '+defs.length+' badges earned</div><div class="badgegrid">'+defs.map(badgeCardHTML).join('')+'</div><h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Points ledger</h3>'+ledgerHTML();
+  bindBadgeCards(body);showScreen('lb');}
+function ledgerHTML(){if(!state.pointEvents.length)return emptyMsg('No points yet — drop a pin to start.');const labels={create_post:'Created a post',confirm_emergency:'Confirmed an emergency',comment:'Commented',lost_resolved:'Lost pin resolved',found_match:'Found match'};return state.pointEvents.slice(0,30).map(e=>'<div class="lbrow"><div style="flex:1">'+(labels[e.action]||e.action)+'<div class="meta">'+fmtAgo(e.at)+' ago</div></div><div class="pts">+'+e.points+'</div></div>').join('');}
+
+/* ============================================================
+   LEADERBOARD (§9.4)
+   ============================================================ */
+let lbPeriod='week';
+function showLeaderboard(){document.querySelector('#lbScreen h1').textContent='Leaderboard';renderLeaderboard();showScreen('lb');}
+function renderLeaderboard(){
+  const body=document.getElementById('lbBody');
+  const rows=Object.values(state.users).map(u=>({u,pts:u.id==='me'?myPoints():(u.points||0)})).filter(r=>r.u.id!=='me'?true:state.settings.leaderboardOptIn).sort((a,b)=>b.pts-a.pts);
+  let html='<div class="segtabs" id="lbTabs"><button class="'+(lbPeriod==='week'?'on':'')+'" data-p="week">This week</button><button class="'+(lbPeriod==='all'?'on':'')+'" data-p="all">All time</button></div>';
+  html+='<div class="meta" style="margin:0 4px 8px">Scoped to your city · '+(state.settings.leaderboardOptIn?'you are listed':'you opted out')+'</div>';
+  html+=rows.map((r,i)=>'<div class="lbrow"><div class="rk">'+(i+1)+'</div>'+avatarHTML(r.u,36)+'<div style="flex:1"><div style="font-weight:700;font-size:14px">'+esc(r.u.name)+(r.u.id==='me'?' (you)':'')+'</div><div class="meta">L'+levelOf(r.pts)+' · '+LEVEL_NAMES[levelOf(r.pts)]+'</div></div><div class="pts">'+r.pts+'</div></div>').join('');
+  body.innerHTML=html;
+  body.querySelectorAll('#lbTabs button').forEach(b=>b.onclick=()=>{lbPeriod=b.dataset.p;renderLeaderboard();});
+}
+document.getElementById('lbBack').onclick=()=>switchTab('profile');
+
+/* ============================================================
+   NOTIFICATIONS (§13)
+   ============================================================ */
+function renderAlerts(){
+  const body=document.getElementById('alertBody');
+  if(!state.notifications.length){body.innerHTML='<div class="empty"><div class="big">All caught up</div><div>Likes, comments, follows and nearby alerts land here.</div></div>';return;}
+  body.innerHTML=state.notifications.map(n=>{const actor=n.ref&&state.users[n.ref]?userOf(n.ref):null;const who=actor&&['like','comment','follow'].includes(n.type)?esc(actor.name)+' ':'';return '<div class="notif '+(n.read?'':'unread')+'" data-id="'+n.id+'"><div class="ic">'+n.ic+'</div><div style="flex:1"><div class="tx">'+who+n.text+'</div><div class="tm">'+fmtAgo(n.at)+' ago</div></div></div>';}).join('');
+  body.querySelectorAll('.notif').forEach(el=>el.onclick=()=>{const n=state.notifications.find(x=>x.id===el.dataset.id);if(n){n.read=true;updateBell();if(n.ref&&getPost(n.ref)){switchTab('map');openDetail(n.ref);}else renderAlerts();}});
+}
+document.getElementById('markAll').onclick=()=>{state.notifications.forEach(n=>n.read=true);updateBell();renderAlerts();};
+document.getElementById('bellBtn').onclick=()=>{switchTab('alerts');};
+
+/* ============================================================
+   MEETUPS (§10) — 18+ gate, band matching, chat, reveal
+   ============================================================ */
+const meetScrim=document.getElementById('meetScrim'),meetSheet=document.getElementById('meetSheet');
+const mdScrim=document.getElementById('mdScrim'),mdSheet=document.getElementById('mdSheet');
+function myBand(){return me.ageBand;}
+function meetupVisible(m){ // server-side match: caller's band must be in the host's selected bands
+  return m.bands.includes(myBand());
+}
+function pickRealUser(){const ids=Object.keys(state.users).filter(x=>x!=='me');return ids[Math.floor(Math.random()*ids.length)];}
+function renderMeet(){
+  const body=document.getElementById('meetBody');
+  if(state.settings.under18Sim||!me.isAdult){body.innerHTML='<div class="empty"><div class="big">Meetups are 18+</div><div>This feature is unavailable on your account. There is no under-18 option, by design.</div></div>';return;}
+  const list=state.meetups.filter(m=>m.status!=='expired'&&m.expires_at>Date.now()).filter(m=>m.mine||meetupVisible(m));
+  let html='<div class="safety">You are shown as an anonymous alias. Only people in a matching age band can see your meetups. Meet in public, tell someone where you\'re going, leave whenever you want.</div>';
+  html+='<button class="btn-primary" id="newMeet" style="margin-bottom:14px">＋ Post a meetup</button>';
+  html+='<div class="meta" style="margin:0 4px 8px">Showing meetups for your band: '+myBand()+'</div>';
+  html+=list.length?list.map(meetCard).join(''):emptyMsg('No meetups nearby for your band yet.');
+  body.innerHTML=html;
+  document.getElementById('newMeet').onclick=openMeetComposer;
+  body.querySelectorAll('.meet-card[data-id]').forEach(c=>c.onclick=()=>openMeetDetail(c.dataset.id));
+}
+function meetCard(m){
+  const host=m.mine?{name:'You (host)'}:{name:m.hostAlias};
+  const dist=metresBetween(state.center,m.display_location);
+  const pending=m.requests.filter(r=>r.status==='pending').length;
+  return '<div class="meet-card" data-id="'+m.id+'"><div class="row" style="justify-content:space-between"><span class="act-label">◎ '+esc(m.activity)+'</span><span class="meta">'+countdownText(m).replace('Expires in','⏱')+'</span></div>'
+    +'<div class="alias"><div class="av">'+presetAvatar(m.hostAvatar)+'</div><div><div style="font-weight:700;font-size:13.5px">'+esc(host.name)+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · band '+m.ageBand+'</div></div></div>'
+    +(m.note?'<div class="body" style="font-size:13.5px">“'+esc(m.note)+'”</div>':'')
+    +(m.mine&&pending?'<div class="pill-note">'+pending+' pending request'+(pending>1?'s':'')+'</div>':'')+'</div>';
+}
+function openMeetComposer(){
+  if(state.settings.under18Sim||!me.isAdult){toast('Meetups are 18+');return;}
+  if(state.meetups.filter(m=>m.mine&&m.status==='open').length>=3){toast('Rate limit: 3 active meetup pins');return;}
+  state.meetForm={activity:'Coffee',bands:new Set([myBand()]),lifetime:3*H,note:''};
+  const actSel=document.getElementById('meetActivity');actSel.innerHTML=ACTIVITIES.map(a=>'<option>'+a+'</option>').join('');
+  renderMeetBands();renderMeetLife();document.getElementById('meetNote').value='';
+  meetScrim.classList.add('open');meetSheet.classList.add('open');
+  const start=state.me?[state.me.lng,state.me.lat]:state.center;
+  setTimeout(()=>{
+    if(!meetMap){meetMap=new maplibregl.Map({container:'meetMap',style:BASE_STYLE,center:start,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:false});meetMap.touchZoomRotate.disableRotation();
+      meetMap.on('move',()=>{const c=meetMap.getCenter();document.getElementById('meetCoord').textContent=fmtCoord(c.lng,c.lat,6);});
+      meetMap.on('load',()=>{meetMap.resize();});
+    }else{meetMap.resize();meetMap.jumpTo({center:start,zoom:15});}
+  },360);
+}
+function closeMeetComposer(){meetScrim.classList.remove('open');meetSheet.classList.remove('open');}
+meetScrim.onclick=closeMeetComposer;document.getElementById('meetClose').onclick=closeMeetComposer;
+document.getElementById('meetActivity').onchange=e=>state.meetForm.activity=e.target.value;
+document.getElementById('meetNote').oninput=e=>state.meetForm.note=e.target.value;
+function renderMeetBands(){
+  const wrap=document.getElementById('meetBands');wrap.innerHTML='';const allowed=bandAdjacent(myBand());
+  AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';const allow=allowed.includes(b);const on=state.meetForm.bands.has(b);btn.setAttribute('aria-pressed',on?'true':'false');btn.textContent=b;btn.style.opacity=allow?'1':'.35';
+    btn.onclick=()=>{if(!allow){toast('You can only pick your band ('+myBand()+') or one adjacent');return;}if(b===myBand()){toast('Your own band is always included');return;}if(state.meetForm.bands.has(b))state.meetForm.bands.delete(b);else{ // only own + one adjacent
+      const extra=[...state.meetForm.bands].filter(x=>x!==myBand());if(extra.length>=1){state.meetForm.bands.delete(extra[0]);}state.meetForm.bands.add(b);}renderMeetBands();};
+    wrap.appendChild(btn);});
+  state.meetForm.bands.add(myBand());
+}
+function renderMeetLife(){const wrap=document.getElementById('meetLife');wrap.innerHTML='';LIFETIMES.meetup.opts.forEach(([l,s])=>{const b=document.createElement('button');b.className='pillbtn';b.setAttribute('aria-pressed',state.meetForm.lifetime===s?'true':'false');b.textContent=l;b.onclick=()=>{state.meetForm.lifetime=s;renderMeetLife();};wrap.appendChild(b);});}
+document.getElementById('meetPublish').onclick=()=>{
+  const c=meetMap?meetMap.getCenter():{lng:state.center[0],lat:state.center[1]};
+  // §10.4 public-venue enforcement (demo): snap to a named public place; block-level precision always
+  const venues=['Blue Bottle · Mint Plaza','Central Library','Dolores Park','Ferry Building','Golden Gate Park','Philz Coffee','City Hall Plaza'];
+  const venue=venues[Math.abs(hashStr(fmtCoord(c.lng,c.lat,3)))%venues.length];
+  const m={id:uid(),hostId:'me',activity:state.meetForm.activity,note:state.meetForm.note,ageBand:myBand(),bands:[...state.meetForm.bands],
+    display_location:blockSnap([c.lng,c.lat]),venue,status:'open',created_at:Date.now(),expires_at:Date.now()+state.meetForm.lifetime*1000,
+    hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],revealHost:false,revealGuest:false,mine:true};
+  state.meetups.unshift(m);closeMeetComposer();renderMeet();toast('Meetup posted · snapped to '+venue);
+  setTimeout(()=>simulateInboundRequest(m.id),3000);
+};
+function simulateInboundRequest(id){const m=state.meetups.find(x=>x.id===id);if(!m||m.status!=='open')return;m.requests.push({id:uid(),alias:aliasFor(),avatar:2+Math.floor(Math.random()*8),status:'pending',at:Date.now(),bySim:true});notify('meetup_req','me',id);toast('Someone requested your meetup');if(currentTab()==='meet')renderMeet();}
+
+function openMeetDetail(id){const m=state.meetups.find(x=>x.id===id);if(!m)return;state.currentMeet=id;renderMeetDetail(m);mdScrim.classList.add('open');mdSheet.classList.add('open');}
+function closeMeetDetail(){mdScrim.classList.remove('open');mdSheet.classList.remove('open');state.currentMeet=null;}
+mdScrim.onclick=closeMeetDetail;
+function renderMeetDetail(m){
+  const body=document.getElementById('mdBody');const mine=m.mine;const dist=metresBetween(state.center,m.display_location);
+  const accepted=m.requests.find(r=>r.status==='accepted');
+  let html='<div class="sheet-head"><h2>◎ '+esc(m.activity)+'</h2><button class="kebab" id="mMenu">⋯</button></div>';
+  html+='<div class="alias"><div class="av" style="width:44px;height:44px">'+presetAvatar(m.hostAvatar)+'</div><div><div style="font-weight:700">'+(mine?'You (host)':esc(m.hostAlias))+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · block-level</div></div></div>';
+  html+='<div class="meta" style="margin:2px 0 6px">Band '+m.ageBand+' · '+countdownText(m)+'</div>';
+  if(m.note)html+='<div class="detail-text" style="font-size:14.5px">“'+esc(m.note)+'”</div>';
+  html+='<div class="safety">🛟 Meet in public. Tell someone where you\'re going. You can leave anytime — that closes the chat. Report &amp; Block are always here.</div>';
+
+  if(accepted){
+    html+='<h3 class="display" style="font-size:15px;font-weight:800;margin:12px 0 4px">Private chat</h3>';
+    html+='<div class="chat" id="chatBox">'+(m.messages.length?m.messages.map(msg=>'<div class="msg '+(msg.me?'me':'them')+'">'+esc(msg.text)+'</div>').join(''):'<div class="meta" style="text-align:center">Say hi 👋 This chat is ephemeral and expires with the meetup + 24h.</div>')+'</div>';
+    html+='<div class="commentbar"><input class="input" id="chatInput" placeholder="Message…"><button id="chatSend">Send</button></div>';
+    const bothRevealed=m.revealHost&&m.revealGuest;
+    const otherId=mine?m.guestRealId:m.hostId;
+    if(bothRevealed&&otherId){const ou=userOf(otherId);html+='<div class="card" data-openuser="'+otherId+'" style="border-left-color:var(--meetup);display:flex;gap:12px;align-items:center;cursor:pointer;margin-top:10px">'+avatarHTML(ou,46)+'<div style="flex:1;min-width:0"><div class="title" style="margin:0">'+esc(ou.name)+' '+badgeFlair(ou)+'</div><div class="meta">@'+esc(ou.username||'user')+' · tap to view profile</div></div><span class="catbadge" style="background:var(--meetup);color:#0b0e2e">Revealed</span></div>';}
+    html+='<button class="btn-ghost" id="revealBtn" style="margin-top:10px">'+(bothRevealed?'Profiles revealed ✓':((mine?m.revealHost:m.revealGuest)?'Waiting for the other person to reveal…':'Reveal my profile'))+'</button>';
+    html+='<button class="btn-danger" id="leaveBtn" style="margin-top:8px">Leave meetup</button>';
+  }else if(mine){
+    const pending=m.requests.filter(r=>r.status==='pending');
+    html+='<h3 class="display" style="font-size:15px;font-weight:800;margin:12px 0 4px">Requests</h3>';
+    if(!pending.length)html+=emptyMsg('No requests yet. You\'ll get an alert when someone matches.');
+    else html+=pending.map(r=>'<div class="alias" data-req="'+r.id+'"><div class="av" style="width:40px;height:40px">'+presetAvatar(r.avatar)+'</div><div style="flex:1"><div style="font-weight:700">'+esc(r.alias)+'</div><div class="meta">matches your band</div></div><button class="catbadge acc" data-acc="'+r.id+'" style="background:var(--success);color:#0b0e2e">Accept</button> <button class="catbadge dec" data-dec="'+r.id+'" style="background:var(--surface-2)">Decline</button></div>').join('');
+    html+='<button class="btn-danger" id="delMeet" style="margin-top:12px">Delete meetup</button>';
+  }else{
+    const myReq=m.requests.find(r=>r.byMe);
+    if(myReq&&myReq.status==='pending')html+='<button class="btn-ghost" id="cancelReq">Request sent — cancel</button>';
+    else if(myReq&&myReq.status==='declined')html+='<div class="hint">Your request was declined.</div>';
+    else html+='<button class="btn-primary" id="acceptMeet">Request to join</button>';
+    html+='<button class="btn-danger" id="reportMeet" style="margin-top:8px">Report / Block host</button>';
+  }
+  body.innerHTML=html;
+  body.querySelector('#mMenu').onclick=()=>openMenu([[['⚑','Report meetup',()=>reportFlow('meetup',m.id),'danger'],['🚫','Block host',()=>{toggleBlock(m.hostId);closeMeetDetail();renderMeet();},'danger']]]);
+  const mo=body.querySelector('[data-openuser]');if(mo)mo.onclick=()=>{closeMeetDetail();openUserProfile(mo.dataset.openuser);};
+  const am=body.querySelector('#acceptMeet');if(am)am.onclick=()=>{ // §10: request; rate limit 5 accepts/day
+    m.requests.push({id:uid(),alias:aliasFor(),avatar:1,status:'pending',byMe:true,at:Date.now()});toast('Request sent — waiting for host');renderMeetDetail(m);
+    setTimeout(()=>{const r=m.requests.find(x=>x.byMe);if(r&&r.status==='pending'){r.status='accepted';m.status='matched';notify('meetup_acc','me',m.id);toast('Host accepted — chat open');if(state.currentMeet===m.id)renderMeetDetail(m);}},2500);
+  };
+  const cr=body.querySelector('#cancelReq');if(cr)cr.onclick=()=>{m.requests=m.requests.filter(r=>!r.byMe);renderMeetDetail(m);};
+  const rm=body.querySelector('#reportMeet');if(rm)rm.onclick=()=>reportFlow('meetup',m.id);
+  body.querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>{const r=m.requests.find(x=>x.id===b.dataset.acc);r.status='accepted';m.requests.forEach(x=>{if(x.id!==r.id&&x.status==='pending')x.status='declined';});m.status='matched';m.guestRealId=m.guestRealId||pickRealUser();toast('Accepted — chat open');renderMeetDetail(m);});
+  body.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>{const r=m.requests.find(x=>x.id===b.dataset.dec);r.status='declined';renderMeetDetail(m);});
+  const dm=body.querySelector('#delMeet');if(dm)dm.onclick=()=>{if(confirm('Delete this meetup?')){m.status='expired';closeMeetDetail();renderMeet();toast('Meetup deleted');}};
+  const cs=body.querySelector('#chatSend'),ci=body.querySelector('#chatInput');
+  if(cs){const go=()=>{const t=ci.value.trim();if(!t)return;m.messages.push({me:true,text:t,at:Date.now()});ci.value='';renderMeetDetail(m);
+    setTimeout(()=>{m.messages.push({me:false,text:['Sounds good!','See you there 👍','What time works?','On my way soon'][Math.floor(Math.random()*4)],at:Date.now()});if(state.currentMeet===m.id)renderMeetDetail(m);},1400);};cs.onclick=go;ci.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
+  const rb=body.querySelector('#revealBtn');if(rb)rb.onclick=()=>{if(mine)m.revealHost=true;else m.revealGuest=true;if(!(m.revealHost&&m.revealGuest)){toast('You revealed — waiting for the other person');setTimeout(()=>{if(mine)m.revealGuest=true;else m.revealHost=true;if(state.currentMeet===m.id){toast('Both revealed 🎉');renderMeetDetail(m);}},1800);}else toast('Both revealed 🎉');renderMeetDetail(m);};
+  const lb=body.querySelector('#leaveBtn');if(lb)lb.onclick=()=>{m.status='expired';closeMeetDetail();renderMeet();toast('You left — chat closed');};
+}
+
+/* ============================================================
+   SETTINGS (§8.4 / §13)
+   ============================================================ */
+function renderSettings(){
+  const body=document.getElementById('settingsBody');const s=state.settings;
+  const sw=(on,id)=>'<button class="switch'+(on?' on':'')+'" data-sw="'+id+'" aria-pressed="'+on+'" aria-label="toggle"></button>';
+  let html='<div class="section-label">Account</div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Display name</div><div class="sub">'+esc(me.name)+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="name">Edit</button></div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Username</div><div class="sub">@'+esc(me.username)+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="username">Edit</button></div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Bio</div><div class="sub">'+esc(me.bio||'—')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="bio">Edit</button></div>';
+  html+='<div class="setrow"><div style="flex:0 0 auto">'+avatarHTML(me,40)+'</div><div style="flex:1"><div class="lbl">Avatar</div><div class="sub">'+(me.avatarPhoto?'Your photo':'Generated art')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editAvatar">Change</button></div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Age band</div><div class="sub">'+me.ageBand+' · used for meetup matching</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editBand">Change</button></div>';
+
+  html+='<div class="section-label">Privacy &amp; safety</div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Public pin history</div><div class="sub">Show your pins on your profile</div></div>'+sw(s.pinHistoryPublic,'pinHistoryPublic')+'</div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Appear on leaderboard</div><div class="sub">City-scoped, opt out anytime</div></div>'+sw(s.leaderboardOptIn,'leaderboardOptIn')+'</div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Simulate under-18 (demo)</div><div class="sub">Hard-hides Meetups everywhere</div></div>'+sw(s.under18Sim,'under18Sim')+'</div>';
+  html+='<div class="setrow" id="blockedRow"><div style="flex:1"><div class="lbl">Blocked</div><div class="sub">'+state.blocked.size+' users</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="mgBlocked">Manage</button></div>';
+  html+='<div class="setrow" id="mutedRow"><div style="flex:1"><div class="lbl">Muted</div><div class="sub">'+state.muted.size+' users</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="mgMuted">Manage</button></div>';
+
+  html+='<div class="section-label">Notifications</div>';
+  [['like','Likes'],['comment','Comments'],['follow','New followers'],['nearby','Nearby pins'],['emergency','Emergencies (always on nearby)'],['meetup','Meetups'],['badge','Badges &amp; levels']].forEach(([k,l])=>{html+='<div class="setrow"><div class="lbl">'+l+'</div>'+sw(s.notif[k],'notif.'+k)+'</div>';});
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Quiet hours</div><div class="sub">10pm–8am · emergencies excepted</div></div>'+sw(s.quietHours,'quietHours')+'</div>';
+
+  if(me.isAdmin){
+    html+='<div class="section-label">Moderation</div>';
+    html+='<div class="setrow" id="adminRow" style="border-color:rgba(255,68,56,.3)"><div style="flex:1"><div class="lbl">🛡️ Admin dashboard</div><div class="sub">Ban or restrict users, review reports</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px">Open</button></div>';
+  }
+  html+='<div class="section-label">Your data</div>';
+  html+='<button class="btn-ghost" id="exportData" style="margin-bottom:8px">Export my data (JSON)</button>';
+  html+='<button class="btn-danger" id="deleteAcct">Delete account</button>';
+  html+='<div class="hint" style="text-align:center;margin-top:14px">Pin Drop — night cartography · demo build</div>';
+  body.innerHTML=html;
+
+  body.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{const path=b.dataset.sw;if(path.startsWith('notif.')){const k=path.split('.')[1];s.notif[k]=!s.notif[k];}else{s[path]=!s[path];}renderSettings();if(path==='under18Sim')updateMeetTab();});
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const f=b.dataset.edit;const v=prompt('Edit '+f,me[f]||'');if(v!=null){me[f]=v.trim();renderSettings();}});
+  body.querySelector('#editAvatar').onclick=openAvatarPicker;
+  const adminRow=body.querySelector('#adminRow');if(adminRow)adminRow.onclick=openAdmin;
+  body.querySelector('#editBand').onclick=()=>openMenu([AGE_BANDS.map(b=>['🎂',b,()=>{me.ageBand=b;renderSettings();toast('Age band: '+b);}])]);
+  body.querySelector('#mgBlocked').onclick=()=>manageList('blocked');
+  body.querySelector('#mgMuted').onclick=()=>manageList('muted');
+  body.querySelector('#exportData').onclick=exportData;
+  body.querySelector('#deleteAcct').onclick=()=>{if(confirm('Delete your account? A 30-day grace period applies before data is purged.')){toast('Account deletion scheduled — 30-day grace period started');}};
+}
+function manageList(kind){const set=kind==='blocked'?state.blocked:state.muted;if(!set.size){toast('Nobody '+kind+' yet');return;}openMenu([[...set].map(id=>['↩️','Un'+(kind==='blocked'?'block':'mute')+' '+userOf(id).name,()=>{set.delete(id);renderSettings();refreshPins();}])]);}
+function exportData(){
+  const data={user:me,posts:state.posts.filter(p=>p.authorId==='me'),points:state.pointEvents,following:[...state.following],saved:[...state.saved],meetups:state.meetups.filter(m=>m.mine),exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pin-drop-export.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Export ready — downloaded (also emailed in production)');
+}
+document.getElementById('settingsBack').onclick=()=>switchTab('profile');
+
+/* ============================================================
+   AGE GATE (§3 — 18+, asked once)
+   ============================================================ */
+function ageOK(){if(state.ageVerified)return true;try{if(localStorage.getItem('pd_age_ok')==='1'){state.ageVerified=true;return true;}}catch(e){}return false;}
+function persistAge(){try{localStorage.setItem('pd_age_ok','1');}catch(e){}}
+function showAgeGate(){const g=document.getElementById('ageGate');g.classList.remove('blocked','pickband');g.classList.add('show');}
+function hideAgeGate(){document.getElementById('ageGate').classList.remove('show');}
+function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();hideAgeGate();toast('Welcome to Pin Drop 👋');updateMeetTab();if(map)setTimeout(()=>map.resize(),60);};wrap.appendChild(btn);});}
+document.getElementById('gateYes').onclick=()=>{const g=document.getElementById('ageGate');g.classList.add('pickband');renderGateBands();};
+document.getElementById('gateNo').onclick=()=>{document.getElementById('ageGate').classList.add('blocked');};
+
+/* ============================================================
+   FOLLOWERS / FOLLOWING / FRIENDS (§4)
+   ============================================================ */
+let listState={id:'me',tab:'followers'};
+function openUserList(id,tab){listState={id,tab:tab||'followers'};document.getElementById('listTitle').textContent=(id==='me'?'Your':esc(userOf(id).name)+'’s')+' network';showScreen('list');renderUserList();}
+function ulistRow(uid2){const u=userOf(uid2);const following=state.following.has(uid2);const mineRow=uid2==='me';const pts=uid2==='me'?myPoints():(u.points||0);
+  return '<div class="ulist-row"><span style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;cursor:pointer" data-openuser="'+uid2+'">'+avatarHTML(u,44)+'<span style="min-width:0"><span class="nm">'+esc(u.name)+' '+badgeFlair(u)+'</span><span class="sub" style="display:block">@'+esc(u.username||'user')+' · L'+levelOf(pts)+' '+LEVEL_NAMES[levelOf(pts)]+'</span></span></span>'+(mineRow?'<span class="statustag active">you</span>':'<button class="fbtn'+(following?' on':'')+'" data-follow="'+uid2+'">'+(following?'Following':'Follow')+'</button>')+'</div>';
+}
+function renderUserList(){
+  const {id,tab}=listState,body=document.getElementById('listBody');
+  const counts={followers:followersOf(id).length,following:followingIdsOf(id).length,friends:friendsOf(id).length};
+  let ids=(tab==='followers'?followersOf(id):tab==='following'?followingIdsOf(id):friendsOf(id)).filter(x=>!state.blocked.has(x));
+  let html='<div class="segtabs" id="ulTabs">'+[['followers','Followers'],['following','Following'],['friends','Friends']].map(([k,l])=>'<button class="'+(tab===k?'on':'')+'" data-t="'+k+'">'+l+' '+counts[k]+'</button>').join('')+'</div>';
+  html+='<div class="meta" style="margin:0 4px 10px">'+(tab==='friends'?'People you both follow and who follow you back.':tab==='followers'?'Everyone following '+(id==='me'?'you':userOf(id).name)+'.':(id==='me'?'You':userOf(id).name)+' follows these people.')+'</div>';
+  html+=ids.length?ids.map(ulistRow).join(''):emptyMsg(tab==='friends'?'No mutual follows yet':tab==='followers'?'No followers yet':'Not following anyone yet');
+  body.innerHTML=html;
+  body.querySelectorAll('#ulTabs button').forEach(b=>b.onclick=()=>{listState.tab=b.dataset.t;renderUserList();});
+  body.querySelectorAll('[data-openuser]').forEach(el=>el.onclick=()=>openUserProfile(el.dataset.openuser));
+  body.querySelectorAll('[data-follow]').forEach(el=>el.onclick=()=>{toggleFollow(el.dataset.follow);renderUserList();});
+}
+document.getElementById('listBack').onclick=()=>switchTab('profile');
+
+/* ============================================================
+   AVATAR PICKER (§6)
+   ============================================================ */
+const avScrim=document.getElementById('avScrim'),avSheet=document.getElementById('avSheet');
+function openAvatarPicker(){renderAvGrid();avScrim.classList.add('open');avSheet.classList.add('open');}
+function closeAvatarPicker(){avScrim.classList.remove('open');avSheet.classList.remove('open');}
+avScrim.onclick=closeAvatarPicker;document.getElementById('avClose').onclick=closeAvatarPicker;
+function afterAvatarChange(){toast('Avatar updated ✓');if(currentTab()==='profile')renderProfile();if(document.getElementById('settingsScreen').classList.contains('active'))renderSettings();}
+function renderAvGrid(){
+  const grid=document.getElementById('avGrid');let html='';
+  for(let i=1;i<=AV_COUNT;i++){const on=(!me.avatarPhoto&&me.avatarPreset===i);html+='<button class="av-opt" aria-pressed="'+on+'" data-av="'+i+'">'+presetAvatar(i)+'<span class="chk">✓</span></button>';}
+  grid.innerHTML=html+'<button class="av-upload" id="avUpload"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Photo</button>';
+  grid.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{me.avatarPreset=parseInt(b.dataset.av,10);me.avatarPhoto=null;renderAvGrid();afterAvatarChange();});
+  document.getElementById('avUpload').onclick=()=>document.getElementById('avFile').click();
+}
+document.getElementById('avFile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{me.avatarPhoto=rd.result;me.avatarPreset=null;renderAvGrid();afterAvatarChange();};rd.readAsDataURL(f);e.target.value='';};
+
+/* ============================================================
+   ADMIN DASHBOARD (§8 — ban / restrict)
+   ============================================================ */
+let adminTab='overview';
+function openAdmin(){if(!me.isAdmin){toast('Admin access only');return;}adminTab='overview';showScreen('admin');renderAdmin();}
+function reportCardHTML(r){
+  let tgt='content';
+  if(r.type==='post'){const p=getPost(r.targetId);tgt='a pin'+(p?' by '+esc(userOf(p.authorId).name):'');}
+  else if(r.type==='meetup')tgt='a meetup';
+  else tgt='user '+esc(userOf(r.targetId).name);
+  return '<div class="report-card"><div style="font-weight:700;font-size:13.5px">⚑ '+esc(r.reason)+'</div><div class="meta" style="margin-top:2px">On '+tgt+' · '+fmtAgo(r.at)+' ago · <span class="statustag '+(r.status==='open'?'restricted':'active')+'">'+r.status+'</span></div>'
+    +(r.status==='open'?'<div class="mini-actions">'
+      +(r.type==='post'?'<button class="danger" data-rmpost="'+r.id+'">Remove pin</button>':'')
+      +'<button class="danger" data-rban="'+r.id+'">Ban user</button>'
+      +'<button data-openrep="'+r.id+'">Review</button>'
+      +'<button class="good" data-dismiss="'+r.id+'">Dismiss</button></div>':'')
+    +'</div>';
+}
+function adminUserRow(u){
+  const st=u.status||'active';
+  return '<div class="admin-row"><span data-openuser="'+u.id+'" style="cursor:pointer;flex:0 0 auto">'+avatarHTML(u,40)+'</span><div style="flex:1;min-width:0"><div class="nm">'+esc(u.name)+' <span class="statustag '+st+'">'+st+'</span></div><div class="sub">@'+esc(u.username)+' · '+(u.reports||0)+' reports · L'+levelOf(u.points||0)+'</div>'
+    +'<div class="mini-actions">'
+    +(st!=='banned'?'<button class="danger" data-ban="'+u.id+'">Ban</button>':'<button class="good" data-unban="'+u.id+'">Reinstate</button>')
+    +(st==='active'?'<button class="warn" data-restrict="'+u.id+'">Restrict</button>':st==='restricted'?'<button class="good" data-unrestrict="'+u.id+'">Lift limit</button>':'')
+    +'</div></div></div>';
+}
+function setUserStatus(id,status,msg){const u=userOf(id);if(!u||u.id==='me')return;u.status=status;if(status==='banned')state.following.delete(id);toast(msg);refreshPins();refreshMeetMarkers();}
+function renderAdmin(){
+  const body=document.getElementById('adminBody');
+  const users=Object.values(state.users).filter(u=>u.id!=='me');
+  const banned=users.filter(u=>u.status==='banned').length,restricted=users.filter(u=>u.status==='restricted').length;
+  const openReports=state.reports.filter(r=>r.status==='open');
+  let html='<div class="banner">🛡️ Moderation dashboard — actions take effect immediately across Pin Drop.</div>';
+  html+='<div class="segtabs" id="adTabs">'+[['overview','Overview'],['users','Users'],['reports','Reports'+(openReports.length?' ('+openReports.length+')':'')]].map(([k,l])=>'<button class="'+(adminTab===k?'on':'')+'" data-t="'+k+'">'+l+'</button>').join('')+'</div>';
+  if(adminTab==='overview'){
+    html+='<div class="admin-metrics">'
+      +'<div class="metric"><div class="n">'+(users.length+1)+'</div><div class="l">Total users</div></div>'
+      +'<div class="metric"><div class="n">'+visiblePosts().length+'</div><div class="l">Active pins</div></div>'
+      +'<div class="metric warn"><div class="n">'+restricted+'</div><div class="l">Restricted</div></div>'
+      +'<div class="metric bad"><div class="n">'+banned+'</div><div class="l">Banned</div></div>'
+      +'<div class="metric'+(openReports.length?' bad':'')+'"><div class="n">'+openReports.length+'</div><div class="l">Open reports</div></div>'
+      +'<div class="metric"><div class="n">'+state.meetups.filter(m=>m.status!=='expired'&&m.expires_at>Date.now()).length+'</div><div class="l">Live meetups</div></div>'
+      +'</div><div class="section-label">Needs review</div>'
+      +(openReports.length?openReports.slice(0,3).map(reportCardHTML).join(''):emptyMsg('No open reports — the neighbourhood is calm.'));
+  }else if(adminTab==='users'){
+    html+='<div class="meta" style="margin:0 4px 10px">Tap an avatar to view a profile. Sorted by report count.</div>'
+      +users.slice().sort((a,b)=>(b.reports||0)-(a.reports||0)).map(adminUserRow).join('');
+  }else{
+    html+=openReports.length?openReports.map(reportCardHTML).join(''):emptyMsg('No open reports right now.');
+    const done=state.reports.filter(r=>r.status!=='open');
+    if(done.length)html+='<div class="section-label">History</div>'+done.slice(0,12).map(reportCardHTML).join('');
+  }
+  body.innerHTML=html;
+  body.querySelectorAll('#adTabs button').forEach(b=>b.onclick=()=>{adminTab=b.dataset.t;renderAdmin();});
+  body.querySelectorAll('[data-openuser]').forEach(el=>el.onclick=()=>openUserProfile(el.dataset.openuser));
+  body.querySelectorAll('[data-ban]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.ban,'banned',userOf(el.dataset.ban).name+' banned');renderAdmin();});
+  body.querySelectorAll('[data-unban]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.unban,'active','Account reinstated');renderAdmin();});
+  body.querySelectorAll('[data-restrict]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.restrict,'restricted','User restricted — posting limited');renderAdmin();});
+  body.querySelectorAll('[data-unrestrict]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.unrestrict,'active','Restriction lifted');renderAdmin();});
+  body.querySelectorAll('[data-rmpost]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.rmpost);if(r){const p=getPost(r.targetId);if(p)p.status='removed';r.status='resolved';toast('Pin removed');refreshPins();renderAdmin();}});
+  body.querySelectorAll('[data-rban]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.rban);if(r){let uid2=r.targetId;if(r.type==='post'){const p=getPost(r.targetId);uid2=p&&p.authorId;}else if(r.type==='meetup'){const m=state.meetups.find(x=>x.id===r.targetId);uid2=m&&m.hostId;}if(uid2)setUserStatus(uid2,'banned','User banned');r.status='resolved';renderAdmin();}});
+  body.querySelectorAll('[data-dismiss]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.dismiss);if(r)r.status='dismissed';toast('Report dismissed');renderAdmin();});
+  body.querySelectorAll('[data-openrep]').forEach(el=>el.onclick=()=>{const r=state.reports.find(x=>x.id===el.dataset.openrep);if(!r)return;if(r.type==='post'&&getPost(r.targetId)){switchTab('map');openDetail(r.targetId);}else if(r.type==='user'){openUserProfile(r.targetId);}else toast('Open the Meet tab to review this meetup');});
+}
+document.getElementById('adminBack').onclick=()=>switchTab('profile');
+
+/* ============================================================
+   NAV / TABS
+   ============================================================ */
+function currentTab(){const t=document.querySelector('.tab.active');return t?t.dataset.tab:'map';}
+const SCREENS={feed:'feedScreen',search:'searchScreen',meet:'meetScreen',alerts:'alertScreen',profile:'profileScreen',settings:'settingsScreen',lb:'lbScreen',list:'listScreen',admin:'adminScreen'};
+function showScreen(name){Object.values(SCREENS).forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.setAttribute('aria-hidden','true');});if(SCREENS[name]){const el=document.getElementById(SCREENS[name]);el.classList.add('active');el.setAttribute('aria-hidden','false');}const showMap=name==='map';document.getElementById('fab').style.display=showMap?'flex':'none';document.getElementById('mapctrls').style.display=showMap?'flex':'none';document.getElementById('topbar').style.display=showMap?'flex':'none';if(showMap&&map)setTimeout(()=>map.resize(),50);}
+function switchTab(name){
+  const tabName=(name==='alerts'||name==='search'||name==='settings'||name==='lb'||name==='list'||name==='admin')?null:name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',tabName&&t.dataset.tab===tabName));
+  showScreen(name);
+  if(name==='feed')renderFeed();
+  if(name==='meet'){document.querySelector('#profileHead h1');renderMeet();}
+  if(name==='alerts')renderAlerts();
+  if(name==='profile'){document.querySelector('#profileHead h1').textContent=state.viewProfile==='me'?'Profile':userOf(state.viewProfile).name;document.getElementById('settingsBtn').style.display=state.viewProfile==='me'?'block':'none';renderProfile();}
+  if(name==='list')renderUserList();
+  if(name==='admin')renderAdmin();
+  if(name==='map'){document.getElementById('topbar').style.display='flex';}
+}
+function updateMeetTab(){const t=document.querySelector('.tab[data-tab="meet"]');if(t)t.style.opacity=(state.settings.under18Sim)?'.5':'1';}
+document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab==='drop')return;t.onclick=()=>{if(t.dataset.tab==='profile')state.viewProfile='me';switchTab(t.dataset.tab);};});
+document.getElementById('zoomIn').onclick=()=>map&&map.zoomIn();
+document.getElementById('zoomOut').onclick=()=>map&&map.zoomOut();
+document.getElementById('recenter').onclick=()=>{if(state.me)map.easeTo({center:[state.me.lng,state.me.lat],zoom:15});else tryGeolocate(false);};
+
+/* ============================================================
+   EXPIRY JOB (§5.3) + realtime sim (§6.6)
+   ============================================================ */
+function expiryTick(){
+  let changed=false;
+  for(const p of state.posts){if(p.status==='active'&&p.expires_at&&p.expires_at<=Date.now()){p.status='expired';changed=true;}}
+  for(const m of state.meetups){if(m.status!=='expired'&&m.expires_at<=Date.now())m.status='expired';}
+  const cd=document.getElementById('cdown');if(cd&&state.currentPostId){const p=getPost(state.currentPostId);if(p){cd.textContent=countdownText(p);if(p.status==='expired'){toast('This pin just expired');closeDetail();}}}
+  if(changed)refreshPins();
+}
+setInterval(expiryTick,1000);
+
+/* Simulated realtime inbound pin (§6.6) */
+function simulateRealtime(){
+  if(document.hidden)return;
+  const [clng,clat]=state.center;const off=[clng+(Math.random()-.5)*0.006,clat+(Math.random()-.5)*0.006];
+  const authors=['u1','u6','u8','u4'];const cat=['social','social','found','hazard'][Math.floor(Math.random()*4)];
+  const txts={social:'Pop-up market just opened here 🛍️ #popup',found:'Found a set of AirPods on the bench #found',hazard:'Tree branch down blocking the lane #hazard'};
+  const p=makePost({category:cat,text:txts[cat]||'New nearby pin',exact:off,precision:'approx_50m',authorId:authors[Math.floor(Math.random()*authors.length)],media:[{url:pic('rt'+uid(),800,600),alt:'nearby pin'}],like_count:Math.floor(Math.random()*8)});
+  state.posts.unshift(p);refreshPins();
+  if(state.settings.notif.nearby){notify(cat==='hazard'?'emergency':'nearby',p.authorId,p.id);}
+  toast('📍 New pin dropped near you');
+}
+setInterval(simulateRealtime,45000);
+
+/* ============================================================
+   Deep link (§15)
+   ============================================================ */
+function handleHash(){const m=location.hash.match(/#pin\/(\w+)/);if(m){const p=getPost(m[1]);if(p&&map){map.easeTo({center:p.display_location,zoom:16});openDetail(p.id);}}}
+window.addEventListener('hashchange',handleHash);
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function boot(){
+  seedUsers();
+  state.posts=seedPosts(state.center);
+  state.meetups=seedMeetups(state.center);
+  // me follows a few neighbours (some follow back → friends)
+  ['u1','u2','u6','u8'].forEach(id=>state.following.add(id));
+  me.points=90; // from seeded activity
+  // seed a moderation queue so the admin dashboard is meaningful
+  state.users.u5.reports=2;state.users.u3.reports=1;
+  state.reports.push(
+    {id:uid(),type:'post',targetId:'seed4',reason:'Spam / misleading',at:Date.now()-3600e3,status:'open'},
+    {id:uid(),type:'user',targetId:'u5',reason:'Harassment',at:Date.now()-7200e3,status:'open'});
+  // seed a couple of notifications
+  notify('follow','me','u4');notify('like','me','u6');state.notifications.forEach(n=>n.read=false);updateBell();
+  renderChips();
+  document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');
+  initMap();switchTab('map');updateMeetTab();
+  if(!ageOK())showAgeGate();
+}
+boot();
+
+</script>
+</body>
+</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
