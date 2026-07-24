@@ -13,10 +13,12 @@ and a full **admin dashboard**. Dark + light themes. It's an installable **PWA**
 - **Front-end:** ONE self-contained file, `index.html` (~265 KB), vanilla HTML/CSS/JS, MapLibre
   for the map (CARTO dark-matter/positron vector tiles, keyless). All state in a client `state`
   object; synchronous render functions read from it.
-- **Data:** currently **mock/in-browser** — fully functional for demos, but no real multi-user
-  data yet.
-- **Backend:** **Supabase project is LIVE and provisioned** (empty of user rows). Not yet wired
-  to the front-end. This is the main remaining work.
+- **Data:** the front-end now **auto-detects Supabase**. With real keys in `supabase/config.js`
+  it runs in **LIVE multi-user mode** (sign-in + real data); otherwise it falls back to the
+  **mock demo** automatically. See `INTEGRATION.md`.
+- **Backend:** **Supabase project is LIVE and provisioned**, and **wired to the front-end**
+  (`supabase/live.js` + the live bridge in `index.html`). Remaining work is dashboard config
+  (auth providers, email OTP template) + deploy + server-side safety hardening.
 
 ## Repos (GitHub push is blocked on the mohsenbagheri5191-design account — write access not granted)
 - `mohsenbagheri5191-design/Dexi5191` (branch `claude/social-app-completion-9t1b3z`)
@@ -47,20 +49,22 @@ write access works.
 - `README.md`, `HANDOFF.md` (this file)
 
 ## What's DONE
-- Complete, tested front-end (all features above) on mock data. 30+ automated UI flows pass.
-- Live Supabase schema + RLS + auth trigger + realtime + storage.
+- Complete, tested front-end (all features above) on mock data. 29 automated UI flows pass.
+- Live Supabase schema + RLS + auth trigger + realtime + storage + client API RPCs.
+- **Front-end wired to Supabase** (auth sign-in, hydration of every surface, optimistic
+  write-through, realtime DMs, presence). Verified locally with a fake data layer (20 assertions
+  in `scratchpad/test5.mjs`). See `INTEGRATION.md`.
 - PWA + deploy config. Safety/legal drafts.
 
-## What REMAINS (to "complete fully")
-1. **Wire the front-end to Supabase** — the big one. Replace the mock data layer with real calls,
-   keeping the existing UI (render from `state`, but hydrate/write `state` via Supabase).
-   Order: auth → profiles/setup(age_verified) → posts (nearby feed + create + media upload) →
-   reactions/comments/saves → follows/blocks → DMs (realtime) → meetups → whispers → stories →
-   reports/admin → points/badges → presence.
-2. **Auth providers** (Supabase dashboard): email OTP works out of the box; add **phone/SMS**
-   (needs Twilio/MessageBird keys) and **Apple/Google** OAuth. Phone recommended primary (anti-spam).
-3. **Server-side safety**: Edge Function to fuzz location + strip photo EXIF on write; a DB view
-   that hides `posts.exact_location` and anon meetup `host_id`; rate limits; moderation automation.
+## What REMAINS (to launch)
+1. **Dashboard config** (Supabase → Authentication): email works out of the box, but add
+   `{{ .Token }}` to the Magic Link email template so the 6-digit code arrives; add **phone/SMS**
+   (Twilio/MessageBird keys) and **Apple/Google** OAuth. Phone recommended primary (anti-spam).
+2. **Deploy** over HTTPS (Netlify/Vercel configs included), then run the two-device smoke test in
+   `INTEGRATION.md` §3.
+3. **Server-side safety**: Edge Function to fuzz location + strip photo EXIF on write; rate limits;
+   report-threshold auto-hide; moderation automation. (Reads already avoid exposing
+   `exact_location` via `feed_nearby`/`posts_public`.)
 4. **Native wrapper** later (Capacitor/Expo) for app stores + push notifications.
 
 ## Constraint for whoever continues

@@ -151,7 +151,7 @@
 
     /* ---------------- Whispers ---------------- */
     async whispers() { return (await client().from('whispers_public').select('*').order('created_at', { ascending: false }).limit(100)).data || []; },
-    async createWhisper(body, hood) { var id = await uid(); await this.award('whisper', 3, null); return client().from('whispers').insert({ author_id: id, body: body, neighborhood: hood || null, up: 1, down: 0 }); },
+    async createWhisper(body, hood) { var id = await uid(); await this.award('whisper', 3, null); return client().from('whispers').insert({ author_id: id, body: body, neighborhood: hood || null, up: 1, down: 0 }).select('id').single(); },
     async voteWhisper(id, dir) { return client().rpc('vote_whisper', { p_whisper: id, p_dir: dir }); },
 
     /* ---------------- Stories ---------------- */

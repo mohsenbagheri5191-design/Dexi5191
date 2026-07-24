@@ -19,6 +19,12 @@
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
+<!-- Supabase live backend (optional). If these load and config.js has real keys,
+     the app runs in LIVE multi-user mode; otherwise it falls back to the demo. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase/config.js"></script>
+<script src="./supabase/live.js"></script>
+
 <style>
 :root{
   --void:#090B24; --ink:#10133A; --surface:#191D4D; --surface-2:#232866; --line:rgba(255,255,255,.09);
@@ -814,6 +820,16 @@ img{max-width:100%}
 
 <script>
 "use strict";
+/* ---------- Live backend flag (set by the Supabase data layer if present) ----------
+   window.L      = the PinlyLive data layer (or null)
+   window.LIVE   = true when Supabase is loaded AND config.js has real keys
+   window.liveSafe(promise) = fire-and-forget: never lets a backend error break the UI */
+window.L = window.PinlyLive || null;
+window.LIVE = !!(window.L && window.L.configured());
+window.liveSafe = function (p) {
+  try { return Promise.resolve(p).catch(function (e) { console.warn('[live]', e); }); }
+  catch (e) { console.warn('[live]', e); return Promise.resolve(); }
+};
 /* ============================================================
    Pin Drop — fully functional phone prototype (client-side).
    All flows run in-browser with mock data. Server calls from
@@ -1186,7 +1202,7 @@ function refreshMeetMarkers(){
 }
 /* ---------- Live presence (§ item 1) — real users on the map, opt-in ---------- */
 let presenceMarkers=[];
-function setDm(mode){state.settings.dmPrivacy=mode;me.dmPrivacy=mode;renderSettings();toast('Messages: '+({everyone:'Everyone',friends:'Friends only',none:'No one'}[mode]));}
+function setDm(mode){state.settings.dmPrivacy=mode;me.dmPrivacy=mode;if(window.LIVE)liveSafe(L.updateProfile({dm_privacy:mode}));renderSettings();toast('Messages: '+({everyone:'Everyone',friends:'Friends only',none:'No one'}[mode]));}
 function livePeople(){
   return Object.values(state.users).filter(u=>u.id!=='me'&&u.visible&&u.status==='active'&&!state.blocked.has(u.id)&&u.loc);
 }
@@ -1303,6 +1319,10 @@ document.getElementById('publishBtn').onclick=()=>{
   const text=document.getElementById('postText').value.trim();
   const post=makePost({category:cat,subcat:state.composer.subcat,vibe:state.composer.vibe,text,exact:[c.lng,c.lat],precision:state.composer.precision,lifetime:state.composer.lifetime,authorId:'me',media:state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}))});
   state.posts.unshift(post);award('create_post',10,post.id);bumpStreak();dailyTrack('drop');if(post.vibe)dailyTrack('vibe');
+  if(window.LIVE)liveSafe(L.createPost({category:cat,subcat:state.composer.subcat,vibe:state.composer.vibe,body:text,precision:state.composer.precision,
+    exactLng:c.lng,exactLat:c.lat,dispLng:post.display_location[0],dispLat:post.display_location[1],
+    mediaFiles:state.composer.media.map(function(m){return m.file;}).filter(Boolean),
+    expiresAt:post.expires_at?new Date(post.expires_at).toISOString():null}).then(function(res){if(res&&res.data&&res.data.id)post.id=res.data.id;}));
   closeComposer();refreshPins();if(map)map.easeTo({center:post.display_location,zoom:16});
   toast(cat==='hazard'?'Hazard pin dropped — neighbours notified':'Pin dropped 📍 +10 pts');
   maybeBadgeToast();maybeClaimSuperSpot(post);setTimeout(()=>openDetail(post.id),500);
@@ -1352,11 +1372,11 @@ function renderDetail(p){
   body.querySelectorAll('[data-react]').forEach(b=>b.onclick=()=>{toggleReaction(p,b.dataset.react);renderDetail(p);refreshPins();});
   const dmb=body.querySelector('#dmBtnDetail');if(dmb)dmb.onclick=()=>{closeDetail();messageUser(p.authorId);};
   const conf=body.querySelector('#confirmBtn');if(conf)conf.onclick=()=>{if(p.confirmed)return;const d=metresBetween(state.me?[state.me.lng,state.me.lat]:state.center,p.display_location);if(d>1500){toast('Get closer to confirm (server-verified distance)');return;}p.confirmed=true;p.confirm_count++;if(p.expires_at)p.expires_at+=3600*1000;award('confirm_emergency',4,p.id);toast('Confirmed — pin extended · +4 pts');renderDetail(p);refreshPins();};
-  body.querySelector('#saveBtn').onclick=()=>{p.saved=!p.saved;if(p.saved)state.saved.add(p.id);else state.saved.delete(p.id);toast(p.saved?'Saved to your collection':'Removed');renderDetail(p);};
+  body.querySelector('#saveBtn').onclick=()=>{p.saved=!p.saved;if(p.saved)state.saved.add(p.id);else state.saved.delete(p.id);if(window.LIVE)liveSafe(L.toggleSave(p.id));toast(p.saved?'Saved to your collection':'Removed');renderDetail(p);};
   const fol=body.querySelector('#followBtn');if(fol)fol.onclick=()=>{toggleFollow(p.authorId);renderDetail(p);};
   const res=body.querySelector('#resolveBtn');if(res)res.onclick=()=>{p.status='resolved';award(p.category==='found'?'found_match':'lost_resolved',p.category==='found'?75:50,p.id);toast('Marked resolved 🎉 '+(p.category==='found'?'+75':'+50')+' pts');closeDetail();refreshPins();};
   const ext=body.querySelector('#extendBtn');if(ext)ext.onclick=()=>extendLifetime(p);
-  if(!p.repliesOff){const send=body.querySelector('#commentSend'),inp=body.querySelector('#commentInput');const go=()=>{const t=inp.value.trim();if(!t)return;p.comments.push({id:uid(),authorId:'me',text:t,created_at:Date.now()});if(!mine){award('comment',2,p.id);notify('comment',p.authorId,p.id);}inp.value='';renderDetail(p);refreshPins();};send.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
+  if(!p.repliesOff){const send=body.querySelector('#commentSend'),inp=body.querySelector('#commentInput');const go=()=>{const t=inp.value.trim();if(!t)return;p.comments.push({id:uid(),authorId:'me',text:t,created_at:Date.now()});if(!mine){award('comment',2,p.id);notify('comment',p.authorId,p.id);}if(window.LIVE)liveSafe(L.addComment(p.id,t));inp.value='';renderDetail(p);refreshPins();};send.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
 }
 function renderComments(p){
   const list=document.getElementById('commentList');if(!list)return;
@@ -1381,7 +1401,7 @@ function openPostMenu(p){
     items.push(['🗑','Delete pin',()=>{if(confirm('Delete this pin? Media is removed.')){p.status='removed';toast('Pin deleted');closeDetail();refreshPins();}},'danger']);
   }else{
     items.push(['↗','Share',()=>sharePost(p)]);
-    items.push(['🔖',p.saved?'Unsave':'Save',()=>{p.saved=!p.saved;p.saved?state.saved.add(p.id):state.saved.delete(p.id);renderDetail(p);}]);
+    items.push(['🔖',p.saved?'Unsave':'Save',()=>{p.saved=!p.saved;p.saved?state.saved.add(p.id):state.saved.delete(p.id);if(window.LIVE)liveSafe(L.toggleSave(p.id));renderDetail(p);}]);
     items.push(['🔕',state.muted.has(p.authorId)?'Unmute author':'Mute author',()=>{toggleMute(p.authorId);closeDetail();refreshPins();}]);
     items.push(['🚫',state.blocked.has(p.authorId)?'Unblock author':'Block author',()=>{toggleBlock(p.authorId);closeDetail();refreshPins();},'danger']);
     items.push(['⚑','Report pin',()=>reportFlow('post',p.id),'danger']);
@@ -1405,13 +1425,14 @@ menuScrim.onclick=closeMenu;document.getElementById('menuCancel').onclick=closeM
 /* ============================================================
    SOCIAL: follow / block / mute / report / notifications
    ============================================================ */
-function toggleFollow(id){if(state.following.has(id)){state.following.delete(id);toast('Unfollowed');}else{state.following.add(id);const u=userOf(id);u.followers=(u.followers||0)+1;notify('follow',id,'me');toast('Following '+userOf(id).name);}}
-function toggleBlock(id){if(state.blocked.has(id)){state.blocked.delete(id);toast('Unblocked');}else{state.blocked.add(id);state.following.delete(id);toast('Blocked — their pins are hidden both ways');}}
+function toggleFollow(id){if(state.following.has(id)){state.following.delete(id);toast('Unfollowed');}else{state.following.add(id);const u=userOf(id);u.followers=(u.followers||0)+1;notify('follow',id,'me');toast('Following '+userOf(id).name);}if(window.LIVE)liveSafe(state.following.has(id)?L.follow(id):L.unfollow(id));}
+function toggleBlock(id){if(state.blocked.has(id)){state.blocked.delete(id);toast('Unblocked');}else{state.blocked.add(id);state.following.delete(id);toast('Blocked — their pins are hidden both ways');}if(window.LIVE)liveSafe(state.blocked.has(id)?L.block(id):L.unblock(id));}
 function toggleMute(id){if(state.muted.has(id)){state.muted.delete(id);toast('Unmuted');}else{state.muted.add(id);toast('Muted — content hidden, they aren\'t notified');}}
 function reportFlow(type,id){
   const reasons=['Spam','Harassment','False emergency','Unsafe / dangerous','Other'];
   openMenu([reasons.map(r=>['⚑',r,()=>{toast('Report submitted — thank you. Our team will review.');
     state.reports.unshift({id:uid(),type,targetId:id,reason:r,at:Date.now(),status:'open'});
+    if(window.LIVE)liveSafe(L.report(type,id,r));
     // bump the target user's report counter so admins can triage
     let targetUser=null;
     if(type==='post'){const p=getPost(id);targetUser=p&&p.authorId;}
@@ -1773,7 +1794,9 @@ document.getElementById('meetPublish').onclick=()=>{
     display_location:blockSnap([c.lng,c.lat]),venue,status:'open',created_at:Date.now(),expires_at:Date.now()+state.meetForm.lifetime*1000,
     identity:state.meetForm.identity,hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],revealHost:real,revealGuest:false,mine:true};
   state.meetups.unshift(m);closeMeetComposer();renderMeet();toast('Meetup posted'+(real?' as '+me.name:' · '+venue));
-  setTimeout(()=>simulateInboundRequest(m.id),3000);
+  if(window.LIVE){liveSafe(L.createMeetup({activity:m.activity,note:m.note,ageBand:m.ageBand,bands:m.bands,venue:m.venue,
+    lng:m.display_location[0],lat:m.display_location[1],identity:m.identity,expiresAt:new Date(m.expires_at).toISOString()}).then(function(r){if(r&&r.data&&r.data.id)m.id=r.data.id;}));}
+  else setTimeout(()=>simulateInboundRequest(m.id),3000);
 };
 function simulateInboundRequest(id){const m=state.meetups.find(x=>x.id===id);if(!m||m.status!=='open')return;m.requests.push({id:uid(),alias:aliasFor(),avatar:2+Math.floor(Math.random()*8),status:'pending',at:Date.now(),bySim:true});notify('meetup_req','me',id);toast('Someone requested your meetup');if(currentTab()==='meet')renderMeet();}
 
@@ -1896,15 +1919,15 @@ function renderSettings(){
 
   body.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{const path=b.dataset.sw;
     if(path==='__theme'){applyTheme(s.theme==='light'?'dark':'light');}
-    else if(path==='__visible'){s.visibility=s.visibility==='live'?'invisible':'live';refreshPresence();toast(s.visibility==='live'?'You are now Live on the map':'You are invisible');}
+    else if(path==='__visible'){s.visibility=s.visibility==='live'?'invisible':'live';if(window.LIVE)liveSafe(L.setVisibility(s.visibility));refreshPresence();toast(s.visibility==='live'?'You are now Live on the map':'You are invisible');}
     else if(path.startsWith('notif.')){const k=path.split('.')[1];s.notif[k]=!s.notif[k];}
     else{s[path]=!s[path];}
     renderSettings();if(path==='under18Sim')updateMeetTab();});
-  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const f=b.dataset.edit;const v=prompt('Edit '+f,me[f]||'');if(v!=null){me[f]=v.trim();renderSettings();}});
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const f=b.dataset.edit;const v=prompt('Edit '+f,me[f]||'');if(v!=null){me[f]=v.trim();if(window.LIVE){const pmap={name:'display_name',username:'username',bio:'bio'};if(pmap[f]){const patch={};patch[pmap[f]]=me[f];liveSafe(L.updateProfile(patch));}}renderSettings();}});
   const editDm=body.querySelector('#editDm');if(editDm)editDm.onclick=()=>openMenu([[['🌐','Everyone',()=>setDm('everyone')],['👥','Friends only',()=>setDm('friends')],['🚫','No one',()=>setDm('none')]]]);
   body.querySelector('#editAvatar').onclick=openAvatarPicker;
   const adminRow=body.querySelector('#adminRow');if(adminRow)adminRow.onclick=openAdmin;
-  body.querySelector('#editBand').onclick=()=>openMenu([AGE_BANDS.map(b=>['🎂',b,()=>{me.ageBand=b;renderSettings();toast('Age band: '+b);}])]);
+  body.querySelector('#editBand').onclick=()=>openMenu([AGE_BANDS.map(b=>['🎂',b,()=>{me.ageBand=b;if(window.LIVE)liveSafe(L.updateProfile({age_band:b}));renderSettings();toast('Age band: '+b);}])]);
   body.querySelector('#mgBlocked').onclick=()=>manageList('blocked');
   body.querySelector('#mgMuted').onclick=()=>manageList('muted');
   body.querySelector('#exportData').onclick=exportData;
@@ -1924,7 +1947,7 @@ function ageOK(){if(state.ageVerified)return true;try{if(localStorage.getItem('p
 function persistAge(){try{localStorage.setItem('pd_age_ok','1');}catch(e){}}
 function showAgeGate(){const g=document.getElementById('ageGate');g.classList.remove('blocked','pickband');g.classList.add('show');}
 function hideAgeGate(){document.getElementById('ageGate').classList.remove('show');}
-function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();hideAgeGate();updateMeetTab();if(map)setTimeout(()=>map.resize(),60);if(needsSetup())setTimeout(startSetup,250);else toast('Welcome to Pin Drop 👋');};wrap.appendChild(btn);});}
+function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();if(window.LIVE)liveSafe(L.verifyAge(b));hideAgeGate();updateMeetTab();if(map)setTimeout(()=>map.resize(),60);if(needsSetup())setTimeout(startSetup,250);else toast('Welcome to Pin Drop 👋');};wrap.appendChild(btn);});}
 document.getElementById('gateYes').onclick=()=>{const g=document.getElementById('ageGate');g.classList.add('pickband');renderGateBands();};
 document.getElementById('gateNo').onclick=()=>{document.getElementById('ageGate').classList.add('blocked');};
 
@@ -1957,7 +1980,12 @@ const avScrim=document.getElementById('avScrim'),avSheet=document.getElementById
 function openAvatarPicker(){renderAvGrid();avScrim.classList.add('open');avSheet.classList.add('open');}
 function closeAvatarPicker(){avScrim.classList.remove('open');avSheet.classList.remove('open');}
 avScrim.onclick=closeAvatarPicker;document.getElementById('avClose').onclick=closeAvatarPicker;
-function afterAvatarChange(){toast('Avatar updated ✓');if(currentTab()==='profile')renderProfile();if(document.getElementById('settingsScreen').classList.contains('active'))renderSettings();}
+function afterAvatarChange(){toast('Avatar updated ✓');if(currentTab()==='profile')renderProfile();if(document.getElementById('settingsScreen').classList.contains('active'))renderSettings();
+  if(window.LIVE){
+    if(me.avatarPhoto)liveSafe(L.uploadImage('avatars',me.avatarPhoto).then(function(url){if(url){me.avatarUrl=url;return L.updateProfile({avatar_url:url,avatar_preset:null});}}));
+    else liveSafe(L.updateProfile({avatar_preset:me.avatarPreset,avatar_url:null}));
+  }
+}
 function renderAvGrid(){
   const grid=document.getElementById('avGrid');let html='';
   for(let i=1;i<=AV_COUNT;i++){const on=(!me.avatarPhoto&&me.avatarPreset===i);html+='<button class="av-opt" aria-pressed="'+on+'" data-av="'+i+'">'+presetAvatar(i)+'<span class="chk">✓</span></button>';}
@@ -2028,7 +2056,7 @@ function adminUserRow(u){
     +(st==='active'?'<button class="warn" data-restrict="'+u.id+'">Restrict</button>':st==='restricted'?'<button class="good" data-unrestrict="'+u.id+'">Lift limit</button>':'')
     +'</div></div></div>';
 }
-function setUserStatus(id,status,msg){const u=userOf(id);if(!u||u.id==='me')return;u.status=status;if(status==='banned')state.following.delete(id);toast(msg);refreshPins();refreshMeetMarkers();}
+function setUserStatus(id,status,msg){const u=userOf(id);if(!u||u.id==='me')return;u.status=status;if(status==='banned')state.following.delete(id);if(window.LIVE)liveSafe(L.admin.setStatus(id,status));toast(msg);refreshPins();refreshMeetMarkers();}
 function renderAdmin(){
   const body=document.getElementById('adminBody');
   const users=Object.values(state.users).filter(u=>u.id!=='me');
@@ -2178,6 +2206,7 @@ function toggleReaction(p,key){
   p.reactions=p.reactions||{};
   if(p.myReaction===key){p.reactions[key]=Math.max(0,(p.reactions[key]||1)-1);p.myReaction=null;}
   else{if(p.myReaction)p.reactions[p.myReaction]=Math.max(0,(p.reactions[p.myReaction]||1)-1);p.reactions[key]=(p.reactions[key]||0)+1;p.myReaction=key;if(p.authorId!=='me')notify('like',p.authorId,p.id);dailyTrack('react');}
+  if(window.LIVE)liveSafe(L.react(p.id,key));
 }
 function reactionBarHTML(p){p.reactions=p.reactions||{};return '<div class="react-bar">'+REACTIONS.map(([e,k])=>{const c=p.reactions[k]||0;return '<button class="react-btn'+(p.myReaction===k?' on':'')+'" data-react="'+k+'">'+e+(c?'<span class="rc">'+c+'</span>':'')+'</button>';}).join('')+'</div>';}
 function renderVibeSeg(){const seg=document.getElementById('vibeSeg');if(!seg)return;seg.innerHTML='';VIBES.forEach(v=>{const b=document.createElement('button');const on=state.composer.vibe===v.id;b.setAttribute('aria-pressed',on?'true':'false');b.innerHTML=v.e+' '+v.n;b.onclick=()=>{state.composer.vibe=(state.composer.vibe===v.id)?null:v.id;renderVibeSeg();};seg.appendChild(b);});}
@@ -2272,6 +2301,7 @@ function voteWhisper(w,dir){
   const prev=w.myVote||0;
   if(prev===dir){ if(dir>0)w.up--; else w.down--; w.myVote=0; }
   else{ if(prev>0)w.up--; if(prev<0)w.down--; if(dir>0)w.up++; else w.down++; w.myVote=dir; }
+  if(window.LIVE)liveSafe(L.voteWhisper(w.id,dir));
 }
 function whisperCard(w){
   const score=w.up-w.down;
@@ -2282,7 +2312,7 @@ function whisperCard(w){
 function postWhisper(){
   const t=prompt('Say something anonymously to your neighbourhood (be kind):');if(!t||!t.trim())return;
   const w={id:uid(),alias:aliasFor(),text:t.trim(),up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby'};
-  state.whispers.unshift(w);award('whisper',3,w.id);toast('Posted anonymously · +3 pts');renderFeed();
+  state.whispers.unshift(w);award('whisper',3,w.id);if(window.LIVE)liveSafe(L.createWhisper(w.text,w.neighborhood).then(function(r){if(r&&r.data&&r.data.id)w.id=r.data.id;}));toast('Posted anonymously · +3 pts');renderFeed();
 }
 
 /* ============================================================
@@ -2320,7 +2350,7 @@ function prevStory(){if(storyState.idx>0){storyState.idx--;renderStory();}}
 function closeStories(){clearTimeout(storyState.timer);document.getElementById('storyViewer').classList.remove('show');if(currentTab()==='feed')renderFeed();}
 function addStory(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const cap=prompt('Add a caption (optional):')||'';const url=URL.createObjectURL(f);state.stories.unshift({id:uid(),authorId:'me',url,caption:cap,created_at:Date.now(),seen:true});award('story',3,'');toast('Story posted · gone in 24h · +3 pts');renderFeed();};
+  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const cap=prompt('Add a caption (optional):')||'';const url=URL.createObjectURL(f);state.stories.unshift({id:uid(),authorId:'me',url,caption:cap,created_at:Date.now(),seen:true});award('story',3,'');if(window.LIVE)liveSafe(L.createStory(f,cap));toast('Story posted · gone in 24h · +3 pts');renderFeed();};
   inp.click();
 }
 document.getElementById('storyClose').onclick=closeStories;
@@ -2346,13 +2376,14 @@ function renderDm(){
     return '<div class="dm-row" data-conv="'+c.id+'"><div class="dm-avstack">'+convAvatar(c,46)+'</div><div style="flex:1;min-width:0"><div class="nm">'+esc(convTitle(c))+'</div><div class="pv">'+esc(pv)+'</div></div>'+(lm?'<div class="tm">'+fmtAgo(lm.at)+'</div>':'')+(c.unread?'<div class="unread"></div>':'')+'</div>';}).join('');
   body.querySelectorAll('[data-conv]').forEach(el=>el.onclick=()=>openConversation(el.dataset.conv));
 }
-function openConversation(id){const c=state.conversations.find(x=>x.id===id);if(!c)return;c.unread=false;updateDmDot();state.currentConv=id;showScreen('conv');document.getElementById('convTitle').textContent=convTitle(c);renderConv(c);}
+function openConversation(id){const c=state.conversations.find(x=>x.id===id);if(!c)return;c.unread=false;updateDmDot();state.currentConv=id;showScreen('conv');document.getElementById('convTitle').textContent=convTitle(c);if(window.LIVE)liveSubscribeConv(c);renderConv(c);}
 function renderConv(c){
   const body=document.getElementById('convBody');
   const msgs=c.messages.length?c.messages.map(m=>'<div class="msg '+(m.me?'me':'them')+'">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>').join(''):'<div class="empty"><div>No messages yet — say hi 👋</div></div>';
   body.innerHTML='<div class="conv-msgs chat" id="convMsgs">'+msgs+'</div><div class="conv-bar"><input id="convInput" placeholder="Message…"><button id="convSend">Send</button></div>';
   const cm=document.getElementById('convMsgs');if(cm)cm.scrollTop=cm.scrollHeight;
   const send=()=>{const inp=document.getElementById('convInput');const t=inp.value.trim();if(!t)return;c.messages.push({me:true,text:t,at:Date.now()});inp.value='';dailyTrack('hi');renderConv(c);
+    if(window.LIVE){liveSafe(liveEnsureConv(c).then(function(cid){return L.sendMessage(cid,t);}));return;} // real reply arrives via realtime; no simulated echo
     setTimeout(()=>{const other=c.members.find(m=>m!=='me')||c.members[0];c.messages.push({me:false,from:other,text:['haha for real','omg yes 😄','let’s do it','on my way','sounds good 👍','where at?'][Math.floor(Math.random()*6)],at:Date.now()});if(state.currentConv===c.id)renderConv(c);else{c.unread=true;updateDmDot();}},1300+Math.random()*1200);};
   document.getElementById('convSend').onclick=send;
   document.getElementById('convInput').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
@@ -2380,7 +2411,9 @@ document.getElementById('newDmBtn').onclick=startNewDm;
 let setupStep=0;const SETUP_STEPS=['name','avatar','bio','privacy','done'];
 function needsSetup(){try{return localStorage.getItem('pd_setup')!=='1';}catch(e){return !state.setupDone;}}
 function startSetup(){setupStep=0;document.getElementById('setupWizard').classList.add('show');renderSetup();}
-function finishSetup(){state.setupDone=true;try{localStorage.setItem('pd_setup','1');}catch(e){}document.getElementById('setupWizard').classList.remove('show');toast('You’re all set 🎉');if(currentTab()==='profile')renderProfile();}
+function finishSetup(){state.setupDone=true;try{localStorage.setItem('pd_setup','1');}catch(e){}document.getElementById('setupWizard').classList.remove('show');
+  if(window.LIVE){const patch={display_name:me.name,bio:me.bio||null,dm_privacy:me.dmPrivacy||'everyone',visibility:state.settings.visibility||'invisible'};if(me.username)patch.username=me.username;if(!me.avatarPhoto&&me.avatarPreset)patch.avatar_preset=me.avatarPreset;liveSafe(L.updateProfile(patch));if(me.avatarPhoto)liveSafe(L.uploadImage('avatars',me.avatarPhoto).then(function(url){if(url)return L.updateProfile({avatar_url:url});}));}
+  toast('You’re all set 🎉');if(currentTab()==='profile')renderProfile();}
 function setDmQuiet(mode){state.settings.dmPrivacy=mode;me.dmPrivacy=mode;const l=document.getElementById('suDmLabel');if(l)l.textContent={everyone:'Everyone',friends:'Friends only',none:'No one'}[mode];}
 function renderSetup(){
   document.getElementById('setupProgress').innerHTML=SETUP_STEPS.map((_,i)=>'<i class="'+(i<=setupStep?'on':'')+'"></i>').join('');
@@ -2532,7 +2565,239 @@ function seedConversations(){
       {me:false,from:'u8',text:'🙌 see you both there',at:now-6000e3}]},
   ];
 }
-boot();
+/* ============================================================================
+   LIVE BRIDGE — Supabase-backed multi-user mode.
+   Runs only when window.LIVE is true (Supabase SDK loaded + real keys in
+   supabase/config.js). In the demo build every function below is unused and
+   boot() runs exactly as before. All server errors are swallowed by liveSafe()
+   so the UI can never white-screen while the backend is being verified live.
+   ============================================================================ */
+/* --- geography helpers: PostgREST returns geography as EWKB hex / GeoJSON / WKT --- */
+function pointFromEWKB(hex){
+  try{
+    if(typeof hex!=='string'||!/^[0-9A-Fa-f]+$/.test(hex)||hex.length<42)return null;
+    var bytes=new Uint8Array(hex.length/2);
+    for(var i=0;i<bytes.length;i++)bytes[i]=parseInt(hex.substr(i*2,2),16);
+    var dv=new DataView(bytes.buffer),le=bytes[0]===1;
+    var type=dv.getUint32(1,le),hasSRID=(type&0x20000000)!==0,off=5+(hasSRID?4:0);
+    var x=dv.getFloat64(off,le),y=dv.getFloat64(off+8,le);
+    if(!isFinite(x)||!isFinite(y))return null;return [x,y];
+  }catch(e){return null;}
+}
+function coordOf(v,fallback){
+  if(Array.isArray(v)&&typeof v[0]==='number')return [v[0],v[1]];
+  if(v&&typeof v==='object'&&Array.isArray(v.coordinates))return [v.coordinates[0],v.coordinates[1]];
+  if(typeof v==='string'){var m=v.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)/i);if(m)return [parseFloat(m[1]),parseFloat(m[2])];var p=pointFromEWKB(v);if(p)return p;}
+  return fallback||null;
+}
+/* --- row → mock-shape mappers (keep the existing render functions untouched) --- */
+function liveRegisterUser(id,name,avatar){
+  if(!id||id===state.myUid)return state.users['me'];
+  var u=state.users[id]||(state.users[id]={id:id});
+  if(name)u.name=name;
+  if(avatar!=null){if(typeof avatar==='string'&&/^https?:/.test(avatar))u.avatarUrl=avatar;else if(typeof avatar==='number')u.avatarPreset=avatar;}
+  if(!u.name)u.name='Someone';
+  if(!u.username)u.username=(name||'user').toLowerCase().replace(/[^a-z0-9]+/g,'')||'user';
+  if(!u.color)u.color='#7C5CFF';
+  if(u.isAdult===undefined)u.isAdult=true;
+  if(!u.status)u.status='active';
+  return u;
+}
+function liveProfileToUser(p){
+  if(p.id===state.myUid)return state.users['me'];
+  var u=state.users[p.id]||(state.users[p.id]={id:p.id});
+  u.name=p.display_name||'Someone';u.username=p.username||u.username||'user';u.bio=p.bio||'';
+  if(p.avatar_url)u.avatarUrl=p.avatar_url;if(p.avatar_preset)u.avatarPreset=p.avatar_preset;
+  u.ageBand=p.age_band||u.ageBand;u.isAdult=!!p.age_verified;u.isAdmin=!!p.is_admin;
+  u.status=p.status||'active';u.points=p.points||0;u.dmPrivacy=p.dm_privacy||'everyone';
+  u.email=p.email||u.email||'';u.phone=p.phone||u.phone||'';u.color=u.color||'#7C5CFF';
+  u.joined=p.created_at?Date.parse(p.created_at):(u.joined||Date.now());
+  if(p.visibility==='live')u.visible=true; // never clobber presence set by nearbyPeople
+  var c=p.loc?coordOf(p.loc):null;if(c)u.loc=c;
+  return u;
+}
+function liveApplyMe(p){
+  state.myUid=p.id;
+  me.name=p.display_name||me.name;me.username=p.username||me.username;me.bio=p.bio||'';
+  if(p.avatar_url){me.avatarUrl=p.avatar_url;me.avatarPhoto=p.avatar_url;me.avatarPreset=null;}
+  else if(p.avatar_preset){me.avatarPreset=p.avatar_preset;me.avatarPhoto=null;}
+  me.ageBand=p.age_band||me.ageBand;me.isAdult=!!p.age_verified;me.isAdmin=!!p.is_admin;
+  me.status=p.status||'active';me.points=p.points||0;me.streak=p.streak||0;me.streakDay=p.streak_day||null;
+  me.dmPrivacy=p.dm_privacy||'everyone';
+  state.ageVerified=!!p.age_verified;
+  state.settings.visibility=p.visibility||'invisible';
+  state.settings.dmPrivacy=me.dmPrivacy;
+  state.users['me']=me;
+}
+function liveRowToPost(r){
+  var disp=coordOf(r.display_location!=null?r.display_location:[r.lng,r.lat],state.center)||state.center;
+  var authorId=(r.author_id===state.myUid)?'me':(r.author_id||'me');
+  if(authorId!=='me')liveRegisterUser(r.author_id,r.author_name,r.author_avatar!=null?r.author_avatar:r.avatar_url);
+  var reactions={};
+  if(r.reactions&&typeof r.reactions==='object'&&!Array.isArray(r.reactions))reactions=r.reactions;
+  else if(r.reaction_count)reactions={love:r.reaction_count};
+  var media=(r.media||[]).map(function(x){return typeof x==='string'?{url:x,alt:''}:{url:x.url||x.media_url,alt:x.alt||''};}).filter(function(x){return x.url;});
+  var created=r.created_at?Date.parse(r.created_at):Date.now();
+  var expires=r.expires_at?Date.parse(r.expires_at):null;
+  return {id:r.id,authorId:authorId,category:r.category||'social',subcat:r.subcat||null,vibe:r.vibe||null,
+    text:r.body||r.text||'',media:media,exact_location:disp,display_location:disp,
+    precision:r.precision||'approx_50m',status:r.status||'active',
+    created_at:created,lifetime_seconds:expires?Math.max(1,Math.round((expires-created)/1000)):null,expires_at:expires,
+    like_count:r.reaction_count||0,liked:!!r.my_reaction,saved:state.saved.has(r.id),
+    confirm_count:r.confirm_count||0,confirmed:false,repliesOff:false,
+    comments:[],tags:parseHashtags(r.body||r.text||''),reactions:reactions,myReaction:r.my_reaction||null};
+}
+function liveRowToWhisper(r){
+  return {id:r.id,alias:aliasFor(),text:r.body||r.text||'',up:r.up||0,down:r.down||0,
+    myVote:r.my_vote||0,created_at:r.created_at?Date.parse(r.created_at):Date.now(),
+    neighborhood:r.neighborhood||HOODS[0]};
+}
+function liveRowToStory(r){
+  var authorId=(r.author_id===state.myUid)?'me':(r.author_id||'me');
+  if(authorId!=='me'&&r.profiles)liveRegisterUser(r.author_id,r.profiles.display_name,r.profiles.avatar_url);
+  return {id:r.id,authorId:authorId,url:r.media_url||r.url,caption:r.caption||'',
+    created_at:r.created_at?Date.parse(r.created_at):Date.now(),seen:authorId==='me'};
+}
+function liveRowToConv(c){
+  var members=(c.conversation_members||[]).map(function(m){return m.user_id===state.myUid?'me':m.user_id;});
+  var msgs=(c.messages||[]).slice().sort(function(a,b){return Date.parse(a.created_at)-Date.parse(b.created_at);}).map(function(m){
+    return {me:m.sender_id===state.myUid,from:m.sender_id===state.myUid?null:m.sender_id,text:m.body,at:Date.parse(m.created_at)};});
+  return {id:c.id,group:!!c.is_group,name:c.name||null,members:members,
+    created_at:c.created_at?Date.parse(c.created_at):Date.now(),unread:false,messages:msgs};
+}
+function liveRowToMeetup(m){
+  var mine=m.host_id===state.myUid;
+  var loc=coordOf(m.display_location,state.center)||state.center;
+  if(!mine&&m.identity==='real')liveRegisterUser(m.host_id,null,null);
+  return {id:m.id,hostId:mine?'me':m.host_id,activity:m.activity,note:m.note||'',ageBand:m.age_band,
+    bands:m.bands||[m.age_band],display_location:loc,venue:m.venue,status:m.status||'open',
+    created_at:m.created_at?Date.parse(m.created_at):Date.now(),
+    expires_at:m.expires_at?Date.parse(m.expires_at):Date.now()+3600e3,
+    identity:m.identity||'anon',hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],
+    revealHost:m.identity==='real',revealGuest:false,mine:mine};
+}
+function liveRowToReport(r){
+  return {id:r.id,type:r.target_type,targetId:r.target_id,reason:r.reason,
+    at:r.created_at?Date.parse(r.created_at):Date.now(),status:r.status||'open'};
+}
+/* --- live DM: create server conversation lazily, subscribe for incoming messages --- */
+var _liveConvSubs={};
+function liveEnsureConv(c){
+  if(c._liveId)return Promise.resolve(c._liveId);
+  var p;
+  if(c.group){p=L.createGroup(c.members.filter(function(m){return m!=='me';}),c.name);}
+  else{var other=c.members.find(function(m){return m!=='me';});if(!other)return Promise.resolve(c.id);p=L.dmWith(other);}
+  return Promise.resolve(p).then(function(cid){if(cid){c._liveId=cid;c.id=cid;liveSubscribeConv(c);}return cid||c.id;}).catch(function(){return c.id;});
+}
+function liveSubscribeConv(c){
+  if(!c||!/^[0-9a-f]{8}-/i.test(c.id)||_liveConvSubs[c.id])return;
+  try{_liveConvSubs[c.id]=L.subscribeMessages(c.id,function(row){
+    if(!row||row.sender_id===state.myUid)return; // our own is already shown optimistically
+    c.messages.push({me:false,from:row.sender_id,text:row.body,at:row.created_at?Date.parse(row.created_at):Date.now()});
+    if(state.currentConv===c.id)renderConv(c);else{c.unread=true;updateDmDot();}
+  });}catch(e){}
+}
+/* --- email one-time-code sign-in (reuses the age-gate visual language) --- */
+function liveSignIn(){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.id='liveAuth';
+    el.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center;color:var(--paper);background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void))';
+    el.innerHTML='<div style="width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:22px">📍</div>'
+      +'<h1 style="font-family:var(--font-display);font-weight:800;font-size:26px;margin:0 0 8px">Welcome to Pin&nbsp;Drop</h1>'
+      +'<p style="color:var(--muted);font-size:14.5px;line-height:1.55;max-width:320px;margin:0 0 20px">Sign in with your email — we’ll send you a 6-digit code.</p>'
+      +'<div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">'
+      +'<input id="laEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" style="height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 16px;font-size:16px">'
+      +'<input id="laCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" style="display:none;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 16px;font-size:18px;letter-spacing:4px;text-align:center">'
+      +'<button id="laBtn" style="height:48px;border-radius:14px;border:none;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">Send code</button>'
+      +'<div id="laMsg" style="font-size:12.5px;color:var(--muted);min-height:16px"></div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--muted);opacity:.8;margin-top:18px;max-width:320px;line-height:1.5">18+ only. By continuing you agree to the Terms and Privacy Policy.</div>';
+    document.body.appendChild(el);
+    var emailIn=el.querySelector('#laEmail'),codeIn=el.querySelector('#laCode'),btn=el.querySelector('#laBtn'),msg=el.querySelector('#laMsg');
+    var phase='email',email='';emailIn.focus();
+    function setMsg(t,err){msg.textContent=t||'';msg.style.color=err?'#FF5CA8':'var(--muted)';}
+    async function go(){
+      btn.disabled=true;
+      try{
+        if(phase==='email'){
+          email=(emailIn.value||'').trim();
+          if(!/.+@.+\..+/.test(email)){setMsg('Enter a valid email',true);btn.disabled=false;return;}
+          setMsg('Sending code…');
+          var r=await L.auth.sendEmailCode(email);
+          if(r&&r.error){setMsg(r.error.message||'Could not send code',true);btn.disabled=false;return;}
+          phase='code';emailIn.style.display='none';codeIn.style.display='block';codeIn.focus();
+          btn.textContent='Verify & enter';setMsg('Code sent to '+email);
+        }else{
+          var token=(codeIn.value||'').trim();
+          if(token.length<4){setMsg('Enter the code from your email',true);btn.disabled=false;return;}
+          setMsg('Verifying…');
+          var v=await L.auth.verifyEmailCode(email,token);
+          if(v&&v.error){setMsg(v.error.message||'Invalid code',true);btn.disabled=false;return;}
+          el.remove();resolve(true);return;
+        }
+      }catch(e){setMsg((e&&e.message)||'Something went wrong',true);}
+      btn.disabled=false;
+    }
+    btn.onclick=go;
+    emailIn.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
+    codeIn.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
+  });
+}
+function liveGetCenter(){
+  return new Promise(function(resolve){
+    if(!navigator.geolocation){resolve(state.center);return;}
+    var done=false,t=setTimeout(function(){if(!done){done=true;resolve(state.center);}},6000);
+    navigator.geolocation.getCurrentPosition(function(pos){if(done)return;done=true;clearTimeout(t);resolve([pos.coords.longitude,pos.coords.latitude]);},
+      function(){if(done)return;done=true;clearTimeout(t);resolve(state.center);},{enableHighAccuracy:true,timeout:6000,maximumAge:60000});
+  });
+}
+async function liveHydrate(){
+  var lng=state.center[0],lat=state.center[1],radius=RADII[state.radiusIdx][0]||50000;
+  try{state.following=new Set(await L.myFollowing());}catch(e){}
+  try{state.blocked=new Set(await L.myBlocks());}catch(e){}
+  try{state.saved=new Set((await L.mySaves()).map(function(r){return r.post_id;}));}catch(e){}
+  try{state.posts=(await L.feed(lng,lat,radius)).map(liveRowToPost);}catch(e){state.posts=[];}
+  try{state.whispers=(await L.whispers()).map(liveRowToWhisper);}catch(e){state.whispers=[];}
+  try{state.stories=(await L.activeStories()).map(liveRowToStory);}catch(e){state.stories=[];}
+  try{state.conversations=(await L.myConversations()).map(liveRowToConv);}catch(e){state.conversations=[];}
+  try{state.meetups=(await L.nearbyMeetups()).map(liveRowToMeetup);}catch(e){state.meetups=[];}
+  try{(await L.nearbyPeople(lng,lat,Math.max(radius,5000))).forEach(function(r){var u=liveRegisterUser(r.id,r.display_name||r.name,r.avatar_url!=null?r.avatar_url:r.avatar_preset);var c=coordOf(r.loc!=null?r.loc:[r.lng,r.lat]);if(c)u.loc=c;u.visible=true;u.lastSeen=r.last_seen?Date.parse(r.last_seen):Date.now();});}catch(e){}
+  if(me.isAdmin){
+    try{(await L.admin.allUsers()).forEach(liveProfileToUser);}catch(e){}
+    try{state.reports=(await L.admin.reports()).map(liveRowToReport);}catch(e){}
+  }
+}
+function liveRealtime(){
+  try{
+    setInterval(function(){liveSafe(L.feed(state.center[0],state.center[1],RADII[state.radiusIdx][0]||50000).then(function(rows){
+      state.posts=rows.map(liveRowToPost);refreshPins();if(currentTab()==='feed')renderFeed();}));},45000);
+    setInterval(function(){if(state.settings.visibility==='live')liveSafe(L.updateLocation(state.center[0],state.center[1]));},60000);
+  }catch(e){}
+}
+async function startLive(){
+  try{var t=localStorage.getItem('pd_theme');if(t)state.settings.theme=t;}catch(e){}
+  applyTheme(state.settings.theme);
+  L.init();
+  state.users={'me':me};
+  var session=null;try{session=await L.auth.session();}catch(e){}
+  if(!session){await liveSignIn();}
+  var prof=null;try{prof=await L.myProfile();}catch(e){}
+  if(prof){liveApplyMe(prof);}
+  else{try{var au=await L.auth.user();state.myUid=au?au.id:null;}catch(e){}state.users['me']=me;}
+  // a profile still on its trigger-created defaults means the account isn't set up yet
+  var liveNeedsSetup=!prof||!prof.display_name||prof.display_name==='New neighbour'||/^u[0-9a-f]{12}$/i.test(prof.username||'');
+  try{L.auth.onChange(function(s){if(!s)location.reload();});}catch(e){}
+  try{state.center=await liveGetCenter();}catch(e){}
+  await liveHydrate();
+  renderChips();
+  document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');
+  initMap();switchTab('map');updateMeetTab();
+  updateBell();updateDmDot();
+  liveRealtime();
+  if(!state.ageVerified)showAgeGate();
+  else if(liveNeedsSetup)setTimeout(startSetup,300);
+}
+if(window.LIVE){startLive();}else{boot();}
 
 /* PWA: register the service worker (offline shell + installable). No-op if unsupported. */
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}
