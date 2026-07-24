@@ -100,3 +100,13 @@ returns setof posts language sql stable set search_path=public,extensions as $$
     and st_dwithin(display_location, st_setsrid(st_makepoint(lng,lat),4326)::geography, radius_m)
   order by created_at desc limit 200;
 $$;
+
+-- ============================================================ client API (migration pinly_client_api)
+-- posts_public: lng/lat, never exact_location (security_invoker view; RLS applies)
+-- whispers_public: hides author_id, includes caller's my_vote
+-- feed_nearby(lng,lat,radius_m) -> jsonb: posts near a point w/ author + media + reaction summary
+-- nearby_people(lng,lat,radius_m) -> jsonb: opt-in live users nearby
+-- award_points(action,points,ref) -> int: atomic points + ledger for the caller
+-- toggle_reaction(post,kind) -> text: one reaction per user (upsert/remove)
+-- vote_whisper(whisper,dir): cast/undo a vote, keep counters correct
+-- (Full definitions are in the applied migration; see INTEGRATION.md for how the client uses them.)
