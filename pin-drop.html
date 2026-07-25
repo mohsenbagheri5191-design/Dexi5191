@@ -500,6 +500,14 @@ img{max-width:100%}
 #cropZoom{width:300px;max-width:82vw;accent-color:var(--cyan)}
 .crop-actions{display:flex;gap:10px;width:300px;max-width:82vw}
 
+/* City layer (Toronto data) */
+#cityBtn{font-size:19px}
+#cityBtn.on{background:var(--social);color:#fff}
+#weatherBanner{display:none;position:absolute;top:calc(var(--safe-top,0px) + 96px);left:12px;z-index:6;align-items:center;gap:8px;background:rgba(16,19,58,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 12px;font-size:13px;color:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="light"] #weatherBanner{background:rgba(255,255,255,.9);color:#10133A}
+#cityToday{display:none;position:absolute;left:12px;bottom:calc(var(--safe-bottom,0px) + 150px);z-index:6;align-items:center;gap:6px;background:var(--social);color:#fff;border:none;border-radius:999px;padding:9px 15px;font-weight:800;font-size:13px;box-shadow:0 10px 28px rgba(124,92,255,.5);cursor:pointer}
+.city-marker{width:30px;height:30px;cursor:pointer}
+.city-marker .cm-dot{width:30px;height:30px;border-radius:50% 50% 50% 4px;transform:rotate(-2deg);background:var(--cc,#35E5FF);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0b0e2e;box-shadow:0 4px 12px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.8)}
 /* animated sign-in background */
 .la-blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;pointer-events:none;z-index:0;will-change:transform}
 @keyframes laFloat{0%{transform:translate(0,0) scale(1)}33%{transform:translate(24px,-30px) scale(1.12)}66%{transform:translate(-22px,18px) scale(.92)}100%{transform:translate(0,0) scale(1)}}
@@ -595,10 +603,13 @@ img{max-width:100%}
     <button class="ctrlbtn recenter" id="recenter" aria-label="Recenter on me">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     </button>
+    <button class="ctrlbtn" id="cityBtn" aria-label="Toronto city layer" title="City: events, places, weather, news">🏙️</button>
   </div>
 
   <button id="fab" aria-label="Drop a pin">＋ Drop a pin</button>
   <button id="nearbyPill" aria-label="People nearby" style="display:none"><span class="livedot"></span>0 nearby</button>
+  <div id="weatherBanner" aria-live="polite"></div>
+  <button id="cityToday" aria-label="What's on in the city today"></button>
 
   <!-- PIN PLACEMENT MODE (drop directly on the main map) -->
   <div id="placeLayer" aria-hidden="true">
@@ -2146,6 +2157,7 @@ function switchTab(name){
   if(name==='list')renderUserList();
   if(name==='admin')renderAdmin();
   if(name==='map'){document.getElementById('topbar').style.display='flex';}
+  if(typeof syncCityChrome==='function')syncCityChrome(name==='map');
 }
 function updateMeetTab(){const t=document.querySelector('.tab[data-tab="meet"]');if(t)t.style.opacity=(state.settings.under18Sim)?'.5':'1';}
 document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab==='drop')return;t.onclick=()=>{if(t.dataset.tab==='profile')state.viewProfile='me';switchTab(t.dataset.tab);};});
@@ -2881,6 +2893,84 @@ async function startLive(){
   if(!state.ageVerified)showAgeGate();
   else if(liveNeedsSetup)setTimeout(startSetup,300);
 }
+/* ============================================================================
+   CITY LAYER — live Toronto data on the map (events, places, weather, news).
+   Data comes from the Supabase Edge Function `city` (keys stay server-side).
+   Falls back to keyless sources (weather + places) when the function is absent.
+   ============================================================================ */
+state.city={on:false,loaded:false,loading:false,weather:null,places:[],events:[],news:[]};
+var cityMarkers=[];
+function cityEndpoint(){var c=window.PINDROP_SUPABASE;return (c&&c.url)?c.url.replace(/\/$/,'')+'/functions/v1/city':null;}
+function wxEmoji(code){code=+code;if(code===0)return '☀️';if(code<=3)return '⛅';if(code<=48)return '🌫️';if(code<=67)return '🌧️';if(code<=77)return '❄️';if(code<=82)return '🌦️';if(code<=86)return '🌨️';return '⛈️';}
+function aqiLabel(a){if(a==null)return '';a=+a;return a<=50?'Good':a<=100?'Moderate':a<=150?'Poor (sensitive)':a<=200?'Unhealthy':'Very unhealthy';}
+async function loadCityData(){
+  if(state.city.loading)return;state.city.loading=true;
+  var lat=state.center[1],lng=state.center[0],data=null;
+  try{
+    var ep=cityEndpoint();
+    if(ep){
+      var key=(window.PINDROP_SUPABASE&&(PINDROP_SUPABASE.publishableKey||PINDROP_SUPABASE.anonKey))||'';
+      var res=await fetch(ep+'?lat='+lat+'&lng='+lng,{headers:{apikey:key,Authorization:'Bearer '+key}});
+      if(res.ok)data=await res.json();
+    }
+    if(!data){ // keyless fallback: weather + places only
+      data={weather:null,places:[],events:[],news:[]};
+      try{var w=await (await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lng+'&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto')).json();
+        if(w&&w.current)data.weather={temp:w.current.temperature_2m,feels:w.current.apparent_temperature,code:w.current.weather_code,hi:w.daily&&w.daily.temperature_2m_max&&w.daily.temperature_2m_max[0],lo:w.daily&&w.daily.temperature_2m_min&&w.daily.temperature_2m_min[0],aqi:null};}catch(e){}
+      try{var g=await (await fetch('https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+lat+'%7C'+lng+'&gsradius=6000&gslimit=25&format=json&origin=*')).json();
+        data.places=(g&&g.query&&g.query.geosearch||[]).map(function(x){return {title:x.title,lat:x.lat,lng:x.lon,dist:x.dist};});}catch(e){}
+    }
+    state.city.weather=data.weather||null;state.city.places=data.places||[];state.city.events=data.events||[];state.city.news=data.news||[];
+    state.city.loaded=true;
+  }catch(e){console.warn('[city]',e);}
+  state.city.loading=false;renderCity();
+}
+function clearCityMarkers(){cityMarkers.forEach(function(m){m.remove();});cityMarkers=[];}
+function syncCityChrome(onMap){
+  var wb=document.getElementById('weatherBanner'),ct=document.getElementById('cityToday');
+  if(!onMap||!state.city.on){if(wb)wb.style.display='none';if(ct)ct.style.display='none';clearCityMarkers();}
+  else renderCity();
+}
+function renderCity(){
+  var banner=document.getElementById('weatherBanner'),cb=document.getElementById('cityToday');
+  clearCityMarkers();
+  if(!state.city.on){if(banner)banner.style.display='none';if(cb)cb.style.display='none';return;}
+  var w=state.city.weather;
+  if(banner){if(w&&w.temp!=null){banner.style.display='flex';banner.innerHTML='<span style="font-size:17px">'+wxEmoji(w.code)+'</span><b>'+Math.round(w.temp)+'°</b>'+(w.hi!=null?'<span style="opacity:.7">H'+Math.round(w.hi)+'° L'+Math.round(w.lo)+'°</span>':'')+(w.aqi!=null?'<span style="opacity:.7">· AQI '+w.aqi+'</span>':'');}else banner.style.display='none';}
+  if(map&&maplibregl){
+    var addMk=function(item,glyph,color){if(item.lat==null||item.lng==null)return;
+      var el=document.createElement('div');el.className='city-marker';el.style.setProperty('--cc',color);
+      el.innerHTML='<div class="cm-dot">'+glyph+'</div>';el.title=item.title||'';
+      el.addEventListener('click',function(ev){ev.stopPropagation();toast((item.title||'')+(item.when?' · '+item.when:''));});
+      cityMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([item.lng,item.lat]).addTo(map));};
+    state.city.places.slice(0,30).forEach(function(p){addMk(p,'◆','#35E5FF');});
+    state.city.events.slice(0,30).forEach(function(e){addMk(e,'🎉','#B15CFF');});
+  }
+  if(cb){var cnt=state.city.events.length+state.city.news.length;cb.style.display='flex';cb.innerHTML='🏙️ City today'+(cnt?' · '+cnt:'');}
+}
+function toggleCity(){
+  state.city.on=!state.city.on;
+  var btn=document.getElementById('cityBtn');if(btn)btn.classList.toggle('on',state.city.on);
+  if(state.city.on){if(!state.city.loaded){toast('Loading city…');loadCityData();}else renderCity();}
+  else renderCity();
+}
+function openCityToday(){
+  var ev=state.city.events,nw=state.city.news,w=state.city.weather;
+  var wrap=document.createElement('div');wrap.id='cityTodaySheet';
+  wrap.style.cssText='position:fixed;inset:0;z-index:430;display:flex;align-items:flex-end;justify-content:center;background:rgba(6,8,26,.6);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)';
+  var html='<div style="width:100%;max-width:560px;max-height:82vh;overflow:auto;background:var(--ink);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:none;padding:16px 18px calc(var(--safe-bottom) + 18px)">';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:19px">🏙️ Toronto today</div><button id="ctX" class="btn-ghost" style="width:auto;height:34px;padding:0 12px">Close</button></div>';
+  if(w&&w.temp!=null)html+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:12px;font-size:14px">'+wxEmoji(w.code)+' <b>'+Math.round(w.temp)+'°</b> · feels '+Math.round(w.feels)+'°'+(w.aqi!=null?' · air quality '+aqiLabel(w.aqi):'')+'</div>';
+  html+='<div class="section-label">Events & festivals</div>';
+  html+= ev.length? ev.slice(0,25).map(function(e){return '<div style="padding:10px 0;border-bottom:1px solid var(--line)"><div style="font-weight:700">'+esc(e.title)+'</div>'+((e.when||e.venue)?'<div class="meta">'+esc([e.when,e.venue].filter(Boolean).join(' · '))+'</div>':'')+'</div>';}).join('') : '<div class="meta" style="padding:6px 0">No events loaded right now.</div>';
+  html+='<div class="section-label" style="margin-top:14px">Local news</div>';
+  html+= nw.length? nw.slice(0,15).map(function(n){return '<a href="'+esc(n.url||'#')+'" target="_blank" rel="noopener" style="display:block;padding:10px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none"><div style="font-weight:700">'+esc(n.title)+'</div><div class="meta">'+esc(n.source||'')+'</div></a>';}).join('') : '<div class="meta" style="padding:6px 0">'+(cityEndpoint()?'No news yet — add your free GNews key to the backend to enable this.':'Deploy the backend to enable news.')+'</div>';
+  html+='</div>';wrap.innerHTML=html;document.body.appendChild(wrap);
+  var close=function(){wrap.remove();};
+  wrap.querySelector('#ctX').onclick=close;wrap.addEventListener('click',function(e){if(e.target===wrap)close();});
+}
+(function(){var cb=document.getElementById('cityBtn');if(cb)cb.onclick=toggleCity;var ct=document.getElementById('cityToday');if(ct)ct.onclick=openCityToday;})();
+
 /* ---- Bottom-sheet drag-to-close (easier than reaching the small Close button) ---- */
 function closeSheetEl(sheet){
   var scrim=document.getElementById(sheet.id.replace('Sheet','Scrim'));

@@ -59,3 +59,24 @@ Demo mode still passes its 29 UI flows (`test3.mjs`, `test4.mjs`).
   panel until you add a secure admin-only view/RPC that surfaces them.
 - Points are awarded both optimistically (client) and authoritatively (server RPC); the server
   value wins on next load. No double-count persists.
+
+## City data layer (Toronto events / places / weather / news)
+The app has a **City** toggle (🏙️ on the map). It calls a Supabase **Edge Function** named
+`city` that fetches data server-side (so API keys never touch the client):
+- **Weather + air quality** — Open-Meteo (keyless) ✅ works out of the box
+- **Places & attractions** — Wikipedia GeoSearch (keyless) ✅ works out of the box
+- **Events & festivals** — City of Toronto Open Data (keyless) ✅ best-effort
+- **Local news** — GNews. **Needs a free key:**
+  1. Sign up at https://gnews.io → copy your API token
+  2. Set it as a secret (Supabase dashboard → Edge Functions → `city` → Secrets, or CLI):
+     `supabase secrets set GNEWS_API_KEY=your_token`
+  3. That's it — news appears in the City layer automatically.
+
+Function URL: `<SUPABASE_URL>/functions/v1/city?lat=..&lng=..` (deployed, `verify_jwt=false`, public read-only).
+If Supabase isn't configured, the app falls back to keyless weather + places directly.
+
+## Staying signed in
+The Supabase client is configured with `persistSession` + `autoRefreshToken` (+ PKCE), so a
+signed-in user stays signed in across app closes and token expiry — no repeated logins.
+On iOS, **installing to the home screen** (Add to Home Screen) makes that storage durable;
+in a plain Safari tab, iOS may clear it after ~7 days of no use.

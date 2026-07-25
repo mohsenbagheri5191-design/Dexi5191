@@ -14,7 +14,18 @@
   var sb = null;
 
   function configured() { return !!(cfg && cfg.url && (cfg.publishableKey || cfg.anonKey) && global.supabase); }
-  function client() { if (!sb) sb = global.supabase.createClient(cfg.url, cfg.publishableKey || cfg.anonKey); return sb; }
+  function client() {
+    if (!sb) sb = global.supabase.createClient(cfg.url, cfg.publishableKey || cfg.anonKey, {
+      auth: {
+        persistSession: true,        // keep the session in localStorage across app closes
+        autoRefreshToken: true,      // silently refresh so users don't get logged out
+        detectSessionInUrl: true,    // complete the magic-link / OAuth redirect on return
+        storageKey: 'pinly-auth',
+        flowType: 'pkce'
+      }
+    });
+    return sb;
+  }
   function wkt(lng, lat) { return 'SRID=4326;POINT(' + lng + ' ' + lat + ')'; }
   function uuid() { return (global.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '' + Math.random()).replace('.', ''); }
   async function uid() { var s = await client().auth.getUser(); return s.data.user ? s.data.user.id : null; }
