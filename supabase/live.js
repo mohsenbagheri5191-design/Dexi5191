@@ -40,7 +40,10 @@
       session: async function () { return (await client().auth.getSession()).data.session; },
       user: async function () { return (await client().auth.getUser()).data.user; },
       // Email one-time code (works with no SMS provider configured)
-      sendEmailCode: function (email) { return client().auth.signInWithOtp({ email: email }); },
+      // Sends the default Supabase email, which contains BOTH a magic sign-in link and
+      // (if the template exposes {{ .Token }}) a 6-digit code. emailRedirectTo brings the
+      // link back to this same page, where the session is auto-detected on return.
+      sendEmailCode: function (email) { return client().auth.signInWithOtp({ email: email, options: { emailRedirectTo: (typeof location !== 'undefined' ? location.origin + location.pathname : undefined) } }); },
       verifyEmailCode: function (email, token) { return client().auth.verifyOtp({ email: email, token: token, type: 'email' }); },
       // Phone (requires an SMS provider configured in the Supabase dashboard)
       sendPhoneCode: function (phone) { return client().auth.signInWithOtp({ phone: phone }); },
