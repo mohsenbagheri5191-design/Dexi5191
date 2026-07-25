@@ -113,7 +113,9 @@ img{max-width:100%}
 .scrim.open{opacity:1;visibility:visible}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:560px;margin:0 auto;max-height:88vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--surface),var(--ink));border-radius:28px 28px 0 0;border-top:1px solid var(--line);box-shadow:0 -20px 60px rgba(0,0,0,.5);transform:translateY(102%);transition:transform .34s cubic-bezier(.22,1,.36,1);padding-bottom:calc(var(--safe-bottom) + 8px)}
 .sheet.open{transform:translateY(0)}
-.handle{width:44px;height:5px;border-radius:99px;background:rgba(255,255,255,.22);margin:10px auto 4px}
+.handle{width:44px;height:5px;border-radius:99px;background:rgba(255,255,255,.28);margin:10px auto 4px;position:relative;touch-action:none;cursor:grab}
+.handle::before{content:"";position:absolute;left:50%;top:-12px;transform:translateX(-50%);width:140px;height:30px}
+.sheet.dragging{transition:none!important}
 .sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 18px 18px}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px}
 .sheet-head h2{font-family:var(--font-display);font-size:20px;margin:0;font-weight:800}
@@ -459,7 +461,7 @@ img{max-width:100%}
 
 /* ---------- Whispers (anon feed) ---------- */
 .whisper{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
-.whisper .wtext{font-size:15px;line-height:1.45}
+.whisper .wtext{font-size:15px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
 .whisper .wmeta{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
 .wvote{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:4px 6px}
 .wvote button{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px}
@@ -498,6 +500,10 @@ img{max-width:100%}
 #cropZoom{width:300px;max-width:82vw;accent-color:var(--cyan)}
 .crop-actions{display:flex;gap:10px;width:300px;max-width:82vw}
 
+/* animated sign-in background */
+.la-blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;pointer-events:none;z-index:0;will-change:transform}
+@keyframes laFloat{0%{transform:translate(0,0) scale(1)}33%{transform:translate(24px,-30px) scale(1.12)}66%{transform:translate(-22px,18px) scale(.92)}100%{transform:translate(0,0) scale(1)}}
+#liveAuth>*{position:relative;z-index:1}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 </style>
 </head>
@@ -506,7 +512,7 @@ img{max-width:100%}
 <!-- AGE GATE (18+) -->
 <div id="ageGate" role="dialog" aria-modal="true" aria-label="Age verification">
   <div class="glyphmark">📍</div>
-  <h1 class="display">Welcome to Pin&nbsp;Drop</h1>
+  <h1 class="display">Welcome to Pinly</h1>
   <p>Pin Drop is a live neighbourhood map for people <b>18 and older</b>. Before you come in, confirm your age — we only ask once.</p>
   <div class="band-grid" id="gateBands"></div>
   <div class="gate-actions">
@@ -830,6 +836,17 @@ window.liveSafe = function (p) {
   try { return Promise.resolve(p).catch(function (e) { console.warn('[live]', e); }); }
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
+/* ---- Install to home screen (PWA — no app store needed) ---- */
+window.__deferredInstall = null;
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
+function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+function installApp(){
+  var e = window.__deferredInstall;
+  if (e) { e.prompt(); if(e.userChoice&&e.userChoice.finally) e.userChoice.finally(function(){ window.__deferredInstall = null; }); return; }
+  if (isStandalone()) { toast('Already installed 🎉'); return; }
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  toast(isIOS ? 'Tap the Share icon ⬆︎, then “Add to Home Screen”' : 'Open your browser menu ⋮, then “Install app” / “Add to Home Screen”');
+}
 /* ============================================================
    Pin Drop — fully functional phone prototype (client-side).
    All flows run in-browser with mock data. Server calls from
@@ -842,11 +859,12 @@ const CATS = {
   social:{name:'Social',color:'#7C5CFF',glyph:'💬',mg:'✦',meaning:'Tips, sightings, chatter'},
   event:{name:'Event',color:'#B15CFF',glyph:'🎉',mg:'★',meaning:'Happening now — music, markets, meetups'},
   hazard:{name:'Hazard',color:'#FFB020',glyph:'⚠️',mg:'⚠',meaning:'Closures, outages, ice, danger',urgent:true},
+  aware:{name:'Be Aware',color:'#FF5C5C',glyph:'👁️',mg:'❗',meaning:'Heads up — safety, suspicious activity, stay alert',urgent:true},
   found:{name:'Found',color:'#22E5A3',glyph:'📦',mg:'◆',meaning:'Found item, pet, person'},
   lost:{name:'Lost',color:'#FF5CA8',glyph:'🔍',mg:'◇',meaning:'Lost item, pet, person'},
   meetup:{name:'Meetup',color:'#35E5FF',glyph:'🫂',mg:'◎',meaning:'Anonymous invite (18+)'},
 };
-const CAT_KEYS=['social','event','hazard','found','lost','meetup'];
+const CAT_KEYS=['social','event','hazard','aware','found','lost','meetup'];
 /* Rich social "spot types" (§5) — many useful, location-based categories to post.
    These keep the map legible (Social stays one colour) while giving posting real variety. */
 const SUBCATS={
@@ -868,6 +886,7 @@ const LIFETIMES={
   social:{opts:[['6h',6*H],['24h',24*H],['3d',3*D],['7d',7*D],['30d',30*D],['forever',0]],def:7*D},
   event:{opts:[['3h',3*H],['6h',6*H],['12h',12*H],['24h',24*H],['3d',3*D]],def:24*H},
   hazard:{opts:[['6h',6*H],['12h',12*H],['24h',24*H],['3d',3*D],['7d',7*D]],def:24*H},
+  aware:{opts:[['6h',6*H],['12h',12*H],['24h',24*H],['3d',3*D],['7d',7*D]],def:24*H},
   found:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
   lost:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
   meetup:{opts:[['1h',1*H],['3h',3*H],['6h',6*H],['12h',12*H],['24h',24*H]],def:3*H},
@@ -903,11 +922,16 @@ const AV_ART=[
   '<circle cx="32" cy="26" r="8" fill="#fff"/><path d="M20 30c-3 4-3 10 2 12M44 30c3 4 3 10-2 12" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M22 48c2-7 5-10 10-10s8 3 10 10Z" fill="#fff"/>', /* explorer */
   '<path d="M32 16c6 0 8 5 8 9s5 4 5 9-4 8-13 8-13-3-13-8 5-5 5-9 2-9 8-9Z" fill="#fff"/><circle cx="27" cy="32" r="2.2" fill="#0b0e2e"/><circle cx="37" cy="32" r="2.2" fill="#0b0e2e"/>', /* fox */
 ];
-const AV_COUNT=AV_ART.length;
+/* 50 cute modern characters — animals, people & fun (single-codepoint emoji so they
+   render as color glyphs everywhere, including as HTML map markers). Pick any as your map avatar. */
+const CHARS=['🦊','🐼','🐨','🐯','🦁','🐱','🐶','🐰','🐻','🐸','🐵','🐷','🐮','🐔','🐧','🦉','🦄','🐢','🐙','🦋',
+  '🐝','🐬','🐳','🦩','🦜','🦥','🦦','🐺','🐹','🐲','🦖','🦕','🐊','🦈','🐡','🦞','🦚','🦇','🐞','🦌',
+  '😎','🤠','🥳','👽','🤖','🤡','👑','🥷','🧚','🧙'];
+const AV_COUNT=CHARS.length;
 function presetAvatar(i){
   const idx=((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT;
-  const g=AV_GRADS[idx%AV_GRADS.length], art=AV_ART[idx], id='g'+i+'_'+Math.random().toString(36).slice(2,6);
-  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+g[0]+'"/><stop offset="1" stop-color="'+g[1]+'"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#'+id+')"/>'+art+'</svg>';
+  const g=AV_GRADS[idx%AV_GRADS.length], id='g'+i+'_'+Math.random().toString(36).slice(2,6);
+  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+g[0]+'"/><stop offset="1" stop-color="'+g[1]+'"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#'+id+')"/><text x="32" y="35" font-size="38" text-anchor="middle" dominant-baseline="central">'+CHARS[idx]+'</text></svg>';
 }
 function avatarInner(user){
   if(user.avatarPhoto) return '<img src="'+user.avatarPhoto+'" alt="avatar">';
@@ -1893,13 +1917,13 @@ function renderSettings(){
 
   html+='<div class="section-label">Appearance</div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Light theme</div><div class="sub">Switch between dark and light</div></div>'+sw(s.theme==='light','__theme')+'</div>';
+  if(!isStandalone())html+='<div class="setrow" id="installRow"><div style="flex:1"><div class="lbl">📲 Install Pinly</div><div class="sub">Add to your home screen — no app store needed</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="installBtn">Install</button></div>';
 
   html+='<div class="section-label">Privacy &amp; safety</div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Show me on the map</div><div class="sub">'+(s.visibility==='live'?'Live — nearby people can see you':'Invisible — you appear to no one')+'</div></div>'+sw(s.visibility==='live','__visible')+'</div>';
   html+='<div class="setrow" id="dmRow"><div style="flex:1"><div class="lbl">Who can message you</div><div class="sub">'+({everyone:'Everyone',friends:'Friends only',none:'No one'}[s.dmPrivacy]||'Everyone')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editDm">Change</button></div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Public pin history</div><div class="sub">Show your pins on your profile</div></div>'+sw(s.pinHistoryPublic,'pinHistoryPublic')+'</div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Appear on leaderboard</div><div class="sub">City-scoped, opt out anytime</div></div>'+sw(s.leaderboardOptIn,'leaderboardOptIn')+'</div>';
-  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Simulate under-18 (demo)</div><div class="sub">Hard-hides Meetups everywhere</div></div>'+sw(s.under18Sim,'under18Sim')+'</div>';
   html+='<div class="setrow" id="blockedRow"><div style="flex:1"><div class="lbl">Blocked</div><div class="sub">'+state.blocked.size+' users</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="mgBlocked">Manage</button></div>';
   html+='<div class="setrow" id="mutedRow"><div style="flex:1"><div class="lbl">Muted</div><div class="sub">'+state.muted.size+' users</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="mgMuted">Manage</button></div>';
 
@@ -1912,7 +1936,6 @@ function renderSettings(){
     html+='<div class="setrow" id="adminRow" style="border-color:rgba(255,68,56,.3)"><div style="flex:1"><div class="lbl">🛡️ Admin dashboard</div><div class="sub">Ban or restrict users, review reports</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px">Open</button></div>';
   }
   html+='<div class="section-label">Your data</div>';
-  html+='<button class="btn-ghost" id="exportData" style="margin-bottom:8px">Export my data (JSON)</button>';
   html+='<button class="btn-danger" id="deleteAcct">Delete account</button>';
   html+='<div class="hint" style="text-align:center;margin-top:14px">Pin Drop — night cartography · demo build</div>';
   body.innerHTML=html;
@@ -1927,10 +1950,10 @@ function renderSettings(){
   const editDm=body.querySelector('#editDm');if(editDm)editDm.onclick=()=>openMenu([[['🌐','Everyone',()=>setDm('everyone')],['👥','Friends only',()=>setDm('friends')],['🚫','No one',()=>setDm('none')]]]);
   body.querySelector('#editAvatar').onclick=openAvatarPicker;
   const adminRow=body.querySelector('#adminRow');if(adminRow)adminRow.onclick=openAdmin;
+  const installBtn=body.querySelector('#installBtn');if(installBtn)installBtn.onclick=installApp;
   body.querySelector('#editBand').onclick=()=>openMenu([AGE_BANDS.map(b=>['🎂',b,()=>{me.ageBand=b;if(window.LIVE)liveSafe(L.updateProfile({age_band:b}));renderSettings();toast('Age band: '+b);}])]);
   body.querySelector('#mgBlocked').onclick=()=>manageList('blocked');
   body.querySelector('#mgMuted').onclick=()=>manageList('muted');
-  body.querySelector('#exportData').onclick=exportData;
   body.querySelector('#deleteAcct').onclick=()=>{if(confirm('Delete your account? A 30-day grace period applies before data is purged.')){toast('Account deletion scheduled — 30-day grace period started');}};
 }
 function manageList(kind){const set=kind==='blocked'?state.blocked:state.muted;if(!set.size){toast('Nobody '+kind+' yet');return;}openMenu([[...set].map(id=>['↩️','Un'+(kind==='blocked'?'block':'mute')+' '+userOf(id).name,()=>{set.delete(id);renderSettings();refreshPins();}])]);}
@@ -1947,7 +1970,7 @@ function ageOK(){if(state.ageVerified)return true;try{if(localStorage.getItem('p
 function persistAge(){try{localStorage.setItem('pd_age_ok','1');}catch(e){}}
 function showAgeGate(){const g=document.getElementById('ageGate');g.classList.remove('blocked','pickband');g.classList.add('show');}
 function hideAgeGate(){document.getElementById('ageGate').classList.remove('show');}
-function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();if(window.LIVE)liveSafe(L.verifyAge(b));hideAgeGate();updateMeetTab();if(map)setTimeout(()=>map.resize(),60);if(needsSetup())setTimeout(startSetup,250);else toast('Welcome to Pin Drop 👋');};wrap.appendChild(btn);});}
+function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();if(window.LIVE)liveSafe(L.verifyAge(b));hideAgeGate();updateMeetTab();if(map)setTimeout(()=>map.resize(),60);if(needsSetup())setTimeout(startSetup,250);else toast('Welcome to Pinly 👋');};wrap.appendChild(btn);});}
 document.getElementById('gateYes').onclick=()=>{const g=document.getElementById('ageGate');g.classList.add('pickband');renderGateBands();};
 document.getElementById('gateNo').onclick=()=>{document.getElementById('ageGate').classList.add('blocked');};
 
@@ -2309,10 +2332,29 @@ function whisperCard(w){
     +'<div class="wmeta"><div class="wvote"><button class="'+(w.myVote>0?'on':'')+'" data-wv="up">▲</button><span class="score">'+score+'</span><button class="'+(w.myVote<0?'on':'')+'" data-wv="down">▼</button></div>'
     +'<span>·</span><span>'+esc(w.neighborhood)+'</span><span>·</span><span>'+fmtAgo(w.created_at)+' ago · anon</span></div></div>';
 }
-function postWhisper(){
-  const t=prompt('Say something anonymously to your neighbourhood (be kind):');if(!t||!t.trim())return;
-  const w={id:uid(),alias:aliasFor(),text:t.trim(),up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby'};
+function submitWhisper(text){
+  const t=(text||'').trim();if(!t)return;
+  const w={id:uid(),alias:aliasFor(),text:t,up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby'};
   state.whispers.unshift(w);award('whisper',3,w.id);if(window.LIVE)liveSafe(L.createWhisper(w.text,w.neighborhood).then(function(r){if(r&&r.data&&r.data.id)w.id=r.data.id;}));toast('Posted anonymously · +3 pts');renderFeed();
+}
+function postWhisper(){
+  var wrap=document.createElement('div');wrap.id='whisperCompose';
+  wrap.style.cssText='position:fixed;inset:0;z-index:420;display:flex;align-items:flex-end;justify-content:center;background:rgba(6,8,26,.6);backdrop-filter:blur(3px)';
+  wrap.innerHTML='<div style="width:100%;max-width:560px;background:var(--ink);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:none;padding:16px 16px calc(var(--safe-bottom) + 16px)">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:18px">Whisper anonymously</div><button id="wcX" class="btn-ghost" style="width:auto;height:34px;padding:0 12px">Cancel</button></div>'
+    +'<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px">Shared with your neighbourhood — no name attached. Be kind.</div>'
+    +'<textarea id="wcText" maxlength="400" placeholder="What’s on your mind?" style="width:100%;min-height:130px;resize:vertical;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:14px;font-size:16px;line-height:1.5;font-family:inherit;box-sizing:border-box"></textarea>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px"><span id="wcCount" style="color:var(--muted);font-size:12px">0 / 400</span>'
+    +'<button id="wcPost" style="height:44px;padding:0 22px;border:none;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">Post</button></div>'
+    +'</div>';
+  document.body.appendChild(wrap);
+  var ta=wrap.querySelector('#wcText'),cnt=wrap.querySelector('#wcCount');
+  function close(){wrap.remove();}
+  ta.addEventListener('input',function(){cnt.textContent=ta.value.length+' / 400';});
+  wrap.querySelector('#wcX').onclick=close;
+  wrap.addEventListener('click',function(e){if(e.target===wrap)close();});
+  wrap.querySelector('#wcPost').onclick=function(){var v=ta.value;if(!v.trim()){ta.focus();return;}close();submitWhisper(v);};
+  setTimeout(function(){ta.focus();},50);
 }
 
 /* ============================================================
@@ -2377,16 +2419,25 @@ function renderDm(){
   body.querySelectorAll('[data-conv]').forEach(el=>el.onclick=()=>openConversation(el.dataset.conv));
 }
 function openConversation(id){const c=state.conversations.find(x=>x.id===id);if(!c)return;c.unread=false;updateDmDot();state.currentConv=id;showScreen('conv');document.getElementById('convTitle').textContent=convTitle(c);if(window.LIVE)liveSubscribeConv(c);renderConv(c);}
+const STICKERS=['🥰','😹','🎉','👏','🙌','🔥','💜','😎','🤗','😴','🍕','☕','🌸','✨','👋','😂','🥳','🫶','🐣','🌈','😭','💃','🕺','🙈'];
+function isStickerMsg(m){return m.sticker||(/^\s*(\p{Extended_Pictographic}️?‍?){1,3}\s*$/u.test(m.text||'')&&(m.text||'').replace(/\s/g,'').length<=6);}
 function renderConv(c){
   const body=document.getElementById('convBody');
-  const msgs=c.messages.length?c.messages.map(m=>'<div class="msg '+(m.me?'me':'them')+'">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>').join(''):'<div class="empty"><div>No messages yet — say hi 👋</div></div>';
-  body.innerHTML='<div class="conv-msgs chat" id="convMsgs">'+msgs+'</div><div class="conv-bar"><input id="convInput" placeholder="Message…"><button id="convSend">Send</button></div>';
+  const msgs=c.messages.length?c.messages.map(m=>{const st=isStickerMsg(m);
+    if(st)return '<div class="msg sticker '+(m.me?'me':'them')+'" style="background:none;font-size:46px;padding:2px 4px;box-shadow:none">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>';
+    return '<div class="msg '+(m.me?'me':'them')+'">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>';}).join(''):'<div class="empty"><div>No messages yet — say hi 👋</div></div>';
+  const tray='<div id="stickerTray" style="display:none;gap:6px;flex-wrap:wrap;padding:10px 12px;background:var(--ink);border-top:1px solid var(--line);max-height:150px;overflow:auto">'+STICKERS.map(s=>'<button class="stik" data-s="'+s+'" style="font-size:30px;background:var(--surface-2);border:none;border-radius:12px;width:48px;height:48px;cursor:pointer">'+s+'</button>').join('')+'</div>';
+  body.innerHTML='<div class="conv-msgs chat" id="convMsgs">'+msgs+'</div>'+tray+'<div class="conv-bar"><button id="stickerBtn" style="flex:0 0 auto;padding:0 12px;border-radius:14px;background:var(--surface-2);color:var(--paper);font-size:19px">😊</button><input id="convInput" placeholder="Message…"><button id="convSend">Send</button></div>';
   const cm=document.getElementById('convMsgs');if(cm)cm.scrollTop=cm.scrollHeight;
-  const send=()=>{const inp=document.getElementById('convInput');const t=inp.value.trim();if(!t)return;c.messages.push({me:true,text:t,at:Date.now()});inp.value='';dailyTrack('hi');renderConv(c);
-    if(window.LIVE){liveSafe(liveEnsureConv(c).then(function(cid){return L.sendMessage(cid,t);}));return;} // real reply arrives via realtime; no simulated echo
-    setTimeout(()=>{const other=c.members.find(m=>m!=='me')||c.members[0];c.messages.push({me:false,from:other,text:['haha for real','omg yes 😄','let’s do it','on my way','sounds good 👍','where at?'][Math.floor(Math.random()*6)],at:Date.now()});if(state.currentConv===c.id)renderConv(c);else{c.unread=true;updateDmDot();}},1300+Math.random()*1200);};
+  const pushMine=(t,isSticker)=>{c.messages.push({me:true,text:t,sticker:!!isSticker,at:Date.now()});dailyTrack('hi');renderConv(c);
+    if(window.LIVE){liveSafe(liveEnsureConv(c).then(function(cid){return L.sendMessage(cid,t);}));return true;}
+    setTimeout(()=>{const other=c.members.find(m=>m!=='me')||c.members[0];c.messages.push({me:false,from:other,text:['haha for real','omg yes 😄','let’s do it','on my way','sounds good 👍','where at?'][Math.floor(Math.random()*6)],at:Date.now()});if(state.currentConv===c.id)renderConv(c);else{c.unread=true;updateDmDot();}},1300+Math.random()*1200);return true;};
+  const send=()=>{const inp=document.getElementById('convInput');const t=inp.value.trim();if(!t)return;inp.value='';pushMine(t,false);};
   document.getElementById('convSend').onclick=send;
   document.getElementById('convInput').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+  const trayEl=document.getElementById('stickerTray');
+  document.getElementById('stickerBtn').onclick=()=>{trayEl.style.display=trayEl.style.display==='none'?'flex':'none';if(trayEl.style.display==='flex')trayEl.scrollTop=0;};
+  body.querySelectorAll('.stik').forEach(b=>b.onclick=()=>{pushMine(b.dataset.s,true);});
 }
 function startNewDm(){
   const friends=friendsOf('me').filter(id=>!state.blocked.has(id));
@@ -2702,9 +2753,12 @@ function liveSignIn(){
   return new Promise(function(resolve){
     var el=document.createElement('div');el.id='liveAuth';
     el.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center;color:var(--paper);background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));overflow:auto';
+    var blobs='<div class="la-blob" style="width:240px;height:240px;left:-60px;top:-40px;background:#7C5CFF;animation:laFloat 14s ease-in-out infinite"></div>'
+      +'<div class="la-blob" style="width:200px;height:200px;right:-50px;top:20%;background:#35E5FF;animation:laFloat 18s ease-in-out infinite reverse"></div>'
+      +'<div class="la-blob" style="width:220px;height:220px;left:20%;bottom:-60px;background:#B15CFF;animation:laFloat 16s ease-in-out infinite"></div>';
     var gsvg='<svg width="18" height="18" viewBox="0 0 48 48" style="flex:0 0 auto"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.28-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
-    el.innerHTML='<div style="width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:18px">📍</div>'
-      +'<h1 style="font-family:var(--font-display);font-weight:800;font-size:25px;margin:0 0 6px">Welcome to Pin&nbsp;Drop</h1>'
+    el.innerHTML=blobs+'<div style="width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:18px">📍</div>'
+      +'<h1 style="font-family:var(--font-display);font-weight:800;font-size:25px;margin:0 0 6px">Welcome to Pinly</h1>'
       +'<p style="color:var(--muted);font-size:14px;line-height:1.5;max-width:320px;margin:0 0 18px">Sign in or create your account.</p>'
       +'<div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">'
       +'<button id="laGoogle" style="height:48px;border-radius:14px;border:none;background:#fff;color:#1f2330;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">'+gsvg+'Continue with Google</button>'
@@ -2827,6 +2881,34 @@ async function startLive(){
   if(!state.ageVerified)showAgeGate();
   else if(liveNeedsSetup)setTimeout(startSetup,300);
 }
+/* ---- Bottom-sheet drag-to-close (easier than reaching the small Close button) ---- */
+function closeSheetEl(sheet){
+  var scrim=document.getElementById(sheet.id.replace('Sheet','Scrim'));
+  if(scrim&&typeof scrim.onclick==='function'){scrim.onclick();}
+  else{sheet.classList.remove('open');if(scrim)scrim.classList.remove('open');}
+}
+function enableSheetDrag(sheet){
+  var handle=sheet.querySelector('.handle');
+  var scrollBody=sheet.querySelector('.sheet-body')||sheet;
+  var startY=0,dy=0,dragging=false,fromHandle=false;
+  function start(y,target){startY=y;dy=0;fromHandle=!!(handle&&(target===handle||handle.contains(target)));dragging=true;}
+  function move(y,e){if(!dragging)return;var d=y-startY;var atTop=(scrollBody.scrollTop||0)<=0;
+    if(d>0&&(fromHandle||atTop)){dy=d;if(e&&e.cancelable)e.preventDefault();sheet.classList.add('dragging');sheet.style.transform='translateY('+d+'px)';}
+  }
+  function end(){if(!dragging)return;dragging=false;sheet.classList.remove('dragging');
+    if(dy>110){sheet.style.transform='';closeSheetEl(sheet);}else{sheet.style.transform='';}
+    dy=0;
+  }
+  sheet.addEventListener('touchstart',function(e){start(e.touches[0].clientY,e.target);},{passive:true});
+  sheet.addEventListener('touchmove',function(e){move(e.touches[0].clientY,e);},{passive:false});
+  sheet.addEventListener('touchend',end);sheet.addEventListener('touchcancel',end);
+  // mouse support (desktop/testing): drag from the handle
+  if(handle){handle.addEventListener('mousedown',function(e){start(e.clientY,handle);
+    var mm=function(ev){move(ev.clientY,ev);},mu=function(){window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu);end();};
+    window.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu);});}
+}
+Array.prototype.forEach.call(document.querySelectorAll('.sheet'),enableSheetDrag);
+
 if(window.LIVE){startLive();}else{boot();}
 
 /* PWA: register the service worker (offline shell + installable). No-op if unsupported. */
