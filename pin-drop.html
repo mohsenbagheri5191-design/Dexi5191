@@ -145,10 +145,14 @@ img{max-width:100%}
 .segtabs button.on{background:var(--surface-2);color:var(--paper)}
 
 /* ---------- Tab bar ---------- */
-#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;max-width:560px;margin:0 auto;height:calc(var(--tabbar-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);display:flex;background:var(--ink);border-top:1px solid var(--line)}
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10px;font-weight:600;position:relative}
+#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;max-width:560px;margin:0 auto;height:calc(var(--tabbar-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);display:flex;background:linear-gradient(180deg,var(--surface-2),var(--surface));border-top:1px solid rgba(255,255,255,.16);box-shadow:0 -8px 24px rgba(0,0,0,.4)}
+:root[data-theme="light"] #tabbar{background:#ffffff;border-top:1px solid rgba(16,19,58,.12);box-shadow:0 -6px 20px rgba(16,19,58,.12)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;position:relative}
+.tab svg{opacity:.92}
 .tab.active{color:var(--paper)}
-.tab.active svg{color:var(--cyan)}
+.tab.active svg{color:var(--cyan);opacity:1}
+:root[data-theme="light"] .tab{color:#5b6180}
+:root[data-theme="light"] .tab.active{color:#10133A}
 .tab svg{width:23px;height:23px}
 .tab .tdot{position:absolute;top:8px;right:calc(50% - 18px);min-width:8px;height:8px;border-radius:99px;background:var(--fire)}
 
@@ -392,6 +396,8 @@ img{max-width:100%}
 .super-hero{display:flex;gap:14px;align-items:center;margin-bottom:12px}
 .super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);box-shadow:0 10px 30px rgba(255,176,32,.5)}
 #superBanner{display:none;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,210,63,.18),rgba(255,176,32,.05));border:1px solid rgba(255,210,63,.4);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:600;line-height:1.35}
+.reward-teaser{background:linear-gradient(90deg,rgba(199,155,255,.2),rgba(139,68,255,.06));border:1px solid rgba(199,155,255,.45);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:13.5px;font-weight:600}
+.story-views{margin-left:auto;background:rgba(0,0,0,.45);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 
 /* ---------- Account setup wizard ---------- */
 #setupWizard{position:fixed;inset:0;z-index:190;background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));display:none;flex-direction:column;max-width:560px;margin:0 auto}
@@ -2097,7 +2103,7 @@ function renderAdmin(){
   const banned=users.filter(u=>u.status==='banned').length,restricted=users.filter(u=>u.status==='restricted').length;
   const openReports=state.reports.filter(r=>r.status==='open');
   let html='<div class="banner">🛡️ Moderation dashboard — actions take effect immediately across Pin Drop.</div>';
-  html+='<div class="segtabs" id="adTabs">'+[['overview','Overview'],['users','Users'],['reports','Reports'+(openReports.length?' ('+openReports.length+')':'')]].map(([k,l])=>'<button class="'+(adminTab===k?'on':'')+'" data-t="'+k+'">'+l+'</button>').join('')+'</div>';
+  html+='<div class="segtabs" id="adTabs">'+[['overview','Overview'],['users','Users'],['reports','Reports'+(openReports.length?' ('+openReports.length+')':'')],['super','✨ Super']].map(([k,l])=>'<button class="'+(adminTab===k?'on':'')+'" data-t="'+k+'">'+l+'</button>').join('')+'</div>';
   if(adminTab==='overview'){
     html+='<div class="admin-metrics">'
       +'<div class="metric"><div class="n">'+(users.length+1)+'</div><div class="l">Total users</div></div>'
@@ -2116,6 +2122,18 @@ function renderAdmin(){
     list.sort((a,b)=>(b.reports||0)-(a.reports||0));
     html+='<div class="meta" style="margin:0 4px 10px">'+(q?list.length+' match'+(list.length===1?'':'es')+' for “'+esc(q)+'”':'Tap an avatar to view a profile · sorted by report count')+'</div>';
     html+=list.length?list.map(adminUserRow).join(''):emptyMsg('No users match that ID or name.');
+  }else if(adminTab==='super'){
+    const cfg=superCfg();const live=superActive()?state.superSpot:null;
+    const inp=(id,ph,val,ta)=>ta?'<textarea id="'+id+'" placeholder="'+ph+'" style="width:100%;min-height:64px;resize:vertical;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:10px 12px;font-size:15px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">'+esc(val||'')+'</textarea>':'<input id="'+id+'" placeholder="'+ph+'" value="'+esc(val||'')+'" style="width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 12px;font-size:15px;box-sizing:border-box;margin-bottom:10px">';
+    html+='<div class="banner">✨ Configure the weekly Super Spot. Set the photo prompt and the reward — users race to the spot and post a photo to win.</div>';
+    if(live)html+='<div class="reward-teaser">Live now · '+esc(live.rewardTitle)+' · '+fmtDist(metresBetween(state.center,live.location))+' away · expires '+Math.max(0,Math.floor((live.expires_at-Date.now())/86400000))+'d</div>';
+    html+='<div class="section-label">Photo prompt (what to photograph)</div>'+inp('ssPrompt','e.g. the coolest mural you can find',cfg.prompt,true);
+    html+='<div class="section-label">Reward title (shown to everyone)</div>'+inp('ssTitle','e.g. $25 Amazon gift card',cfg.rewardTitle);
+    html+='<div class="section-label">Reward detail (revealed to winner only)</div>'+inp('ssDetail','e.g. code AMZ-4831-XKQ or redemption steps',cfg.rewardDetail,true);
+    html+='<div class="section-label">Bonus points</div>'+inp('ssPoints','100',String(cfg.points||100));
+    html+='<label style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;font-size:14px"><input type="checkbox" id="ssHere"> Drop at the current map centre (otherwise ~2–9 km random)</label>';
+    html+='<button class="btn-primary" id="ssLaunch">Launch Super Spot</button>';
+    if(live)html+='<button class="btn-ghost" id="ssEnd" style="margin-top:8px">End current Super Spot</button>';
   }else{
     html+=openReports.length?openReports.map(reportCardHTML).join(''):emptyMsg('No open reports right now.');
     const done=state.reports.filter(r=>r.status!=='open');
@@ -2123,6 +2141,8 @@ function renderAdmin(){
   }
   body.innerHTML=html;
   body.querySelectorAll('#adTabs button').forEach(b=>b.onclick=()=>{adminTab=b.dataset.t;renderAdmin();});
+  const ssL=body.querySelector('#ssLaunch');if(ssL)ssL.onclick=launchSuperSpotFromAdmin;
+  const ssE=body.querySelector('#ssEnd');if(ssE)ssE.onclick=()=>{if(state.superSpot)state.superSpot.claimed=true;refreshSuperMarker();toast('Super Spot ended');renderAdmin();};
   const aus=body.querySelector('#adminUserSearch');if(aus)aus.oninput=()=>{state.adminUserQuery=aus.value;const pos=aus.selectionStart;renderAdmin();const el=document.getElementById('adminUserSearch');if(el){el.focus();try{el.setSelectionRange(pos,pos);}catch(e){}}};
   body.querySelectorAll('[data-openuser]').forEach(el=>el.onclick=()=>openUserProfile(el.dataset.openuser));
   body.querySelectorAll('[data-details]').forEach(el=>el.onclick=()=>openUserAdmin(el.dataset.details));
@@ -2173,14 +2193,22 @@ document.getElementById('recenter').onclick=()=>{if(state.me)map.easeTo({center:
    ============================================================ */
 const SUPER_REWARD=100;
 let superMarker=null;
-function spawnSuperSpot(){
-  const base=(state.me?[state.me.lng,state.me.lat]:state.center);
-  const dist=2000+Math.random()*7000,ang=Math.random()*2*Math.PI; // 2–9 km, accessible range
-  const loc=[base[0]+(dist*Math.sin(ang))/(111320*Math.cos(base[1]*Math.PI/180)),base[1]+(dist*Math.cos(ang))/111320];
-  state.superSpot={id:uid(),location:loc,created_at:Date.now(),expires_at:Date.now()+3*D*1000,claimed:false,reward:SUPER_REWARD};
+function superCfg(){
+  if(!state.superConfig){try{state.superConfig=JSON.parse(localStorage.getItem('pd_supercfg')||'null');}catch(e){}}
+  return state.superConfig||{prompt:'the coolest thing you can see right now',rewardTitle:'Mystery reward',rewardDetail:'',points:SUPER_REWARD};
+}
+function saveSuperCfg(c){state.superConfig=c;try{localStorage.setItem('pd_supercfg',JSON.stringify(c));}catch(e){}}
+function spawnSuperSpot(opts){
+  opts=opts||{};const cfg=superCfg();let loc;
+  if(opts.location)loc=opts.location.slice();
+  else{const base=(state.me?[state.me.lng,state.me.lat]:state.center);
+    const dist=2000+Math.random()*7000,ang=Math.random()*2*Math.PI; // 2–9 km, accessible range
+    loc=[base[0]+(dist*Math.sin(ang))/(111320*Math.cos(base[1]*Math.PI/180)),base[1]+(dist*Math.cos(ang))/111320];}
+  state.superSpot={id:opts.id||uid(),location:loc,created_at:Date.now(),expires_at:opts.expires_at||(Date.now()+7*D*1000),claimed:false,
+    prompt:opts.prompt||cfg.prompt,rewardTitle:opts.rewardTitle||cfg.rewardTitle,
+    rewardDetail:(opts.rewardDetail!==undefined?opts.rewardDetail:cfg.rewardDetail),reward:opts.points||cfg.points||SUPER_REWARD};
   refreshSuperMarker();
-  notify('super','me',null);
-  toast('✨ A Super Spot appeared '+fmtDist(dist)+' away — first to check in wins +'+SUPER_REWARD+' pts');
+  if(!opts.silent){notify('super','me',null);toast('✨ A Super Spot appeared '+fmtDist(metresBetween(state.center,loc))+' away — first to claim wins '+esc(state.superSpot.rewardTitle));}
 }
 function superActive(){const ss=state.superSpot;return ss&&!ss.claimed&&ss.expires_at>Date.now();}
 function refreshSuperMarker(){
@@ -2202,7 +2230,8 @@ function openSuperSpot(){
   document.getElementById('superBody').innerHTML=
     '<div class="sheet-head"><h2>✨ Super Spot</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="ssClose">Close</button></div>'
     +'<div class="super-hero"><div class="super-badge">✨</div><div><div style="font-family:var(--font-display);font-weight:800;font-size:19px">Weekly Super Spot</div><div class="meta">'+fmtDist(dist)+' away · '+left+'d left</div></div></div>'
-    +'<div class="detail-text" style="font-size:14.5px">A surprise bonus location has appeared near you. Be the <b>first to get there</b>, post a photo of the best thing you see, and claim <b>+'+ss.reward+' points</b> plus the <b>Pathfinder</b> badge. First come, first served.</div>'
+    +'<div class="reward-teaser">🎁 Win: <b>'+esc(ss.rewardTitle||'Mystery reward')+'</b> · +'+ss.reward+' pts</div>'
+    +'<div class="detail-text" style="font-size:14.5px">Be the <b>first to get there</b> and post a photo of <b>'+esc(ss.prompt||'the best thing you see')+'</b> to claim it. First come, first served.</div>'
     +'<div class="safety">🧭 Only real check-ins count — you post from the spot itself. Stay aware of your surroundings and only go somewhere you feel safe.</div>'
     +'<button class="btn-primary" id="ssGo" style="margin-top:6px">Show me the way</button>'
     +'<button class="btn-ghost" id="ssClaim" style="margin-top:8px">I\'m here — claim it</button>';
@@ -2225,7 +2254,41 @@ function maybeClaimSuperSpot(post){
   const ss=state.superSpot;if(!ss||ss.id!==sid||ss.claimed)return;
   ss.claimed=true;award('super_claim',ss.reward,post.id);me.superClaims=(me.superClaims||0)+1;
   refreshSuperMarker();notify('super_won','me',post.id);
-  setTimeout(()=>toast('🏆 Super Spot claimed! +'+ss.reward+' points'),800);
+  if(window.LIVE){liveSafe(L.claimSuperSpot(ss.id,post.id).then(function(r){if(r&&r.ok)showRewardCard(r.reward_title,r.reward_detail,r.points);else showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward);}));}
+  else setTimeout(function(){showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward);},700);
+}
+function showRewardCard(title,detail,points){
+  var wrap=document.createElement('div');wrap.id='rewardCard';
+  wrap.style.cssText='position:fixed;inset:0;z-index:520;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
+  wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:24px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#2a1250,#160a30);border:1px solid rgba(199,155,255,.4);box-shadow:0 24px 70px rgba(124,92,255,.5)">'
+    +'<div style="font-size:52px;margin-bottom:6px">🏆</div>'
+    +'<div style="font-family:var(--font-display);font-weight:800;font-size:22px;margin-bottom:4px">You claimed it!</div>'
+    +'<div style="color:var(--muted);font-size:13px;margin-bottom:16px">First to the Super Spot · +'+(points||0)+' pts</div>'
+    +'<div style="background:linear-gradient(135deg,#C79BFF,#8B44FF);color:#160a30;border-radius:16px;padding:16px;margin-bottom:8px">'
+      +'<div style="font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.75;text-transform:uppercase">Your reward</div>'
+      +'<div style="font-family:var(--font-display);font-weight:800;font-size:20px;margin:4px 0">'+esc(title||'Mystery reward')+'</div>'
+      +(detail?'<div style="font-family:var(--font-mono);font-size:15px;background:rgba(22,10,48,.25);border-radius:10px;padding:8px;margin-top:6px;word-break:break-all">'+esc(detail)+'</div>':'')
+    +'</div>'
+    +(detail?'<div style="color:var(--muted);font-size:11.5px;margin:8px 0 14px">Screenshot this — tap the code to copy.</div>':'<div style="margin-bottom:10px"></div>')
+    +'<button id="rcDone" style="width:100%;height:46px;border:none;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">Awesome</button>'
+    +'</div>';
+  document.body.appendChild(wrap);
+  var code=wrap.querySelector('div[style*="font-mono"]');if(code)code.onclick=function(){try{navigator.clipboard.writeText(detail);toast('Reward copied');}catch(e){}};
+  wrap.querySelector('#rcDone').onclick=function(){wrap.remove();};
+}
+function launchSuperSpotFromAdmin(){
+  var g=function(id){return document.getElementById(id);};
+  var cfg={prompt:((g('ssPrompt')||{}).value||'').trim()||'the coolest thing you can see right now',
+    rewardTitle:((g('ssTitle')||{}).value||'').trim()||'Mystery reward',
+    rewardDetail:((g('ssDetail')||{}).value||'').trim(),
+    points:parseInt((g('ssPoints')||{}).value,10)||100};
+  saveSuperCfg(cfg);
+  var here=(g('ssHere')||{}).checked;
+  var loc=here?(map?[map.getCenter().lng,map.getCenter().lat]:state.center.slice()):null;
+  spawnSuperSpot({location:loc,prompt:cfg.prompt,rewardTitle:cfg.rewardTitle,rewardDetail:cfg.rewardDetail,points:cfg.points,silent:true});
+  var ss=state.superSpot;
+  if(window.LIVE)liveSafe(L.admin.setSuperSpot({lat:ss.location[1],lng:ss.location[0],prompt:cfg.prompt,rewardTitle:cfg.rewardTitle,rewardDetail:cfg.rewardDetail,points:cfg.points,expiresAt:new Date(ss.expires_at).toISOString()}).then(function(r){if(r&&r.data)ss.id=r.data;}));
+  toast('✨ Super Spot launched · '+cfg.rewardTitle);renderAdmin();
 }
 
 /* ============================================================
@@ -2392,19 +2455,47 @@ function openStories(authorId){
 }
 function renderStory(){
   const {items,idx}=storyState;const s=items[idx];if(!s){closeStories();return;}
-  s.seen=true;const u=userOf(s.authorId);
+  s.seen=true;const u=userOf(s.authorId);const mine=s.authorId==='me';
   document.getElementById('storyImg').src=s.url;
   document.getElementById('storyCap').textContent=s.caption||'';
-  document.getElementById('storyTop').innerHTML=avatarHTML(u,36)+'<div><div class="nm">'+esc(u.name)+'</div><div class="tm">'+fmtAgo(s.created_at)+' ago</div></div>';
+  document.getElementById('storyTop').innerHTML=avatarHTML(u,36)+'<div><div class="nm">'+esc(u.name)+'</div><div class="tm">'+fmtAgo(s.created_at)+' ago</div></div>'
+    +(mine?'<button id="storyViews" class="story-views">👁 '+(s.views||0)+'</button>':'');
   document.getElementById('storyBars').innerHTML=items.map((_,i)=>'<i class="'+(i<idx?'done':i===idx?'active':'')+'"><b></b></i>').join('');
+  const sv=document.getElementById('storyViews');if(sv)sv.onclick=(ev)=>{ev.stopPropagation();openStoryViewers(s);};
+  if(mine){ if(window.LIVE)liveSafe(L.storyViewCount(s.id).then(function(n){s.views=n;const b=document.getElementById('storyViews');if(b)b.textContent='👁 '+n;})); }
+  else { if(window.LIVE)liveSafe(L.recordStoryView(s.id)); }
   clearTimeout(storyState.timer);storyState.timer=setTimeout(nextStory,5000);
+}
+function openStoryViewers(s){
+  clearTimeout(storyState.timer);
+  var wrap=document.createElement('div');wrap.id='storyViewersSheet';
+  wrap.style.cssText='position:fixed;inset:0;z-index:530;display:flex;align-items:flex-end;justify-content:center;background:rgba(6,8,26,.66)';
+  var render=function(list){
+    var rows=list.length?list.map(function(v){var uu=v.user||userOf(v.viewer_id||v.id||'');return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)">'+avatarHTML(uu,34)+'<div style="font-weight:700;font-size:14px">'+esc(uu.name||'Someone')+'</div></div>';}).join(''):'<div class="meta" style="padding:10px 0">No views yet.</div>';
+    wrap.innerHTML='<div style="width:100%;max-width:560px;max-height:70vh;overflow:auto;background:var(--ink);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:none;padding:16px 18px calc(var(--safe-bottom) + 18px)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-family:var(--font-display);font-weight:800;font-size:18px">👁 Viewers · '+list.length+'</div><button id="svX" class="btn-ghost" style="width:auto;height:34px;padding:0 12px">Close</button></div>'+rows+'</div>';
+    var x=wrap.querySelector('#svX');if(x)x.onclick=function(){wrap.remove();};
+  };
+  render((s.viewers||[]).map(function(id){return {user:userOf(id)};}));
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
+  if(window.LIVE)liveSafe(L.storyViewers(s.id).then(function(list){render((list||[]).map(function(r){var p=r.profiles||{};return {user:{name:p.display_name||'Someone',username:p.username,avatarUrl:p.avatar_url}};}));}));
 }
 function nextStory(){if(storyState.idx<storyState.items.length-1){storyState.idx++;renderStory();}else closeStories();}
 function prevStory(){if(storyState.idx>0){storyState.idx--;renderStory();}}
 function closeStories(){clearTimeout(storyState.timer);document.getElementById('storyViewer').classList.remove('show');if(currentTab()==='feed')renderFeed();}
+function simulateStoryViews(story){
+  var pool=Object.keys(state.users).filter(function(id){return id!=='me';});if(!pool.length)return;
+  var max=3+Math.floor(Math.random()*7);
+  var tick=function(){ if(story.viewers.length>=max||state.stories.indexOf(story)<0)return;
+    var id=pool[Math.floor(Math.random()*pool.length)];
+    if(id&&story.viewers.indexOf(id)<0){story.viewers.push(id);story.views=story.viewers.length;
+      var b=document.getElementById('storyViews');if(b&&storyState.items&&storyState.items[storyState.idx]===story)b.textContent='👁 '+story.views;}
+    setTimeout(tick,2000+Math.random()*5000); };
+  setTimeout(tick,2500);
+}
 function addStory(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const cap=prompt('Add a caption (optional):')||'';const url=URL.createObjectURL(f);state.stories.unshift({id:uid(),authorId:'me',url,caption:cap,created_at:Date.now(),seen:true});award('story',3,'');if(window.LIVE)liveSafe(L.createStory(f,cap));toast('Story posted · gone in 24h · +3 pts');renderFeed();};
+  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const cap=prompt('Add a caption (optional):')||'';const url=URL.createObjectURL(f);const story={id:uid(),authorId:'me',url,caption:cap,created_at:Date.now(),seen:true,views:0,viewers:[]};state.stories.unshift(story);award('story',3,'');if(window.LIVE)liveSafe(L.createStory(f,cap).then(function(r){if(r&&r.data&&r.data.id)story.id=r.data.id;}));else simulateStoryViews(story);toast('Story posted · gone in 24h · +3 pts');renderFeed();};
   inp.click();
 }
 document.getElementById('storyClose').onclick=closeStories;
@@ -2862,6 +2953,7 @@ async function liveHydrate(){
     try{(await L.admin.allUsers()).forEach(liveProfileToUser);}catch(e){}
     try{state.reports=(await L.admin.reports()).map(liveRowToReport);}catch(e){}
   }
+  try{var ss=await L.activeSuperSpot();if(ss){spawnSuperSpot({id:ss.id,location:[ss.lng,ss.lat],prompt:ss.prompt,rewardTitle:ss.reward_title,rewardDetail:ss.reward_detail,points:ss.points,expires_at:Date.parse(ss.expires_at),silent:true});if(ss.claimed_by)state.superSpot.claimed=true;}}catch(e){}
 }
 function liveRealtime(){
   try{
@@ -2889,6 +2981,7 @@ async function startLive(){
   document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');
   initMap();switchTab('map');updateMeetTab();
   updateBell();updateDmDot();
+  setTimeout(function(){if(superActive())refreshSuperMarker();},600);
   liveRealtime();
   if(!state.ageVerified)showAgeGate();
   else if(liveNeedsSetup)setTimeout(startSetup,300);

@@ -170,7 +170,14 @@
 
     /* ---------------- Stories ---------------- */
     async activeStories() { var cut = new Date(Date.now() - 24 * 3600 * 1000).toISOString(); return (await client().from('stories').select('*,profiles(display_name,username,avatar_url)').gt('created_at', cut).order('created_at', { ascending: false })).data || []; },
-    async createStory(file, caption) { var id = await uid(); var url = await this.uploadImage('stories', file); if (!url) return { error: 'upload failed' }; await this.award('story', 3, null); return client().from('stories').insert({ author_id: id, media_url: url, caption: caption || null }); },
+    async createStory(file, caption) { var id = await uid(); var url = await this.uploadImage('stories', file); if (!url) return { error: 'upload failed' }; await this.award('story', 3, null); return client().from('stories').insert({ author_id: id, media_url: url, caption: caption || null }).select('id').single(); },
+    async recordStoryView(storyId) { var id = await uid(); return client().from('story_views').upsert({ story_id: storyId, viewer_id: id }, { onConflict: 'story_id,viewer_id', ignoreDuplicates: true }); },
+    async storyViewers(storyId) { return (await client().from('story_views').select('viewer_id,created_at,profiles(display_name,username,avatar_url)').eq('story_id', storyId).order('created_at', { ascending: false })).data || []; },
+    async storyViewCount(storyId) { var r = await client().from('story_views').select('viewer_id', { count: 'exact', head: true }).eq('story_id', storyId); return r.count || 0; },
+
+    /* ---------------- Super Spot (weekly bonus, admin-configured) ---------------- */
+    async activeSuperSpot() { return (await client().from('super_spots_public').select('*').eq('active', true).gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(1).maybeSingle()).data; },
+    async claimSuperSpot(spotId, postId) { return (await client().rpc('claim_super_spot', { p_spot: spotId, p_post: postId })).data; },
 
     /* ---------------- Reports / admin ---------------- */
     async report(type, targetId, reason) { var id = await uid(); return client().from('reports').insert({ reporter_id: id, target_type: type, target_id: String(targetId), reason: reason, status: 'open' }); },
@@ -179,7 +186,8 @@
       allUsers: async function () { return (await client().from('profiles').select('*').order('created_at', { ascending: false }).limit(500)).data || []; },
       setStatus: function (id, status) { return client().from('profiles').update({ status: status }).eq('id', id); },
       reports: async function () { return (await client().from('reports').select('*').order('created_at', { ascending: false })).data || []; },
-      resolveReport: function (id, status) { return client().from('reports').update({ status: status }).eq('id', id); }
+      resolveReport: function (id, status) { return client().from('reports').update({ status: status }).eq('id', id); },
+      setSuperSpot: function (s) { return client().rpc('set_super_spot', { p_lat: s.lat, p_lng: s.lng, p_prompt: s.prompt || '', p_reward_title: s.rewardTitle || '', p_reward_detail: s.rewardDetail || null, p_points: s.points || 100, p_expires: s.expiresAt || null }); }
     },
 
     /* ---------------- Points ---------------- */
