@@ -192,8 +192,9 @@ img{max-width:100%}
 .mediastrip{display:flex;gap:8px;overflow-x:auto;padding:2px 0}
 .mediastrip::-webkit-scrollbar{display:none}
 .thumbcell{position:relative;flex:0 0 auto;width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
-.thumbcell img{width:100%;height:100%;object-fit:cover}
-.thumbcell .rm{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(9,11,36,.85);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+.thumbcell img{width:100%;height:100%;object-fit:cover;cursor:pointer}
+.thumbcell .rm{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(9,11,36,.85);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2}
+.thumbcell .editbadge{position:absolute;bottom:2px;left:2px;width:20px;height:20px;border-radius:6px;background:rgba(9,11,36,.85);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .addcell{flex:0 0 auto;width:72px;height:72px;border-radius:12px;border:1px dashed rgba(255,255,255,.28);background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);font-size:10.5px}
 .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
 .pill-note{display:inline-block;font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 11px;margin-top:4px}
@@ -1348,10 +1349,19 @@ function renderSubSeg(){
 function renderLifeSeg(){const seg=document.getElementById('lifeSeg');seg.innerHTML='';const conf=LIFETIMES[state.composer.category];for(const [label,sec] of conf.opts){const b=document.createElement('button');b.className='pillbtn';const on=state.composer.lifetime===sec;b.setAttribute('aria-pressed',on?'true':'false');b.textContent=label;b.onclick=()=>{state.composer.lifetime=sec;renderLifeSeg();};seg.appendChild(b);}document.getElementById('lifeNote').textContent=state.composer.lifetime?('This pin disappears in '+lifetimeLabel(state.composer.lifetime)):'This pin stays forever';}
 function renderPrecision(){document.querySelectorAll('#precisionSeg .pillbtn').forEach(b=>{const on=b.dataset.p===state.composer.precision;b.setAttribute('aria-pressed',on?'true':'false');b.onclick=()=>{state.composer.precision=b.dataset.p;renderPrecision();};});}
 function renderMediaStrip(){const strip=document.getElementById('mediaStrip');strip.querySelectorAll('.thumbcell').forEach(n=>n.remove());const add=document.getElementById('addMedia');
-  state.composer.media.forEach((m,i)=>{const cell=document.createElement('div');cell.className='thumbcell';cell.innerHTML='<img src="'+m.url+'" alt="'+esc(m.alt||'')+'"><button class="rm" aria-label="Remove photo">×</button>';cell.querySelector('.rm').onclick=()=>{URL.revokeObjectURL(m.url);state.composer.media.splice(i,1);renderMediaStrip();updatePublish();};strip.insertBefore(cell,add);});
+  state.composer.media.forEach((m,i)=>{const cell=document.createElement('div');cell.className='thumbcell';cell.innerHTML='<img src="'+m.url+'" alt="'+esc(m.alt||'')+'"><button class="rm" aria-label="Remove photo">×</button><span class="editbadge">✎</span>';cell.querySelector('.rm').onclick=(ev)=>{ev.stopPropagation();try{URL.revokeObjectURL(m.url);}catch(e){}state.composer.media.splice(i,1);renderMediaStrip();updatePublish();};cell.querySelector('img').onclick=()=>{openPhotoEditor(m.url,function(out){if(out){m.url=out;m.file=out;m.edited=true;renderMediaStrip();}});};strip.insertBefore(cell,add);});
   add.style.display=state.composer.media.length>=10?'none':'flex';}
 document.getElementById('addMedia').onclick=()=>document.getElementById('fileInput').click();
-document.getElementById('fileInput').onchange=e=>{const files=[...e.target.files].slice(0,10-state.composer.media.length);for(const f of files){state.composer.media.push({url:URL.createObjectURL(f),alt:'',file:f});}renderMediaStrip();updatePublish();e.target.value='';};
+document.getElementById('fileInput').onchange=e=>{
+  const files=[...e.target.files].slice(0,10-state.composer.media.length);e.target.value='';
+  let i=0;
+  const next=()=>{ if(i>=files.length)return; const f=files[i++];
+    const rd=new FileReader();
+    rd.onload=()=>{ openPhotoEditor(rd.result,function(out){ if(out){state.composer.media.push({url:out,alt:'',file:out,edited:true});renderMediaStrip();updatePublish();} next(); }); };
+    rd.readAsDataURL(f);
+  };
+  next();
+};
 function updatePublish(){const btn=document.getElementById('publishBtn');const hasP=state.composer.media.length>0,hasT=document.getElementById('postText').value.trim().length>0;btn.disabled=!(hasP&&hasT);btn.textContent=!hasP?'Add a photo to publish':(!hasT?'Write something to publish':'Publish pin');}
 document.getElementById('postText').addEventListener('input',updatePublish);
 document.getElementById('publishBtn').onclick=()=>{
@@ -2066,6 +2076,59 @@ function openCropper(dataUrl,cb){
     cleanup();cb(out);
   };
   overlay.classList.add('show');
+}
+
+/* Photo editor for post uploads — crop (pan/zoom), rotate, and aspect ratio. */
+function openPhotoEditor(dataUrl, cb){
+  var overlay=document.createElement('div');overlay.id='photoEditor';
+  overlay.style.cssText='position:fixed;inset:0;z-index:240;background:rgba(6,8,24,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;max-width:560px;margin:0 auto;padding:20px;color:var(--paper)';
+  var vw=Math.min(window.innerWidth-40,360);
+  overlay.innerHTML='<div style="font-family:var(--font-display);font-weight:800;font-size:18px">Edit photo</div>'
+    +'<div id="peAspects" style="display:flex;gap:8px"></div>'
+    +'<canvas id="peCanvas" style="border-radius:16px;touch-action:none;background:#0b0e2e;box-shadow:0 12px 40px rgba(0,0,0,.5);max-width:100%"></canvas>'
+    +'<div style="display:flex;align-items:center;gap:12px;width:'+vw+'px;max-width:82vw">'
+      +'<button id="peRotate" title="Rotate" style="flex:0 0 auto;width:46px;height:40px;border-radius:12px;border:none;background:var(--surface-2);color:var(--paper);font-size:19px;cursor:pointer">⟳</button>'
+      +'<input id="peZoom" type="range" min="1" max="4" step="0.01" value="1" style="flex:1;accent-color:var(--cyan)">'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;width:'+vw+'px;max-width:82vw">'
+      +'<button id="peCancel" class="btn-ghost" style="flex:1">Cancel</button>'
+      +'<button id="peUse" class="btn-primary" style="flex:1">Use photo</button>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  var canvas=overlay.querySelector('#peCanvas'),ctx=canvas.getContext('2d'),slider=overlay.querySelector('#peZoom'),ab=overlay.querySelector('#peAspects');
+  var img=new Image();var ARS=[['Square',1],['Portrait',1.25],['Landscape',0.75]];
+  var arIdx=0,ar=1,scale=1,ox=0,oy=0,rot=0,nw=0,nh=0,fw=vw,fh=vw,baseFit=1;
+  function setFrame(){fw=vw;fh=Math.round(vw*ar);canvas.width=fw;canvas.height=fh;canvas.style.width=fw+'px';canvas.style.height=fh+'px';}
+  function dims(){var rr=((rot%360)+360)%360;return (rr===90||rr===270)?[nh,nw]:[nw,nh];}
+  function fit(){var d=dims();baseFit=Math.max(fw/d[0],fh/d[1]);}
+  function eff(){return baseFit*scale;}
+  function clamp(){var d=dims(),bw=d[0]*eff(),bh=d[1]*eff(),mx=Math.max(0,(bw-fw)/2),my=Math.max(0,(bh-fh)/2);ox=Math.max(-mx,Math.min(mx,ox));oy=Math.max(-my,Math.min(my,oy));}
+  function draw(){clamp();ctx.clearRect(0,0,fw,fh);ctx.save();ctx.translate(fw/2+ox,fh/2+oy);ctx.rotate(rot*Math.PI/180);ctx.scale(eff(),eff());ctx.drawImage(img,-nw/2,-nh/2,nw,nh);ctx.restore();}
+  img.onload=function(){nw=img.naturalWidth;nh=img.naturalHeight;ar=ARS[arIdx][1];setFrame();fit();scale=1;ox=0;oy=0;slider.value=1;draw();};
+  img.src=dataUrl;
+  ARS.forEach(function(a,i){var b=document.createElement('button');b.textContent=a[0];b.style.cssText='padding:6px 12px;border-radius:10px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;background:'+(i===arIdx?'var(--social)':'var(--surface-2)')+';color:'+(i===arIdx?'#0b0e2e':'var(--paper)');
+    b.onclick=function(){arIdx=i;ar=a[1];Array.prototype.forEach.call(ab.children,function(c,ci){c.style.background=ci===i?'var(--social)':'var(--surface-2)';c.style.color=ci===i?'#0b0e2e':'var(--paper)';});setFrame();fit();ox=0;oy=0;draw();};ab.appendChild(b);});
+  slider.oninput=function(){scale=parseFloat(slider.value);draw();};
+  overlay.querySelector('#peRotate').onclick=function(){rot=(rot+90)%360;fit();ox=0;oy=0;draw();};
+  var dragging=false,lx=0,ly=0,pinch=0,pinchBase=1;
+  var dist=function(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);};
+  canvas.addEventListener('touchstart',function(ev){if(ev.touches.length===2){pinch=dist(ev.touches);pinchBase=scale;}else{dragging=true;lx=ev.touches[0].clientX;ly=ev.touches[0].clientY;}},{passive:true});
+  canvas.addEventListener('touchmove',function(ev){ev.preventDefault();if(ev.touches.length===2&&pinch){scale=Math.max(1,Math.min(4,pinchBase*dist(ev.touches)/pinch));slider.value=Math.min(4,scale);draw();}else if(dragging){ox+=ev.touches[0].clientX-lx;oy+=ev.touches[0].clientY-ly;lx=ev.touches[0].clientX;ly=ev.touches[0].clientY;draw();}},{passive:false});
+  canvas.addEventListener('touchend',function(){dragging=false;pinch=0;});
+  canvas.addEventListener('mousedown',function(ev){dragging=true;lx=ev.clientX;ly=ev.clientY;});
+  var mm=function(ev){if(!dragging)return;ox+=ev.clientX-lx;oy+=ev.clientY-ly;lx=ev.clientX;ly=ev.clientY;draw();},mu=function(){dragging=false;};
+  window.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu);
+  function cleanup(){overlay.remove();window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu);}
+  overlay.querySelector('#peCancel').onclick=function(){cleanup();cb(null);};
+  overlay.querySelector('#peUse').onclick=function(){
+    var outW=1080,k=outW/fw,outH=Math.round(fh*k);
+    var oc=document.createElement('canvas');oc.width=outW;oc.height=outH;var octx=oc.getContext('2d');
+    octx.save();octx.translate(outW/2+ox*k,outH/2+oy*k);octx.rotate(rot*Math.PI/180);octx.scale(eff()*k,eff()*k);
+    try{octx.drawImage(img,-nw/2,-nh/2,nw,nh);}catch(e){}
+    octx.restore();
+    var out;try{out=oc.toDataURL('image/jpeg',0.88);}catch(e){out=dataUrl;}
+    cleanup();cb(out);
+  };
 }
 
 /* ============================================================
