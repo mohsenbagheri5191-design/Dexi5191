@@ -2701,37 +2701,65 @@ function liveSubscribeConv(c){
 function liveSignIn(){
   return new Promise(function(resolve){
     var el=document.createElement('div');el.id='liveAuth';
-    el.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center;color:var(--paper);background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void))';
-    el.innerHTML='<div style="width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:22px">📍</div>'
-      +'<h1 style="font-family:var(--font-display);font-weight:800;font-size:26px;margin:0 0 8px">Welcome to Pin&nbsp;Drop</h1>'
-      +'<p style="color:var(--muted);font-size:14.5px;line-height:1.55;max-width:320px;margin:0 0 20px">Enter your email — we’ll send you a secure sign-in link. Tap it and you’re in.</p>'
+    el.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center;color:var(--paper);background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));overflow:auto';
+    var gsvg='<svg width="18" height="18" viewBox="0 0 48 48" style="flex:0 0 auto"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.28-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+    el.innerHTML='<div style="width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:18px">📍</div>'
+      +'<h1 style="font-family:var(--font-display);font-weight:800;font-size:25px;margin:0 0 6px">Welcome to Pin&nbsp;Drop</h1>'
+      +'<p style="color:var(--muted);font-size:14px;line-height:1.5;max-width:320px;margin:0 0 18px">Sign in or create your account.</p>'
       +'<div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">'
+      +'<button id="laGoogle" style="height:48px;border-radius:14px;border:none;background:#fff;color:#1f2330;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">'+gsvg+'Continue with Google</button>'
+      +'<button id="laApple" style="height:48px;border-radius:14px;border:none;background:#000;color:#fff;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">Continue with Apple</button>'
+      +'<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:4px 0"><div style="flex:1;height:1px;background:var(--line)"></div>or<div style="flex:1;height:1px;background:var(--line)"></div></div>'
+      +'<div id="laTabs" style="display:flex;gap:6px;background:var(--surface);border-radius:12px;padding:4px">'
+        +'<button data-m="email" style="flex:1;height:34px;border:none;border-radius:9px;background:var(--social);color:#0b0e2e;font-weight:700;font-size:13px;cursor:pointer">Email</button>'
+        +'<button data-m="phone" style="flex:1;height:34px;border:none;border-radius:9px;background:transparent;color:var(--paper);font-weight:700;font-size:13px;cursor:pointer">Phone</button>'
+      +'</div>'
       +'<input id="laEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" style="height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 16px;font-size:16px">'
+      +'<input id="laPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+1 555 123 4567" style="display:none;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 16px;font-size:16px">'
       +'<input id="laCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" style="display:none;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 16px;font-size:18px;letter-spacing:4px;text-align:center">'
-      +'<button id="laBtn" style="height:48px;border-radius:14px;border:none;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">Email me a sign-in link</button>'
+      +'<button id="laBtn" style="height:48px;border-radius:14px;border:none;background:var(--surface-2);color:var(--paper);font-weight:800;font-size:15px;cursor:pointer">Email me a sign-in link</button>'
       +'<div id="laMsg" style="font-size:12.5px;color:var(--muted);min-height:16px"></div>'
       +'</div>'
-      +'<div style="font-size:11px;color:var(--muted);opacity:.8;margin-top:18px;max-width:320px;line-height:1.5">18+ only. By continuing you agree to the Terms and Privacy Policy.</div>';
+      +'<div style="font-size:11px;color:var(--muted);opacity:.8;margin-top:16px;max-width:320px;line-height:1.5">18+ only. By continuing you agree to the Terms and Privacy Policy.</div>';
     document.body.appendChild(el);
-    var emailIn=el.querySelector('#laEmail'),codeIn=el.querySelector('#laCode'),btn=el.querySelector('#laBtn'),msg=el.querySelector('#laMsg');
-    var phase='email',email='';emailIn.focus();
+    var emailIn=el.querySelector('#laEmail'),phoneIn=el.querySelector('#laPhone'),codeIn=el.querySelector('#laCode'),btn=el.querySelector('#laBtn'),msg=el.querySelector('#laMsg');
+    var mode='email',phase='enter',contact='';
     function setMsg(t,err){msg.textContent=t||'';msg.style.color=err?'#FF5CA8':'var(--muted)';}
+    el.querySelector('#laGoogle').onclick=function(){setMsg('Redirecting to Google…');liveSafe(L.auth.oauth('google')).then(function(r){if(r&&r.error)setMsg(r.error.message||'Google sign-in isn’t switched on yet',true);});};
+    el.querySelector('#laApple').onclick=function(){setMsg('Redirecting to Apple…');liveSafe(L.auth.oauth('apple')).then(function(r){if(r&&r.error)setMsg(r.error.message||'Apple sign-in isn’t switched on yet',true);});};
+    Array.prototype.forEach.call(el.querySelectorAll('#laTabs button'),function(b){b.onclick=function(){
+      mode=b.dataset.m;phase='enter';codeIn.style.display='none';
+      Array.prototype.forEach.call(el.querySelectorAll('#laTabs button'),function(x){var on=x.dataset.m===mode;x.style.background=on?'var(--social)':'transparent';x.style.color=on?'#0b0e2e':'var(--paper)';});
+      if(mode==='email'){emailIn.style.display='block';phoneIn.style.display='none';btn.textContent='Email me a sign-in link';emailIn.focus();}
+      else{emailIn.style.display='none';phoneIn.style.display='block';btn.textContent='Text me a code';phoneIn.focus();}
+      setMsg('');
+    };});
     async function go(){
       btn.disabled=true;
       try{
-        if(phase==='email'){
-          email=(emailIn.value||'').trim();
-          if(!/.+@.+\..+/.test(email)){setMsg('Enter a valid email',true);btn.disabled=false;return;}
-          setMsg('Sending…');
-          var r=await L.auth.sendEmailCode(email);
-          if(r&&r.error){setMsg(r.error.message||'Could not send email',true);btn.disabled=false;return;}
-          phase='code';emailIn.style.display='none';codeIn.style.display='block';codeIn.focus();
-          btn.textContent='I have a code';setMsg('Check your email and tap the sign-in link. (If the email shows a 6-digit code, type it below instead.)');
+        if(phase==='enter'){
+          if(mode==='email'){
+            contact=(emailIn.value||'').trim();
+            if(!/.+@.+\..+/.test(contact)){setMsg('Enter a valid email',true);btn.disabled=false;return;}
+            setMsg('Sending…');
+            var r=await L.auth.sendEmailCode(contact);
+            if(r&&r.error){setMsg(r.error.message||'Could not send email',true);btn.disabled=false;return;}
+            phase='code';emailIn.style.display='none';codeIn.style.display='block';codeIn.focus();
+            btn.textContent='I have a code';setMsg('Check your email and tap the sign-in link. (If it shows a 6-digit code, type it below.)');
+          }else{
+            contact=(phoneIn.value||'').replace(/[^\d+]/g,'');
+            if(!/^\+\d{7,15}$/.test(contact)){setMsg('Enter your number with country code, e.g. +15551234567',true);btn.disabled=false;return;}
+            setMsg('Texting a code…');
+            var rp=await L.auth.sendPhoneCode(contact);
+            if(rp&&rp.error){setMsg(rp.error.message||'Could not send SMS',true);btn.disabled=false;return;}
+            phase='code';phoneIn.style.display='none';codeIn.style.display='block';codeIn.focus();
+            btn.textContent='Verify code';setMsg('Enter the 6-digit code we texted to '+contact);
+          }
         }else{
           var token=(codeIn.value||'').trim();
-          if(token.length<4){setMsg('Enter the code from your email',true);btn.disabled=false;return;}
+          if(token.length<4){setMsg('Enter the code',true);btn.disabled=false;return;}
           setMsg('Verifying…');
-          var v=await L.auth.verifyEmailCode(email,token);
+          var v=(mode==='email')?await L.auth.verifyEmailCode(contact,token):await L.auth.verifyPhoneCode(contact,token);
           if(v&&v.error){setMsg(v.error.message||'Invalid code',true);btn.disabled=false;return;}
           el.remove();resolve(true);return;
         }
@@ -2740,7 +2768,9 @@ function liveSignIn(){
     }
     btn.onclick=go;
     emailIn.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
+    phoneIn.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
     codeIn.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
+    emailIn.focus();
   });
 }
 function liveGetCenter(){

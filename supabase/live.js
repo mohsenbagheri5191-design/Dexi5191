@@ -49,7 +49,7 @@
       sendPhoneCode: function (phone) { return client().auth.signInWithOtp({ phone: phone }); },
       verifyPhoneCode: function (phone, token) { return client().auth.verifyOtp({ phone: phone, token: token, type: 'sms' }); },
       // OAuth (configure providers in the dashboard)
-      oauth: function (provider) { return client().auth.signInWithOAuth({ provider: provider }); },
+      oauth: function (provider) { return client().auth.signInWithOAuth({ provider: provider, options: { redirectTo: (typeof location !== 'undefined' ? location.origin + location.pathname : undefined) } }); },
       signOut: function () { return client().auth.signOut(); },
       onChange: function (cb) { return client().auth.onAuthStateChange(function (_e, s) { cb(s); }); }
     },
