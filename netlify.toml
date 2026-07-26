@@ -1,0 +1,20 @@
+# Netlify config for Pin Drop (static site — no build step)
+[build]
+  publish = "."
+  command = ""
+
+# SPA-ish fallback: unknown routes serve the app
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

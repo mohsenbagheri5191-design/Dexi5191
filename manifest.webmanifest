@@ -1,0 +1,41 @@
+{
+  "name": "Pinly — Local Place",
+  "short_name": "Pinly",
+  "description": "A live map of your neighbourhood — drop pins, find what's happening, meet up (18+).",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090B24",
+  "theme_color": "#090B24",
+  "categories": [
+    "social",
+    "lifestyle",
+    "navigation"
+  ],
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
