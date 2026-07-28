@@ -513,8 +513,8 @@ img{max-width:100%}
 #weatherBanner{display:none;position:absolute;top:calc(var(--safe-top,0px) + 96px);left:12px;z-index:6;align-items:center;gap:8px;background:rgba(16,19,58,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 12px;font-size:13px;color:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 :root[data-theme="light"] #weatherBanner{background:rgba(255,255,255,.9);color:#10133A}
 #cityToday{display:none;position:absolute;left:12px;bottom:calc(var(--safe-bottom,0px) + 150px);z-index:6;align-items:center;gap:6px;background:var(--social);color:#fff;border:none;border-radius:999px;padding:9px 15px;font-weight:800;font-size:13px;box-shadow:0 10px 28px rgba(124,92,255,.5);cursor:pointer}
-.city-marker{width:30px;height:30px;cursor:pointer}
-.city-marker .cm-dot{width:30px;height:30px;border-radius:50% 50% 50% 4px;transform:rotate(-2deg);background:var(--cc,#35E5FF);display:flex;align-items:center;justify-content:center;font-size:15px;color:#0b0e2e;box-shadow:0 4px 12px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.8)}
+.city-marker{width:22px;height:22px;cursor:pointer}
+.city-marker .cm-dot{width:22px;height:22px;border-radius:50% 50% 50% 3px;transform:rotate(-2deg);background:var(--cc,#35E5FF);display:flex;align-items:center;justify-content:center;font-size:11px;color:#0b0e2e;box-shadow:0 3px 9px rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.85)}
 /* animated sign-in background */
 .la-blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;pointer-events:none;z-index:0;will-change:transform}
 @keyframes laFloat{0%{transform:translate(0,0) scale(1)}33%{transform:translate(24px,-30px) scale(1.12)}66%{transform:translate(-22px,18px) scale(.92)}100%{transform:translate(0,0) scale(1)}}
@@ -855,7 +855,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 8 · 2026-07-26';
+window.PINLY_BUILD = 'build 9 · 2026-07-27';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -943,9 +943,9 @@ const AV_ART=[
 ];
 /* 50 cute modern characters — animals, people & fun (single-codepoint emoji so they
    render as color glyphs everywhere, including as HTML map markers). Pick any as your map avatar. */
-const CHARS=['🦊','🐼','🐨','🐯','🦁','🐱','🐶','🐰','🐻','🐸','🐵','🐷','🐮','🐔','🐧','🦉','🦄','🐢','🐙','🦋',
-  '🐝','🐬','🐳','🦩','🦜','🦥','🦦','🐺','🐹','🐲','🦖','🦕','🐊','🦈','🐡','🦞','🦚','🦇','🐞','🦌',
-  '😎','🤠','🥳','👽','🤖','🤡','👑','🥷','🧚','🧙'];
+const CHARS=['🧙','🧝','🧛','🧜','🧚','🧞','🧟','🥷','🦸','🦹','👑','🤴','👸','👹','👺','👻','💀','🎃','🧌','🐉',
+  '🦄','🔮','🐺','🦊','🦁','🐯','🐲','🦅','🦉','🦇','🐍','🦖','🦕','🐙','🦑','🦈','🐆','🐅','🦓','🦍',
+  '🐘','🦏','🦌','🐗','🦧','🦣','🦫','🦔','🐊','🦎'];
 const AV_COUNT=CHARS.length;
 function presetAvatar(i){
   const idx=((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT;
@@ -1376,7 +1376,7 @@ document.getElementById('publishBtn').onclick=()=>{
     mediaFiles:state.composer.media.map(function(m){return m.file;}).filter(Boolean),
     expiresAt:post.expires_at?new Date(post.expires_at).toISOString():null}).then(function(res){if(res&&res.data&&res.data.id)post.id=res.data.id;}));
   closeComposer();refreshPins();if(map)map.easeTo({center:post.display_location,zoom:16});
-  toast(cat==='hazard'?'Hazard pin dropped — neighbours notified':'Pin dropped 📍 +10 pts');
+  toast(cat==='hazard'?'Hazard pin dropped — neighbours notified':'Pin dropped 📍 +10 🦝');
   maybeBadgeToast();maybeClaimSuperSpot(post);setTimeout(()=>openDetail(post.id),500);
 };
 document.getElementById('fab').onclick=()=>startPlacement('new');
@@ -1423,10 +1423,10 @@ function renderDetail(p){
   const like=body.querySelector('#likeBtn');if(like)like.onclick=()=>{p.liked=!p.liked;p.like_count+=p.liked?1:-1;if(p.liked&&!mine)notify('like',p.authorId,p.id);renderDetail(p);};
   body.querySelectorAll('[data-react]').forEach(b=>b.onclick=()=>{toggleReaction(p,b.dataset.react);renderDetail(p);refreshPins();});
   const dmb=body.querySelector('#dmBtnDetail');if(dmb)dmb.onclick=()=>{closeDetail();messageUser(p.authorId);};
-  const conf=body.querySelector('#confirmBtn');if(conf)conf.onclick=()=>{if(p.confirmed)return;const d=metresBetween(state.me?[state.me.lng,state.me.lat]:state.center,p.display_location);if(d>1500){toast('Get closer to confirm (server-verified distance)');return;}p.confirmed=true;p.confirm_count++;if(p.expires_at)p.expires_at+=3600*1000;award('confirm_emergency',4,p.id);toast('Confirmed — pin extended · +4 pts');renderDetail(p);refreshPins();};
+  const conf=body.querySelector('#confirmBtn');if(conf)conf.onclick=()=>{if(p.confirmed)return;const d=metresBetween(state.me?[state.me.lng,state.me.lat]:state.center,p.display_location);if(d>1500){toast('Get closer to confirm (server-verified distance)');return;}p.confirmed=true;p.confirm_count++;if(p.expires_at)p.expires_at+=3600*1000;award('confirm_emergency',4,p.id);toast('Confirmed — pin extended · +4 🦝');renderDetail(p);refreshPins();};
   body.querySelector('#saveBtn').onclick=()=>{p.saved=!p.saved;if(p.saved)state.saved.add(p.id);else state.saved.delete(p.id);if(window.LIVE)liveSafe(L.toggleSave(p.id));toast(p.saved?'Saved to your collection':'Removed');renderDetail(p);};
   const fol=body.querySelector('#followBtn');if(fol)fol.onclick=()=>{toggleFollow(p.authorId);renderDetail(p);};
-  const res=body.querySelector('#resolveBtn');if(res)res.onclick=()=>{p.status='resolved';award(p.category==='found'?'found_match':'lost_resolved',p.category==='found'?75:50,p.id);toast('Marked resolved 🎉 '+(p.category==='found'?'+75':'+50')+' pts');closeDetail();refreshPins();};
+  const res=body.querySelector('#resolveBtn');if(res)res.onclick=()=>{p.status='resolved';award(p.category==='found'?'found_match':'lost_resolved',p.category==='found'?75:50,p.id);toast('Marked resolved 🎉 '+(p.category==='found'?'+75':'+50')+' 🦝');closeDetail();refreshPins();};
   const ext=body.querySelector('#extendBtn');if(ext)ext.onclick=()=>extendLifetime(p);
   if(!p.repliesOff){const send=body.querySelector('#commentSend'),inp=body.querySelector('#commentInput');const go=()=>{const t=inp.value.trim();if(!t)return;p.comments.push({id:uid(),authorId:'me',text:t,created_at:Date.now()});if(!mine){award('comment',2,p.id);notify('comment',p.authorId,p.id);}if(window.LIVE)liveSafe(L.addComment(p.id,t));inp.value='';renderDetail(p);refreshPins();};send.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
 }
@@ -1616,8 +1616,8 @@ function renderProfile(){
     +'<div class="statgrid"><div><div class="n">'+active.length+'</div><div class="meta">pins</div></div>'
       +'<div class="statlink" data-list="followers"><div class="n">'+followersOf(id).length+'</div><div class="meta">followers</div></div>'
       +'<div class="statlink" data-list="following"><div class="n">'+followingIdsOf(id).length+'</div><div class="meta">following</div></div>'
-      +'<div><div class="n mono">'+points+'</div><div class="meta">points</div></div></div>'
-    +'<div class="levelbar"><i style="width:'+Math.round(prog*100)+'%"></i></div><div class="meta">'+(lvl>=5?'Max level':((nextMin-points)+' pts to '+LEVEL_NAMES[lvl+1]))+'</div>'
+      +'<div><div class="n mono">'+points+' 🦝</div><div class="meta">coins</div></div></div>'
+    +'<div class="levelbar"><i style="width:'+Math.round(prog*100)+'%"></i></div><div class="meta">'+(lvl>=5?'Max level':((nextMin-points)+' 🦝 to '+LEVEL_NAMES[lvl+1]))+'</div>'
     +(mine?'<div style="margin-top:10px">'+streakChipHTML()+'</div>':'');
   if(mine){html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn-ghost" id="viewBadges">Badges</button><button class="btn-ghost" id="viewLb">Leaderboard</button><button class="btn-ghost" id="openMsgs">Messages</button></div>';}
   else{html+='<div style="display:flex;gap:8px;margin-top:12px"><button class="'+(following?'btn-ghost':'btn-primary')+'" id="pFollow" style="height:44px">'+(following?'Following':'Follow')+'</button><button class="btn-ghost" id="pMsg" style="height:44px">Message</button><button class="btn-ghost" id="pMenu" style="width:52px;flex:0 0 auto">⋯</button></div>';}
@@ -1664,7 +1664,7 @@ function badgeDefs(){
   const followers=followersOf('me').length;
   const night=mine.some(p=>{const h=new Date(p.created_at).getHours();return h>=22||h<4;});
   const socialTypes=new Set(mine.filter(p=>p.subcat).map(p=>p.subcat)).size;
-  const mk=(tier,glyph,name,desc,cur,goal,have)=>({tier,glyph,name,desc,cur:Math.min(cur,goal),goal,have:have===undefined?cur>=goal:have});
+  const mk=(tier,glyph,name,desc,cur,goal,have)=>{var got=me.isAdmin?true:(have===undefined?cur>=goal:have);return {tier,glyph,name,desc,cur:got?goal:Math.min(cur,goal),goal,have:got};};
   return [
     mk('bronze','✦','First Drop','Drop your very first pin on the map.',mine.length,1),
     mk('silver','🗺️','Cartographer','Chart the city with 10 pins.',mine.length,10),
@@ -1677,7 +1677,7 @@ function badgeDefs(){
     mk('gold','🕊️','Guardian','Reunite someone with what they lost.',reunions,1),
     mk('silver','🔗','Connector','Grow a following of 25 neighbours.',followers,25),
     mk('gold','🧭','Pathfinder','Be first to claim a weekly Super Spot.',me.superClaims||0,1),
-    mk('silver','🛡️','Trusted','Earn 500 reputation points.',myPoints(),500),
+    mk('silver','🛡️','Trusted','Collect 500 Golden Racoon Coins.',myPoints(),500),
     mk('platinum','👑','Local Legend','Reach the top level: Cartographer.',myPoints(),10000),
   ];
 }
@@ -1711,7 +1711,7 @@ badgeScrim.onclick=closeBadgeDetail;
 function showBadges(){const body=document.getElementById('lbBody');document.querySelector('#lbScreen h1').textContent='Badges';const defs=badgeDefs();const earned=defs.filter(b=>b.have).length;
   body.innerHTML='<div class="pill-note" style="margin-bottom:10px">'+earned+' of '+defs.length+' badges earned</div><div class="badgegrid">'+defs.map(badgeCardHTML).join('')+'</div><h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Points ledger</h3>'+ledgerHTML();
   bindBadgeCards(body);showScreen('lb');}
-function ledgerHTML(){if(!state.pointEvents.length)return emptyMsg('No points yet — drop a pin to start.');const labels={create_post:'Created a post',confirm_emergency:'Confirmed an emergency',comment:'Commented',lost_resolved:'Lost pin resolved',found_match:'Found match',super_claim:'✨ Claimed a Super Spot',daily:'✅ Daily task',daily_bonus:'🎉 Daily bonus',whisper:'Posted a whisper',story:'Posted a story'};return state.pointEvents.slice(0,30).map(e=>'<div class="lbrow"><div style="flex:1">'+(labels[e.action]||e.action)+'<div class="meta">'+fmtAgo(e.at)+' ago</div></div><div class="pts">+'+e.points+'</div></div>').join('');}
+function ledgerHTML(){if(!state.pointEvents.length)return emptyMsg('No coins yet — drop a pin to start.');const labels={create_post:'Created a post',confirm_emergency:'Confirmed an emergency',comment:'Commented',lost_resolved:'Lost pin resolved',found_match:'Found match',super_claim:'✨ Claimed a Super Spot',daily:'✅ Daily task',daily_bonus:'🎉 Daily bonus',whisper:'Posted a whisper',story:'Posted a story'};return state.pointEvents.slice(0,30).map(e=>'<div class="lbrow"><div style="flex:1">'+(labels[e.action]||e.action)+'<div class="meta">'+fmtAgo(e.at)+' ago</div></div><div class="pts">+'+e.points+'</div></div>').join('');}
 
 /* ============================================================
    LEADERBOARD (§9.4)
@@ -1736,7 +1736,14 @@ function renderAlerts(){
   const body=document.getElementById('alertBody');
   if(!state.notifications.length){body.innerHTML='<div class="empty"><div class="big">All caught up</div><div>Likes, comments, follows and nearby alerts land here.</div></div>';return;}
   body.innerHTML=state.notifications.map(n=>{const actor=n.ref&&state.users[n.ref]?userOf(n.ref):null;const who=actor&&['like','comment','follow'].includes(n.type)?esc(actor.name)+' ':'';return '<div class="notif '+(n.read?'':'unread')+'" data-id="'+n.id+'"><div class="ic">'+n.ic+'</div><div style="flex:1"><div class="tx">'+who+n.text+'</div><div class="tm">'+fmtAgo(n.at)+' ago</div></div></div>';}).join('');
-  body.querySelectorAll('.notif').forEach(el=>el.onclick=()=>{const n=state.notifications.find(x=>x.id===el.dataset.id);if(n){n.read=true;updateBell();if(n.ref&&getPost(n.ref)){switchTab('map');openDetail(n.ref);}else renderAlerts();}});
+  body.querySelectorAll('.notif').forEach(el=>el.onclick=()=>{const n=state.notifications.find(x=>x.id===el.dataset.id);if(!n)return;n.read=true;updateBell();
+    if(n.ref&&getPost(n.ref)){switchTab('map');openDetail(n.ref);return;}
+    if(n.type==='follow'&&n.ref&&n.ref!=='me'&&state.users[n.ref]){openUserProfile(n.ref);return;}
+    if((n.type==='super'||n.type==='super_won')){switchTab('map');if(map&&state.superSpot)map.easeTo({center:state.superSpot.location,zoom:16});if(superActive())openSuperSpot();return;}
+    if(n.type==='meetup_req'||n.type==='meetup_acc'||n.type==='meetup_msg'){switchTab('meet');return;}
+    if(n.type==='report'){openAdmin();adminTab='reports';renderAdmin();return;}
+    renderAlerts();
+  });
 }
 document.getElementById('markAll').onclick=()=>{state.notifications.forEach(n=>n.read=true);updateBell();renderAlerts();};
 document.getElementById('bellBtn').onclick=()=>{switchTab('alerts');};
@@ -1959,9 +1966,9 @@ function renderSettings(){
   [['like','Likes'],['comment','Comments'],['follow','New followers'],['nearby','Nearby pins'],['emergency','Emergencies (always on nearby)'],['meetup','Meetups'],['badge','Badges &amp; levels']].forEach(([k,l])=>{html+='<div class="setrow"><div class="lbl">'+l+'</div>'+sw(s.notif[k],'notif.'+k)+'</div>';});
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Quiet hours</div><div class="sub">10pm–8am · emergencies excepted</div></div>'+sw(s.quietHours,'quietHours')+'</div>';
 
-  if(me.isAdmin){
+  if(me.isAdmin||(me.perms&&me.perms.length)){
     html+='<div class="section-label">Moderation</div>';
-    html+='<div class="setrow" id="adminRow" style="border-color:rgba(255,68,56,.3)"><div style="flex:1"><div class="lbl">🛡️ Admin dashboard</div><div class="sub">Ban or restrict users, review reports</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px">Open</button></div>';
+    html+='<div class="setrow" id="adminRow" style="border-color:rgba(255,68,56,.3)"><div style="flex:1"><div class="lbl">🛡️ '+(me.isAdmin?'Admin dashboard':'Staff dashboard')+'</div><div class="sub">Ban or restrict users, review reports</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px">Open</button></div>';
   }
   html+='<div class="section-label">Your data</div>';
   html+='<button class="btn-danger" id="deleteAcct">Delete account</button>';
@@ -2136,7 +2143,7 @@ function openPhotoEditor(dataUrl, cb){
    ADMIN DASHBOARD (§8 — ban / restrict)
    ============================================================ */
 let adminTab='overview';
-function openAdmin(){if(!me.isAdmin){toast('Admin access only');return;}adminTab='overview';showScreen('admin');renderAdmin();}
+function openAdmin(){if(!me.isAdmin&&!(me.perms&&me.perms.length)){toast('Admin access only');return;}adminTab='overview';showScreen('admin');renderAdmin();}
 function reportCardHTML(r){
   let tgt='content';
   if(r.type==='post'){const p=getPost(r.targetId);tgt='a pin'+(p?' by '+esc(userOf(p.authorId).name):'');}
@@ -2158,9 +2165,38 @@ function adminUserRow(u){
     +'<button class="good" data-details="'+u.id+'">Details</button>'
     +(st!=='banned'?'<button class="danger" data-ban="'+u.id+'">Ban</button>':'<button class="good" data-unban="'+u.id+'">Reinstate</button>')
     +(st==='active'?'<button class="warn" data-restrict="'+u.id+'">Restrict</button>':st==='restricted'?'<button class="good" data-unrestrict="'+u.id+'">Lift limit</button>':'')
+    +'<button class="good" data-roles="'+u.id+'">'+((u.isAdmin||(u.perms&&u.perms.length))?'🛡️ Roles':'Make staff')+'</button>'
     +'</div></div></div>';
 }
 function setUserStatus(id,status,msg){const u=userOf(id);if(!u||u.id==='me')return;u.status=status;if(status==='banned')state.following.delete(id);if(window.LIVE)liveSafe(L.admin.setStatus(id,status));toast(msg);refreshPins();refreshMeetMarkers();}
+const ADMIN_PERMS=[['ban','Ban &amp; restrict users'],['reports','Review reports'],['superspot','Manage Super Spot'],['users','Manage other users']];
+function hasPerm(perm){return me.isAdmin||(me.perms&&me.perms.indexOf(perm)>=0);}
+function openUserRoles(id){
+  const u=userOf(id);if(u.id==='me'){toast('These are your own roles');return;}
+  u.perms=u.perms||[];
+  var wrap=document.createElement('div');wrap.id='rolesSheet';
+  wrap.style.cssText='position:fixed;inset:0;z-index:440;display:flex;align-items:flex-end;justify-content:center;background:rgba(6,8,26,.62)';
+  var draw=function(){
+    var isAdm=!!u.isAdmin;
+    var rows=ADMIN_PERMS.map(function(p){var on=isAdm||u.perms.indexOf(p[0])>=0;return '<label style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);'+(isAdm?'opacity:.45':'')+'"><span>'+p[1]+'</span><input type="checkbox" data-perm="'+p[0]+'" '+(on?'checked':'')+' '+(isAdm?'disabled':'')+' style="width:20px;height:20px"></label>';}).join('');
+    wrap.innerHTML='<div style="width:100%;max-width:560px;max-height:82vh;overflow:auto;background:var(--ink);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:none;padding:16px 18px calc(var(--safe-bottom) + 18px)">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:18px">🛡️ Roles · '+esc(u.name)+'</div><button id="rlX" class="btn-ghost" style="width:auto;height:34px;padding:0 12px">Close</button></div>'
+      +'<div class="meta" style="margin-bottom:10px">@'+esc(u.username||'user')+' · ID '+esc(u.id)+'</div>'
+      +'<label style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:12px"><span><b>Full admin</b><div class="meta">Every power + dashboard access</div></span><input type="checkbox" id="rlAdmin" '+(isAdm?'checked':'')+' style="width:22px;height:22px"></label>'
+      +'<div class="section-label">Or grant specific staff permissions</div>'+rows
+      +'<button class="btn-primary" id="rlSave" style="margin-top:14px">Save roles</button>';
+    wrap.firstChild&&0;wrap.querySelector('#rlX').onclick=function(){wrap.remove();};
+    wrap.querySelector('#rlAdmin').onchange=function(e){u.isAdmin=e.target.checked;draw();};
+    wrap.querySelector('#rlSave').onclick=function(){
+      var perms=[];Array.prototype.forEach.call(wrap.querySelectorAll('[data-perm]'),function(c){if(c.checked)perms.push(c.dataset.perm);});
+      u.perms=u.isAdmin?[]:perms;
+      if(window.LIVE)liveSafe(L.admin.setUserAdmin(id,!!u.isAdmin,u.perms));
+      toast('Roles updated for '+u.name);wrap.remove();renderAdmin();
+    };
+  };
+  draw();document.body.appendChild(wrap);
+  wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
+}
 function renderAdmin(){
   const body=document.getElementById('adminBody');
   const users=Object.values(state.users).filter(u=>u.id!=='me');
@@ -2194,7 +2230,9 @@ function renderAdmin(){
     html+='<div class="section-label">Photo prompt (what to photograph)</div>'+inp('ssPrompt','e.g. the coolest mural you can find',cfg.prompt,true);
     html+='<div class="section-label">Reward title (shown to everyone)</div>'+inp('ssTitle','e.g. $25 Amazon gift card',cfg.rewardTitle);
     html+='<div class="section-label">Reward detail (revealed to winner only)</div>'+inp('ssDetail','e.g. code AMZ-4831-XKQ or redemption steps',cfg.rewardDetail,true);
-    html+='<div class="section-label">Bonus points</div>'+inp('ssPoints','100',String(cfg.points||100));
+    html+='<div class="section-label">Reward image (optional — shows on the win screen)</div>';
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><button class="btn-ghost" id="ssImgBtn" style="width:auto;padding:0 14px;height:40px">'+(cfg.rewardImage?'Change':'Add image')+'</button>'+(cfg.rewardImage?'<img src="'+cfg.rewardImage+'" style="width:44px;height:44px;border-radius:8px;object-fit:cover"><button class="btn-ghost" id="ssImgClr" style="width:auto;padding:0 12px;height:40px">Remove</button>':'')+'</div>';
+    html+='<div class="section-label">Bonus 🦝 coins</div>'+inp('ssPoints','100',String(cfg.points||100));
     html+='<label style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;font-size:14px"><input type="checkbox" id="ssHere"> Drop at the current map centre (otherwise ~2–9 km random)</label>';
     html+='<button class="btn-primary" id="ssLaunch">Launch Super Spot</button>';
     if(live)html+='<button class="btn-ghost" id="ssEnd" style="margin-top:8px">End current Super Spot</button>';
@@ -2207,9 +2245,12 @@ function renderAdmin(){
   body.querySelectorAll('#adTabs button').forEach(b=>b.onclick=()=>{adminTab=b.dataset.t;renderAdmin();});
   const ssL=body.querySelector('#ssLaunch');if(ssL)ssL.onclick=launchSuperSpotFromAdmin;
   const ssE=body.querySelector('#ssEnd');if(ssE)ssE.onclick=()=>{if(state.superSpot)state.superSpot.claimed=true;refreshSuperMarker();toast('Super Spot ended');renderAdmin();};
+  const ssImgBtn=body.querySelector('#ssImgBtn');if(ssImgBtn)ssImgBtn.onclick=()=>{const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.onchange=ev=>{const f=ev.target.files&&ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{openPhotoEditor(rd.result,function(out){if(!out)return;const c=superCfg();c.rewardImage=out;saveSuperCfg(c);renderAdmin();});};rd.readAsDataURL(f);};fi.click();};
+  const ssImgClr=body.querySelector('#ssImgClr');if(ssImgClr)ssImgClr.onclick=()=>{const c=superCfg();c.rewardImage='';saveSuperCfg(c);renderAdmin();};
   const aus=body.querySelector('#adminUserSearch');if(aus)aus.oninput=()=>{state.adminUserQuery=aus.value;const pos=aus.selectionStart;renderAdmin();const el=document.getElementById('adminUserSearch');if(el){el.focus();try{el.setSelectionRange(pos,pos);}catch(e){}}};
   body.querySelectorAll('[data-openuser]').forEach(el=>el.onclick=()=>openUserProfile(el.dataset.openuser));
   body.querySelectorAll('[data-details]').forEach(el=>el.onclick=()=>openUserAdmin(el.dataset.details));
+  body.querySelectorAll('[data-roles]').forEach(el=>el.onclick=()=>openUserRoles(el.dataset.roles));
   body.querySelectorAll('[data-ban]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.ban,'banned',userOf(el.dataset.ban).name+' banned');renderAdmin();});
   body.querySelectorAll('[data-unban]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.unban,'active','Account reinstated');renderAdmin();});
   body.querySelectorAll('[data-restrict]').forEach(el=>el.onclick=()=>{setUserStatus(el.dataset.restrict,'restricted','User restricted — posting limited');renderAdmin();});
@@ -2270,7 +2311,8 @@ function spawnSuperSpot(opts){
     loc=[base[0]+(dist*Math.sin(ang))/(111320*Math.cos(base[1]*Math.PI/180)),base[1]+(dist*Math.cos(ang))/111320];}
   state.superSpot={id:opts.id||uid(),location:loc,created_at:Date.now(),expires_at:opts.expires_at||(Date.now()+7*D*1000),claimed:false,
     prompt:opts.prompt||cfg.prompt,rewardTitle:opts.rewardTitle||cfg.rewardTitle,
-    rewardDetail:(opts.rewardDetail!==undefined?opts.rewardDetail:cfg.rewardDetail),reward:opts.points||cfg.points||SUPER_REWARD};
+    rewardDetail:(opts.rewardDetail!==undefined?opts.rewardDetail:cfg.rewardDetail),
+    rewardImage:(opts.rewardImage!==undefined?opts.rewardImage:cfg.rewardImage),reward:opts.points||cfg.points||SUPER_REWARD};
   refreshSuperMarker();
   if(!opts.silent){notify('super','me',null);toast('✨ A Super Spot appeared '+fmtDist(metresBetween(state.center,loc))+' away — first to claim wins '+esc(state.superSpot.rewardTitle));}
 }
@@ -2294,7 +2336,7 @@ function openSuperSpot(){
   document.getElementById('superBody').innerHTML=
     '<div class="sheet-head"><h2>✨ Super Spot</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="ssClose">Close</button></div>'
     +'<div class="super-hero"><div class="super-badge">✨</div><div><div style="font-family:var(--font-display);font-weight:800;font-size:19px">Weekly Super Spot</div><div class="meta">'+fmtDist(dist)+' away · '+left+'d left</div></div></div>'
-    +'<div class="reward-teaser">🎁 Win: <b>'+esc(ss.rewardTitle||'Mystery reward')+'</b> · +'+ss.reward+' pts</div>'
+    +'<div class="reward-teaser">🎁 Win: <b>'+esc(ss.rewardTitle||'Mystery reward')+'</b> · +'+ss.reward+' 🦝</div>'
     +'<div class="detail-text" style="font-size:14.5px">Be the <b>first to get there</b> and post a photo of <b>'+esc(ss.prompt||'the best thing you see')+'</b> to claim it. First come, first served.</div>'
     +'<div class="safety">🧭 Only real check-ins count — you post from the spot itself. Stay aware of your surroundings and only go somewhere you feel safe.</div>'
     +'<button class="btn-primary" id="ssGo" style="margin-top:6px">Show me the way</button>'
@@ -2311,23 +2353,24 @@ function startSuperClaim(){
   if(d>400){closeSuperSheet();switchTab('map');if(map)map.easeTo({center:ss.location,zoom:16});toast('You\'re '+fmtDist(d)+' from the Super Spot — travel there, then claim');return;}
   closeSuperSheet();openComposer(ss.location.slice());state.composer.superId=ss.id;
   const bn=document.getElementById('superBanner');if(bn)bn.style.display='flex';
-  toast('You made it! Post the best thing you see to claim +'+ss.reward+' pts');
+  toast('You made it! Post the best thing you see to claim +'+ss.reward+' 🦝');
 }
 function maybeClaimSuperSpot(post){
   const sid=state.composer&&state.composer.superId;if(!sid)return;
   const ss=state.superSpot;if(!ss||ss.id!==sid||ss.claimed)return;
   ss.claimed=true;award('super_claim',ss.reward,post.id);me.superClaims=(me.superClaims||0)+1;
   refreshSuperMarker();notify('super_won','me',post.id);
-  if(window.LIVE){liveSafe(L.claimSuperSpot(ss.id,post.id).then(function(r){if(r&&r.ok)showRewardCard(r.reward_title,r.reward_detail,r.points);else showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward);}));}
-  else setTimeout(function(){showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward);},700);
+  if(window.LIVE){liveSafe(L.claimSuperSpot(ss.id,post.id).then(function(r){if(r&&r.ok)showRewardCard(r.reward_title,r.reward_detail,r.points,r.reward_image||ss.rewardImage);else showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward,ss.rewardImage);}));}
+  else setTimeout(function(){showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward,ss.rewardImage);},700);
 }
-function showRewardCard(title,detail,points){
+function showRewardCard(title,detail,points,image){
   var wrap=document.createElement('div');wrap.id='rewardCard';
   wrap.style.cssText='position:fixed;inset:0;z-index:520;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
   wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:24px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#2a1250,#160a30);border:1px solid rgba(199,155,255,.4);box-shadow:0 24px 70px rgba(124,92,255,.5)">'
     +'<div style="font-size:52px;margin-bottom:6px">🏆</div>'
     +'<div style="font-family:var(--font-display);font-weight:800;font-size:22px;margin-bottom:4px">You claimed it!</div>'
-    +'<div style="color:var(--muted);font-size:13px;margin-bottom:16px">First to the Super Spot · +'+(points||0)+' pts</div>'
+    +'<div style="color:var(--muted);font-size:13px;margin-bottom:16px">First to the Super Spot · +'+(points||0)+' 🦝</div>'
+    +(image?'<img src="'+image+'" alt="reward" style="width:100%;max-height:180px;object-fit:cover;border-radius:14px;margin-bottom:10px">':'')
     +'<div style="background:linear-gradient(135deg,#C79BFF,#8B44FF);color:#160a30;border-radius:16px;padding:16px;margin-bottom:8px">'
       +'<div style="font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.75;text-transform:uppercase">Your reward</div>'
       +'<div style="font-family:var(--font-display);font-weight:800;font-size:20px;margin:4px 0">'+esc(title||'Mystery reward')+'</div>'
@@ -2345,13 +2388,14 @@ function launchSuperSpotFromAdmin(){
   var cfg={prompt:((g('ssPrompt')||{}).value||'').trim()||'the coolest thing you can see right now',
     rewardTitle:((g('ssTitle')||{}).value||'').trim()||'Mystery reward',
     rewardDetail:((g('ssDetail')||{}).value||'').trim(),
+    rewardImage:(superCfg().rewardImage||''),
     points:parseInt((g('ssPoints')||{}).value,10)||100};
   saveSuperCfg(cfg);
   var here=(g('ssHere')||{}).checked;
   var loc=here?(map?[map.getCenter().lng,map.getCenter().lat]:state.center.slice()):null;
-  spawnSuperSpot({location:loc,prompt:cfg.prompt,rewardTitle:cfg.rewardTitle,rewardDetail:cfg.rewardDetail,points:cfg.points,silent:true});
+  spawnSuperSpot({location:loc,prompt:cfg.prompt,rewardTitle:cfg.rewardTitle,rewardDetail:cfg.rewardDetail,rewardImage:cfg.rewardImage,points:cfg.points,silent:true});
   var ss=state.superSpot;
-  if(window.LIVE)liveSafe(L.admin.setSuperSpot({lat:ss.location[1],lng:ss.location[0],prompt:cfg.prompt,rewardTitle:cfg.rewardTitle,rewardDetail:cfg.rewardDetail,points:cfg.points,expiresAt:new Date(ss.expires_at).toISOString()}).then(function(r){if(r&&r.data)ss.id=r.data;}));
+  if(window.LIVE)liveSafe(L.admin.setSuperSpot({lat:ss.location[1],lng:ss.location[0],prompt:cfg.prompt,rewardTitle:cfg.rewardTitle,rewardDetail:cfg.rewardDetail,rewardImage:cfg.rewardImage,points:cfg.points,expiresAt:new Date(ss.expires_at).toISOString()}).then(function(r){if(r&&r.data)ss.id=r.data;}));
   toast('✨ Super Spot launched · '+cfg.rewardTitle);renderAdmin();
 }
 
@@ -2416,7 +2460,7 @@ function dailyDoneCount(){ensureDaily();return state.daily.tasks.filter(t=>t.don
 function dailyTrack(id,n){
   ensureDaily();const t=state.daily.tasks.find(x=>x.id===id);if(!t||t.done)return;
   t.progress=Math.min(t.goal,t.progress+(n||1));
-  if(t.progress>=t.goal){t.done=true;award('daily',t.reward,id);bumpStreak();toast('✅ '+t.label+' · +'+t.reward+' pts');
+  if(t.progress>=t.goal){t.done=true;award('daily',t.reward,id);bumpStreak();toast('✅ '+t.label+' · +'+t.reward+' 🦝');
     if(state.daily.tasks.every(x=>x.done)&&!state.daily.bonusClaimed){state.daily.bonusClaimed=true;award('daily_bonus',25,'');setTimeout(()=>toast('🎉 All daily tasks done! +25 bonus'),900);}
   }
   saveDaily();
@@ -2437,7 +2481,7 @@ function renderDaily(){
   ensureDaily();const done=dailyDoneCount(),total=state.daily.tasks.length;
   let html='<div class="sheet-head"><h2>Today ✨</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="dailyClose">Close</button></div>';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+streakChipHTML()+'<span class="meta">'+esc(state.daily.hype)+'</span></div>';
-  html+=state.daily.tasks.map(t=>'<div class="dtask'+(t.done?' done':'')+'"><div class="de">'+t.e+'</div><div style="flex:1;min-width:0"><div class="dl">'+esc(t.label)+'</div><div class="dp">'+(t.done?'Done · +'+t.reward+' pts':t.progress+' / '+t.goal+' · +'+t.reward+' pts')+'</div>'+(t.done||t.goal<2?'':'<div class="dbar"><i style="width:'+Math.round(t.progress/t.goal*100)+'%"></i></div>')+'</div><div class="dchk">'+(t.done?'✓':'')+'</div></div>').join('');
+  html+=state.daily.tasks.map(t=>'<div class="dtask'+(t.done?' done':'')+'"><div class="de">'+t.e+'</div><div style="flex:1;min-width:0"><div class="dl">'+esc(t.label)+'</div><div class="dp">'+(t.done?'Done · +'+t.reward+' 🦝':t.progress+' / '+t.goal+' · +'+t.reward+' 🦝')+'</div>'+(t.done||t.goal<2?'':'<div class="dbar"><i style="width:'+Math.round(t.progress/t.goal*100)+'%"></i></div>')+'</div><div class="dchk">'+(t.done?'✓':'')+'</div></div>').join('');
   html+=done===total?'<div class="daily-reward"><div style="font-family:var(--font-display);font-weight:800;font-size:16px">🎉 All done — nice!</div><div class="meta" style="margin-top:4px">+25 bonus points earned. Fresh tasks drop tomorrow.</div></div>':'<div class="hint" style="text-align:center;margin-top:8px">Finish them all for a bonus. No pressure — it’s just for fun 🌈</div>';
   document.getElementById('dailyBody').innerHTML=html;
   document.getElementById('dailyClose').onclick=closeDaily;
@@ -2474,7 +2518,7 @@ function whisperCard(w){
 function submitWhisper(text){
   const t=(text||'').trim();if(!t)return;
   const w={id:uid(),alias:aliasFor(),text:t,up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby'};
-  state.whispers.unshift(w);award('whisper',3,w.id);if(window.LIVE)liveSafe(L.createWhisper(w.text,w.neighborhood).then(function(r){if(r&&r.data&&r.data.id)w.id=r.data.id;}));toast('Posted anonymously · +3 pts');renderFeed();
+  state.whispers.unshift(w);award('whisper',3,w.id);if(window.LIVE)liveSafe(L.createWhisper(w.text,w.neighborhood).then(function(r){if(r&&r.data&&r.data.id)w.id=r.data.id;}));toast('Posted anonymously · +3 🦝');renderFeed();
 }
 function postWhisper(){
   var wrap=document.createElement('div');wrap.id='whisperCompose';
@@ -2559,7 +2603,15 @@ function simulateStoryViews(story){
 }
 function addStory(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const cap=prompt('Add a caption (optional):')||'';const url=URL.createObjectURL(f);const story={id:uid(),authorId:'me',url,caption:cap,created_at:Date.now(),seen:true,views:0,viewers:[]};state.stories.unshift(story);award('story',3,'');if(window.LIVE)liveSafe(L.createStory(f,cap).then(function(r){if(r&&r.data&&r.data.id)story.id=r.data.id;}));else simulateStoryViews(story);toast('Story posted · gone in 24h · +3 pts');renderFeed();};
+  inp.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
+    const rd=new FileReader();
+    rd.onload=()=>{ openPhotoEditor(rd.result,function(edited){ if(!edited)return; const cap=prompt('Add a caption (optional):')||'';
+      const story={id:uid(),authorId:'me',url:edited,caption:cap,created_at:Date.now(),seen:true,views:0,viewers:[]};
+      state.stories.unshift(story);award('story',3,'');
+      if(window.LIVE)liveSafe(L.createStory(edited,cap).then(function(r){if(r&&r.data&&r.data.id)story.id=r.data.id;}));else simulateStoryViews(story);
+      toast('Story posted · gone in 24h · +3 🦝');renderFeed(); }); };
+    rd.readAsDataURL(f);
+  };
   inp.click();
 }
 document.getElementById('storyClose').onclick=closeStories;
@@ -2826,7 +2878,7 @@ function liveProfileToUser(p){
   var u=state.users[p.id]||(state.users[p.id]={id:p.id});
   u.name=p.display_name||'Someone';u.username=p.username||u.username||'user';u.bio=p.bio||'';
   if(p.avatar_url)u.avatarUrl=p.avatar_url;if(p.avatar_preset)u.avatarPreset=p.avatar_preset;
-  u.ageBand=p.age_band||u.ageBand;u.isAdult=!!p.age_verified;u.isAdmin=!!p.is_admin;
+  u.ageBand=p.age_band||u.ageBand;u.isAdult=!!p.age_verified;u.isAdmin=!!p.is_admin;u.perms=p.perms||[];
   u.status=p.status||'active';u.points=p.points||0;u.dmPrivacy=p.dm_privacy||'everyone';
   u.email=p.email||u.email||'';u.phone=p.phone||u.phone||'';u.color=u.color||'#7C5CFF';
   u.joined=p.created_at?Date.parse(p.created_at):(u.joined||Date.now());
@@ -2839,7 +2891,7 @@ function liveApplyMe(p){
   me.name=p.display_name||me.name;me.username=p.username||me.username;me.bio=p.bio||'';
   if(p.avatar_url){me.avatarUrl=p.avatar_url;me.avatarPhoto=p.avatar_url;me.avatarPreset=null;}
   else if(p.avatar_preset){me.avatarPreset=p.avatar_preset;me.avatarPhoto=null;}
-  me.ageBand=p.age_band||me.ageBand;me.isAdult=!!p.age_verified;me.isAdmin=!!p.is_admin;
+  me.ageBand=p.age_band||me.ageBand;me.isAdult=!!p.age_verified;me.isAdmin=!!p.is_admin;me.perms=p.perms||[];
   me.status=p.status||'active';me.points=p.points||0;me.streak=p.streak||0;me.streakDay=p.streak_day||null;
   me.dmPrivacy=p.dm_privacy||'everyone';
   state.ageVerified=!!p.age_verified;
@@ -3017,7 +3069,7 @@ async function liveHydrate(){
     try{(await L.admin.allUsers()).forEach(liveProfileToUser);}catch(e){}
     try{state.reports=(await L.admin.reports()).map(liveRowToReport);}catch(e){}
   }
-  try{var ss=await L.activeSuperSpot();if(ss){spawnSuperSpot({id:ss.id,location:[ss.lng,ss.lat],prompt:ss.prompt,rewardTitle:ss.reward_title,rewardDetail:ss.reward_detail,points:ss.points,expires_at:Date.parse(ss.expires_at),silent:true});if(ss.claimed_by)state.superSpot.claimed=true;}}catch(e){}
+  try{var ss=await L.activeSuperSpot();if(ss){spawnSuperSpot({id:ss.id,location:[ss.lng,ss.lat],prompt:ss.prompt,rewardTitle:ss.reward_title,rewardDetail:ss.reward_detail,rewardImage:ss.reward_image,points:ss.points,expires_at:Date.parse(ss.expires_at),silent:true});if(ss.claimed_by)state.superSpot.claimed=true;}}catch(e){}
 }
 function liveRealtime(){
   try{

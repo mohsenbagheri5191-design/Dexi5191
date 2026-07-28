@@ -187,7 +187,8 @@
       setStatus: function (id, status) { return client().from('profiles').update({ status: status }).eq('id', id); },
       reports: async function () { return (await client().from('reports').select('*').order('created_at', { ascending: false })).data || []; },
       resolveReport: function (id, status) { return client().from('reports').update({ status: status }).eq('id', id); },
-      setSuperSpot: function (s) { return client().rpc('set_super_spot', { p_lat: s.lat, p_lng: s.lng, p_prompt: s.prompt || '', p_reward_title: s.rewardTitle || '', p_reward_detail: s.rewardDetail || null, p_points: s.points || 100, p_expires: s.expiresAt || null }); }
+      setSuperSpot: function (s) { return client().rpc('set_super_spot', { p_lat: s.lat, p_lng: s.lng, p_prompt: s.prompt || '', p_reward_title: s.rewardTitle || '', p_reward_detail: s.rewardDetail || null, p_points: s.points || 100, p_expires: s.expiresAt || null, p_reward_image: s.rewardImage || null }); },
+      setUserAdmin: function (targetId, isAdmin, perms) { return client().rpc('set_user_admin', { p_target: targetId, p_is_admin: isAdmin, p_perms: perms || null }); }
     },
 
     /* ---------------- Points ---------------- */
