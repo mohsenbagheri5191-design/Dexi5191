@@ -21,7 +21,7 @@
         autoRefreshToken: true,      // silently refresh so users don't get logged out
         detectSessionInUrl: true,    // complete the magic-link / OAuth redirect on return
         storageKey: 'pinly-auth',
-        flowType: 'pkce'
+        flowType: 'implicit'         // token comes back in the URL hash — most robust for a static PWA
       }
     });
     return sb;
@@ -96,6 +96,7 @@
       return { data: { id: postId } };
     },
     async deletePost(id) { return client().from('posts').update({ status: 'removed' }).eq('id', id); },
+    async updatePost(id, fields) { return client().from('posts').update(fields).eq('id', id); },
     async setPostStatus(id, status) { return client().from('posts').update({ status: status }).eq('id', id); },
 
     /* ---------------- Reactions / comments / saves ---------------- */
@@ -165,7 +166,14 @@
 
     /* ---------------- Whispers ---------------- */
     async whispers() { return (await client().from('whispers_public').select('*').order('created_at', { ascending: false }).limit(100)).data || []; },
-    async createWhisper(body, hood) { var id = await uid(); await this.award('whisper', 3, null); return client().from('whispers').insert({ author_id: id, body: body, neighborhood: hood || null, up: 1, down: 0 }).select('id').single(); },
+    async createWhisper(body, hood, lng, lat) {
+      var id = await uid(); await this.award('whisper', 3, null);
+      var row = { author_id: id, body: body, neighborhood: hood || null, up: 1, down: 0 };
+      if (typeof lng === 'number' && typeof lat === 'number') { var r = function (n) { return Math.round(n * 300) / 300; }; row.loc = wkt(r(lng), r(lat)); } // ~300m fuzz keeps it anonymous
+      return client().from('whispers').insert(row).select('id').single();
+    },
+    async updateWhisper(id, body) { return client().from('whispers').update({ body: body }).eq('id', id); },
+    async deleteWhisper(id) { return client().from('whispers').delete().eq('id', id); },
     async voteWhisper(id, dir) { return client().rpc('vote_whisper', { p_whisper: id, p_dir: dir }); },
 
     /* ---------------- Stories ---------------- */

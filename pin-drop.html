@@ -165,7 +165,7 @@ img{max-width:100%}
 .card .meta{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
 .card .body{font-size:14px;color:var(--paper);margin:6px 0 2px}
 .catbadge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:99px}
-.kebab{position:absolute;top:12px;right:10px;width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.kebab{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--paper);background:var(--surface-2);border:1px solid var(--line);font-size:20px;z-index:6;cursor:pointer}
 
 /* ---------- Forms ---------- */
 .field{margin-bottom:14px}
@@ -469,7 +469,14 @@ img{max-width:100%}
 /* ---------- Whispers (anon feed) ---------- */
 .whisper{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
 .whisper .wtext{font-size:15px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
-.whisper .wmeta{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
+.whisper .wmeta{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.wfilter{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
+.wfilter::-webkit-scrollbar{display:none}
+.wfilter button{flex:0 0 auto;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.wfilter button.on{background:var(--social);color:#0b0e2e;border-color:transparent}
+.wacts{margin-left:auto;display:flex;gap:2px}
+.wact{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 5px;border-radius:8px}
+.wact:hover{background:var(--surface-2);color:var(--paper)}
 .wvote{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:4px 6px}
 .wvote button{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px}
 .wvote button.on{color:var(--cyan)}
@@ -855,7 +862,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 9 · 2026-07-27';
+window.PINLY_BUILD = 'build 10 · 2026-07-27';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -1306,13 +1313,27 @@ const composerScrim=document.getElementById('composerScrim'),composerSheet=docum
 function openComposer(loc){
   if(!ageOK()){showAgeGate();return;}
   const where=(loc&&loc.length===2)?loc.slice():((state.composer&&state.composer.location)||(state.me?[state.me.lng,state.me.lat]:state.center.slice()));
-  state.composer={media:[],category:'social',subcat:null,vibe:null,lifetime:LIFETIMES.social.def,precision:'approx_50m',location:where,superId:null};
+  state.composer={media:[],category:'social',subcat:null,vibe:null,lifetime:LIFETIMES.social.def,precision:'approx_50m',location:where,superId:null,editingId:null};
   const sb=document.getElementById('superBanner');if(sb)sb.style.display='none';
+  const ch=document.querySelector('#composerSheet .sheet-head h2');if(ch)ch.textContent='New pin';
   renderCatSeg();renderSubSeg();renderVibeSeg();renderLifeSeg();renderPrecision();renderMediaStrip();updateComposerLoc();
   document.getElementById('postText').value='';updatePublish();
   composerScrim.classList.add('open');composerSheet.classList.add('open');
 }
 function updateComposerLoc(){const l=state.composer&&state.composer.location;if(!l)return;document.getElementById('composerCoord').textContent=fmtCoord(l[0],l[1],6);const h=HOODS[Math.abs(hashStr(Math.round(l[0]*50)+','+Math.round(l[1]*50)))%HOODS.length];document.getElementById('composerHood').textContent='Near '+h;}
+function editPost(p){
+  if(!ageOK()){showAgeGate();return;}
+  state.composer={media:(p.media||[]).map(function(m){return {url:m.url,alt:m.alt||'',file:null};}),
+    category:p.category,subcat:p.subcat||null,vibe:p.vibe||null,
+    lifetime:(p.lifetime_seconds!=null?p.lifetime_seconds:LIFETIMES[p.category].def),
+    precision:p.precision||'approx_50m',location:((p.exact_location||p.display_location||state.center)).slice(),
+    superId:null,editingId:p.id};
+  var sb=document.getElementById('superBanner');if(sb)sb.style.display='none';
+  renderCatSeg();renderSubSeg();renderVibeSeg();renderLifeSeg();renderPrecision();renderMediaStrip();updateComposerLoc();
+  document.getElementById('postText').value=p.text||'';updatePublish();
+  var h=document.querySelector('#composerSheet .sheet-head h2');if(h)h.textContent='Edit pin';
+  closeDetail();composerScrim.classList.add('open');composerSheet.classList.add('open');
+}
 function closeComposer(){composerScrim.classList.remove('open');composerSheet.classList.remove('open');}
 composerScrim.onclick=closeComposer;document.getElementById('composerClose').onclick=closeComposer;
 document.getElementById('reposition').onclick=()=>startPlacement('edit');
@@ -1369,6 +1390,15 @@ document.getElementById('publishBtn').onclick=()=>{
   const cat=state.composer.category;const loc=(state.composer.location)||state.center;const c={lng:loc[0],lat:loc[1]};
   if(cat==='hazard'){const lvl=levelOf(myPoints());if(lvl<2&&!me.contactVerified){toast('Hazard posting needs level 2 or a verified contact');return;}}
   const text=document.getElementById('postText').value.trim();
+  const editing=state.composer.editingId&&getPost(state.composer.editingId);
+  if(editing){
+    editing.category=cat;editing.subcat=state.composer.subcat;editing.vibe=state.composer.vibe;editing.text=text;
+    editing.tags=parseHashtags(text);editing.precision=state.composer.precision;
+    editing.media=state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}));
+    const life=state.composer.lifetime;editing.lifetime_seconds=life;editing.expires_at=life?editing.created_at+life*1000:null;
+    if(window.LIVE)liveSafe(L.updatePost&&L.updatePost(editing.id,{category:cat,subcat:state.composer.subcat,vibe:state.composer.vibe,body:text,precision:state.composer.precision}));
+    closeComposer();refreshPins();toast('Pin updated ✓');setTimeout(()=>openDetail(editing.id),300);return;
+  }
   const post=makePost({category:cat,subcat:state.composer.subcat,vibe:state.composer.vibe,text,exact:[c.lng,c.lat],precision:state.composer.precision,lifetime:state.composer.lifetime,authorId:'me',media:state.composer.media.map(m=>({url:m.url,alt:m.alt||text.slice(0,60)}))});
   state.posts.unshift(post);award('create_post',10,post.id);bumpStreak();dailyTrack('drop');if(post.vibe)dailyTrack('vibe');
   if(window.LIVE)liveSafe(L.createPost({category:cat,subcat:state.composer.subcat,vibe:state.composer.vibe,body:text,precision:state.composer.precision,
@@ -1448,7 +1478,7 @@ function extendLifetime(p){const conf=LIFETIMES[p.category];const choice=prompt(
 function openPostMenu(p){
   const mine=p.authorId==='me';const items=[];
   if(mine){
-    items.push(['✏️','Edit text',()=>{const t=prompt('Edit text',p.text);if(t!=null){p.text=t;p.tags=parseHashtags(t);renderDetail(p);refreshPins();}}]);
+    items.push(['✏️','Edit pin',()=>editPost(p)]);
     items.push([p.repliesOff?'💬':'🚫',p.repliesOff?'Turn replies on':'Turn off replies',()=>{p.repliesOff=!p.repliesOff;toast(p.repliesOff?'Replies off':'Replies on');renderDetail(p);}]);
     items.push(['🗑','Delete pin',()=>{if(confirm('Delete this pin? Media is removed.')){p.status='removed';toast('Pin deleted');closeDetail();refreshPins();}},'danger']);
   }else{
@@ -1534,14 +1564,31 @@ function renderFeed(){
   let html=storiesRowHTML()+dailyCardHTML();
   html+='<div class="segtabs" id="feedViewTabs"><button class="'+(feedView==='pins'?'on':'')+'" data-v="pins">Pins</button><button class="'+(feedView==='whispers'?'on':'')+'" data-v="whispers">Whispers</button></div>';
   if(feedView==='whispers'){
-    html+='<button class="btn-ghost" id="newWhisper" style="margin-bottom:12px">＋ Post anonymously</button>';
-    html+='<div class="meta" style="margin:0 4px 8px">Anonymous, nearby, and gone in a day. Be kind.</div>';
-    const ws=state.whispers.slice().sort((a,b)=>(b.up-b.down)-(a.up-a.down));
-    html+=ws.length?ws.map(whisperCard).join(''):emptyMsg('No whispers yet — start one.');
+    html+='<button class="btn-ghost" id="newWhisper" style="margin-bottom:10px">＋ Post anonymously</button>';
+    const dists=[['near','Near you'],['1k','1 km'],['5k','5 km'],['10k','10 km'],['city','City']];
+    const sorts=[['new','Newest'],['day','Top today'],['week','Top week'],['month','Top month'],['all','Top all']];
+    const dk=state.wDistKey||'5k',sk=state.wSort||'new';
+    html+='<div class="wfilter" id="wDistRow">'+dists.map(d=>'<button class="'+(dk===d[0]?'on':'')+'" data-wd="'+d[0]+'">'+d[1]+'</button>').join('')+'</div>';
+    html+='<div class="wfilter" id="wSortRow">'+sorts.map(s=>'<button class="'+(sk===s[0]?'on':'')+'" data-ws="'+s[0]+'">'+s[1]+'</button>').join('')+'</div>';
+    html+='<div class="meta" style="margin:4px 4px 8px">Anonymous, distance-based, gone in a day. Be kind.</div>';
+    let ws=state.whispers.slice();
+    const R={near:500,'1k':1000,'5k':5000,'10k':10000,city:null}[dk];
+    if(R!=null)ws=ws.filter(w=>!w.loc||metresBetween(state.center,w.loc)<=R);
+    const now=Date.now();
+    if(sk==='new')ws.sort((a,b)=>b.created_at-a.created_at);
+    else{const win={day:864e5,week:7*864e5,month:30*864e5,all:Infinity}[sk];ws=ws.filter(w=>now-w.created_at<=win).sort((a,b)=>(b.up-b.down)-(a.up-a.down));}
+    html+=ws.length?ws.map(whisperCard).join(''):emptyMsg('No whispers in this range — try a wider distance or post one.');
     body.innerHTML=html;
     bindStoriesRow(body);bindFeedViewTabs(body);
     const nw=body.querySelector('#newWhisper');if(nw)nw.onclick=postWhisper;
-    body.querySelectorAll('.whisper').forEach(el=>{const w=state.whispers.find(x=>x.id===el.dataset.wh);el.querySelectorAll('[data-wv]').forEach(b=>b.onclick=(e)=>{e.stopPropagation();const dir=b.dataset.wv==='up'?1:-1;voteWhisper(w,dir);if(dir>0)dailyTrack('whisper');renderFeed();});});
+    body.querySelectorAll('#wDistRow [data-wd]').forEach(b=>b.onclick=()=>{state.wDistKey=b.dataset.wd;renderFeed();});
+    body.querySelectorAll('#wSortRow [data-ws]').forEach(b=>b.onclick=()=>{state.wSort=b.dataset.ws;renderFeed();});
+    body.querySelectorAll('.whisper').forEach(el=>{const w=state.whispers.find(x=>x.id===el.dataset.wh);if(!w)return;
+      el.querySelectorAll('[data-wv]').forEach(b=>b.onclick=(e)=>{e.stopPropagation();const dir=b.dataset.wv==='up'?1:-1;voteWhisper(w,dir);if(dir>0)dailyTrack('whisper');renderFeed();});
+      const rep=el.querySelector('[data-wrep]');if(rep)rep.onclick=(e)=>{e.stopPropagation();reportFlow('whisper',w.id);};
+      const ed=el.querySelector('[data-wedit]');if(ed)ed.onclick=(e)=>{e.stopPropagation();editWhisper(w);};
+      const del=el.querySelector('[data-wdel]');if(del)del.onclick=(e)=>{e.stopPropagation();deleteWhisper(w);};
+    });
     body.querySelectorAll('[data-tag]').forEach(b=>b.onclick=(e)=>{if(e){e.stopPropagation();if(e.preventDefault)e.preventDefault();}filterByTag(b.dataset.tag);});
     return;
   }
@@ -1970,6 +2017,8 @@ function renderSettings(){
     html+='<div class="section-label">Moderation</div>';
     html+='<div class="setrow" id="adminRow" style="border-color:rgba(255,68,56,.3)"><div style="flex:1"><div class="lbl">🛡️ '+(me.isAdmin?'Admin dashboard':'Staff dashboard')+'</div><div class="sub">Ban or restrict users, review reports</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px">Open</button></div>';
   }
+  html+='<div class="section-label">Account</div>';
+  html+='<button class="btn-ghost" id="logoutBtn" style="margin-bottom:8px">Log out</button>';
   html+='<div class="section-label">Your data</div>';
   html+='<button class="btn-danger" id="deleteAcct">Delete account</button>';
   html+='<div class="hint" style="text-align:center;margin-top:14px">Pinly · '+PINLY_BUILD+'</div>';
@@ -1990,6 +2039,7 @@ function renderSettings(){
   body.querySelector('#mgBlocked').onclick=()=>manageList('blocked');
   body.querySelector('#mgMuted').onclick=()=>manageList('muted');
   body.querySelector('#deleteAcct').onclick=()=>{if(confirm('Delete your account? A 30-day grace period applies before data is purged.')){toast('Account deletion scheduled — 30-day grace period started');}};
+  const lo=body.querySelector('#logoutBtn');if(lo)lo.onclick=()=>{if(!confirm('Log out of Pinly?'))return;if(window.LIVE&&L.auth&&L.auth.signOut){liveSafe(L.auth.signOut()).then(function(){location.reload();});}else{try{localStorage.removeItem('pinly-auth');}catch(e){}location.reload();}};
 }
 function manageList(kind){const set=kind==='blocked'?state.blocked:state.muted;if(!set.size){toast('Nobody '+kind+' yet');return;}openMenu([[...set].map(id=>['↩️','Un'+(kind==='blocked'?'block':'mute')+' '+userOf(id).name,()=>{set.delete(id);renderSettings();refreshPins();}])]);}
 function exportData(){
@@ -2500,7 +2550,10 @@ function seedWhispers(){
     {t:'Lost my scarf near the park bench, if anyone grabbed it I hope it keeps you warm',up:19,dn:0,h:9},
     {t:'Group run tomorrow 7am was 3 people last week, come make it 10 👟',up:34,dn:0,h:12},
   ];
-  state.whispers=W.map((w,i)=>({id:'wh'+i,alias:aliasFor(),text:w.t,up:w.up,down:w.dn,myVote:0,created_at:now-w.h*3600000,neighborhood:HOODS[i%HOODS.length]}));
+  const days=[0,0,1,2,7,20];
+  state.whispers=W.map((w,i)=>{const [clng,clat]=state.center,dx=((i*211)%9000)-4500,dy=((i*307)%9000)-4500;
+    return {id:'wh'+i,alias:aliasFor(),text:w.t,up:w.up,down:w.dn,myVote:0,created_at:now-(w.h+days[i]*24)*3600000,neighborhood:HOODS[i%HOODS.length],
+      loc:[clng+dx/(111320*Math.cos(clat*Math.PI/180)),clat+dy/111320],mine:i===0};});
 }
 function whisperScore(w){return w.up-w.down+ (w.myVote||0)*0 ;}
 function voteWhisper(w,dir){
@@ -2511,24 +2564,31 @@ function voteWhisper(w,dir){
 }
 function whisperCard(w){
   const score=w.up-w.down;
+  const dist=w.loc?' · '+fmtDist(metresBetween(state.center,w.loc)):'';
+  const acts='<button class="wact" data-wrep aria-label="Report">⚑</button>'+(w.mine?'<button class="wact" data-wedit aria-label="Edit">✏️</button><button class="wact" data-wdel aria-label="Delete">🗑</button>':'');
   return '<div class="whisper" data-wh="'+w.id+'"><div class="wtext">'+linkify(w.text)+'</div>'
     +'<div class="wmeta"><div class="wvote"><button class="'+(w.myVote>0?'on':'')+'" data-wv="up">▲</button><span class="score">'+score+'</span><button class="'+(w.myVote<0?'on':'')+'" data-wv="down">▼</button></div>'
-    +'<span>·</span><span>'+esc(w.neighborhood)+'</span><span>·</span><span>'+fmtAgo(w.created_at)+' ago · anon</span></div></div>';
+    +'<span>·</span><span>'+esc(w.neighborhood)+dist+'</span><span>·</span><span>'+fmtAgo(w.created_at)+' ago'+(w.mine?' · you':' · anon')+'</span>'
+    +'<span class="wacts">'+acts+'</span></div></div>';
 }
 function submitWhisper(text){
   const t=(text||'').trim();if(!t)return;
-  const w={id:uid(),alias:aliasFor(),text:t,up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby'};
-  state.whispers.unshift(w);award('whisper',3,w.id);if(window.LIVE)liveSafe(L.createWhisper(w.text,w.neighborhood).then(function(r){if(r&&r.data&&r.data.id)w.id=r.data.id;}));toast('Posted anonymously · +3 🦝');renderFeed();
+  const c=state.center;
+  const w={id:uid(),alias:aliasFor(),text:t,up:1,down:0,myVote:1,created_at:Date.now(),neighborhood:document.getElementById('hoodName')?document.getElementById('hoodName').textContent:'Nearby',loc:c.slice(),mine:true};
+  state.whispers.unshift(w);award('whisper',3,w.id);if(window.LIVE)liveSafe(L.createWhisper(w.text,w.neighborhood,c[0],c[1]).then(function(r){if(r&&r.data&&r.data.id)w.id=r.data.id;}));toast('Posted anonymously · +3 🦝');renderFeed();
 }
-function postWhisper(){
+function editWhisper(w){whisperComposer(w.text,'Edit whisper',function(t){w.text=t.trim();if(window.LIVE)liveSafe(L.updateWhisper(w.id,w.text));toast('Whisper updated');renderFeed();});}
+function deleteWhisper(w){if(!confirm('Delete this whisper?'))return;const i=state.whispers.indexOf(w);if(i>=0)state.whispers.splice(i,1);if(window.LIVE)liveSafe(L.deleteWhisper(w.id));toast('Whisper deleted');renderFeed();}
+function postWhisper(){whisperComposer('','Whisper anonymously',submitWhisper);}
+function whisperComposer(initial,title,onSave){
   var wrap=document.createElement('div');wrap.id='whisperCompose';
   wrap.style.cssText='position:fixed;inset:0;z-index:420;display:flex;align-items:flex-end;justify-content:center;background:rgba(6,8,26,.6);backdrop-filter:blur(3px)';
   wrap.innerHTML='<div style="width:100%;max-width:560px;background:var(--ink);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:none;padding:16px 16px calc(var(--safe-bottom) + 16px)">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:18px">Whisper anonymously</div><button id="wcX" class="btn-ghost" style="width:auto;height:34px;padding:0 12px">Cancel</button></div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-family:var(--font-display);font-weight:800;font-size:18px">'+esc(title||'Whisper anonymously')+'</div><button id="wcX" class="btn-ghost" style="width:auto;height:34px;padding:0 12px">Cancel</button></div>'
     +'<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px">Shared with your neighbourhood — no name attached. Be kind.</div>'
-    +'<textarea id="wcText" maxlength="400" placeholder="What’s on your mind?" style="width:100%;min-height:130px;resize:vertical;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:14px;font-size:16px;line-height:1.5;font-family:inherit;box-sizing:border-box"></textarea>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px"><span id="wcCount" style="color:var(--muted);font-size:12px">0 / 400</span>'
-    +'<button id="wcPost" style="height:44px;padding:0 22px;border:none;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">Post</button></div>'
+    +'<textarea id="wcText" maxlength="400" placeholder="What’s on your mind?" style="width:100%;min-height:130px;resize:vertical;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:14px;font-size:16px;line-height:1.5;font-family:inherit;box-sizing:border-box">'+esc(initial||'')+'</textarea>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px"><span id="wcCount" style="color:var(--muted);font-size:12px">'+((initial||'').length)+' / 400</span>'
+    +'<button id="wcPost" style="height:44px;padding:0 22px;border:none;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">'+(title==='Edit whisper'?'Save':'Post')+'</button></div>'
     +'</div>';
   document.body.appendChild(wrap);
   var ta=wrap.querySelector('#wcText'),cnt=wrap.querySelector('#wcCount');
@@ -2536,7 +2596,7 @@ function postWhisper(){
   ta.addEventListener('input',function(){cnt.textContent=ta.value.length+' / 400';});
   wrap.querySelector('#wcX').onclick=close;
   wrap.addEventListener('click',function(e){if(e.target===wrap)close();});
-  wrap.querySelector('#wcPost').onclick=function(){var v=ta.value;if(!v.trim()){ta.focus();return;}close();submitWhisper(v);};
+  wrap.querySelector('#wcPost').onclick=function(){var v=ta.value;if(!v.trim()){ta.focus();return;}close();onSave(v);};
   setTimeout(function(){ta.focus();},50);
 }
 
@@ -2920,7 +2980,8 @@ function liveRowToPost(r){
 function liveRowToWhisper(r){
   return {id:r.id,alias:aliasFor(),text:r.body||r.text||'',up:r.up||0,down:r.down||0,
     myVote:r.my_vote||0,created_at:r.created_at?Date.parse(r.created_at):Date.now(),
-    neighborhood:r.neighborhood||HOODS[0]};
+    neighborhood:r.neighborhood||HOODS[0],
+    loc:(r.lng!=null&&r.lat!=null)?[r.lng,r.lat]:null,mine:!!r.is_mine};
 }
 function liveRowToStory(r){
   var authorId=(r.author_id===state.myUid)?'me':(r.author_id||'me');
@@ -3084,6 +3145,16 @@ async function startLive(){
   L.init();
   state.users={'me':me};
   var session=null;try{session=await L.auth.session();}catch(e){}
+  // Returning from a Google / magic-link redirect? Wait for supabase to finish
+  // exchanging the token in the URL before deciding to show the sign-in screen.
+  if(!session && /[#?&](access_token|refresh_token|code|provider_token|error)=/.test((location.hash||'')+(location.search||''))){
+    session=await new Promise(function(resolve){
+      var settled=false;
+      try{L.auth.onChange(function(s){if(!settled&&s){settled=true;resolve(s);}});}catch(e){}
+      setTimeout(function(){if(!settled){settled=true;L.auth.session().then(resolve).catch(function(){resolve(null);});}},3500);
+    });
+    try{history.replaceState(null,'',location.origin+location.pathname);}catch(e){}
+  }
   if(!session){await liveSignIn();}
   var prof=null;try{prof=await L.myProfile();}catch(e){}
   if(prof){liveApplyMe(prof);}
