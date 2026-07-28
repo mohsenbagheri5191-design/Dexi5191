@@ -1,7 +1,7 @@
 /* Pin Drop service worker — offline shell for the installable PWA.
    Network-first for the app HTML so updates land; cache-first for the icons.
    Map tiles / fonts / photos are always fetched live (never cached here). */
-const CACHE = 'pinly-v8';
+const CACHE = 'pinly-v9';
 const SHELL = ['./', './index.html', './icon-192.png', './icon-512.png', './icon.svg', './manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
