@@ -97,6 +97,8 @@
     },
     async deletePost(id) { return client().from('posts').update({ status: 'removed' }).eq('id', id); },
     async updatePost(id, fields) { return client().from('posts').update(fields).eq('id', id); },
+    async deleteStory(id) { return client().from('stories').delete().eq('id', id); },
+    async deleteMeetup(id) { return client().from('meetups').update({ status: 'removed' }).eq('id', id); },
     async setPostStatus(id, status) { return client().from('posts').update({ status: status }).eq('id', id); },
 
     /* ---------------- Reactions / comments / saves ---------------- */
