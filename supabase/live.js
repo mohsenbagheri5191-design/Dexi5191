@@ -61,6 +61,34 @@
       verifyPhoneCode: function (phone, token) { return client().auth.verifyOtp({ phone: phone, token: token, type: 'sms' }); },
       // OAuth (configure providers in the dashboard)
       oauth: function (provider) { return client().auth.signInWithOAuth({ provider: provider, options: { redirectTo: (typeof location !== 'undefined' ? location.origin + location.pathname : undefined) } }); },
+      // Bulletproof redirect handling: consume tokens/errors straight from the URL.
+      // Returns {session} on success, {error} on failure, or null when there's nothing to do.
+      consumeRedirect: async function () {
+        if (typeof location === 'undefined') return null;
+        var raw = (location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, '');
+        if (!/access_token=|refresh_token=|[?&#]code=|error=/.test(raw)) return null;
+        var p = new URLSearchParams(raw);
+        var err = p.get('error_description') || p.get('error');
+        var clean = function () { try { history.replaceState(null, '', location.origin + location.pathname); } catch (e) {} };
+        if (err) { clean(); return { error: { message: decodeURIComponent(String(err).replace(/\+/g, ' ')) } }; }
+        var at = p.get('access_token'), rt = p.get('refresh_token');
+        try {
+          if (at) {
+            var r = await client().auth.setSession({ access_token: at, refresh_token: rt || '' });
+            clean();
+            if (r && r.error) return { error: r.error };
+            return { session: (r && r.data && r.data.session) || null };
+          }
+          var code = p.get('code');
+          if (code && client().auth.exchangeCodeForSession) {
+            var x = await client().auth.exchangeCodeForSession(code);
+            clean();
+            if (x && x.error) return { error: x.error };
+            return { session: (x && x.data && x.data.session) || null };
+          }
+        } catch (e) { clean(); return { error: { message: e && e.message ? e.message : 'Sign-in failed' } }; }
+        return null;
+      },
       signOut: function () { return client().auth.signOut(); },
       onChange: function (cb) { return client().auth.onAuthStateChange(function (_e, s) { cb(s); }); }
     },
