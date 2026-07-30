@@ -79,6 +79,11 @@ create or replace function public.in_conversation(cid uuid, uid uuid) returns bo
 --   whispers keep author hidden; stories auto-expire at 24h; reports/admin gated by is_admin().
 
 -- ============================================================ auth trigger, realtime, storage, geo RPC
+-- NOTE (build 13 fix): signup previously failed with "Database error saving new user".
+-- Cause: (email = owner) OR (phone IN (...)) yields NULL when phone is NULL
+-- (false OR NULL = NULL in SQL), and NULL violated profiles.is_admin NOT NULL.
+-- Both sides are now coalesced, and the insert is wrapped so profile creation can
+-- never block auth signup. Verified with a simulated Google signup.
 create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path=public as $$
 declare uname text; begin
   uname := 'u' || substr(replace(new.id::text,'-',''),1,12);
