@@ -97,7 +97,12 @@
     async myProfile() { var id = await uid(); if (!id) return null; var r = await client().from('profiles').select('*').eq('id', id).single(); return r.data; },
     async getProfile(id) { return (await client().from('profiles').select('*').eq('id', id).single()).data; },
     async updateProfile(fields) { var id = await uid(); return client().from('profiles').update(fields).eq('id', id); },
-    async verifyAge(band) { var id = await uid(); return client().from('profiles').update({ age_verified: true, age_band: band }).eq('id', id); },
+    // Exact age is what the user enters; the band is derived so existing band-based
+    // features (meetup matching) keep working.
+    async verifyAge(age, band) { var id = await uid(); return client().from('profiles').update({ age_verified: true, age: age || null, age_band: band || null }).eq('id', id); },
+    async myStats() { return (await client().rpc('my_stats')).data || {}; },
+    async myBadges() { return (await client().rpc('my_badges')).data || []; },
+    async grantBadge(key) { var id = await uid(); return client().from('badges').upsert({ user_id: id, badge_key: key }, { onConflict: 'user_id,badge_key', ignoreDuplicates: true }); },
     async searchUsers(q) {
       q = (q || '').replace(/^@/, '');
       return (await client().from('profiles').select('id,username,display_name,avatar_url,points,status').or('username.ilike.%' + q + '%,display_name.ilike.%' + q + '%,id.eq.' + q).limit(30)).data || [];
@@ -146,42 +151,41 @@
     async unblock(target) { var id = await uid(); return client().from('blocks').delete().eq('blocker_id', id).eq('blocked_id', target); },
     async myBlocks() { var id = await uid(); return ((await client().from('blocks').select('blocked_id').eq('blocker_id', id)).data || []).map(function (r) { return r.blocked_id; }); },
 
-    /* ---------------- Direct messages ---------------- */
-    async myConversations() {
-      var id = await uid();
-      var mine = (await client().from('conversation_members').select('conversation_id').eq('user_id', id)).data || [];
-      var ids = mine.map(function (r) { return r.conversation_id; });
-      if (!ids.length) return [];
-      var convs = (await client().from('conversations').select('*,conversation_members(user_id),messages(body,created_at,sender_id)').in('id', ids)).data || [];
-      return convs;
-    },
-    async dmWith(otherId) {
-      var id = await uid();
-      // find an existing 1:1
-      var mine = (await client().from('conversation_members').select('conversation_id').eq('user_id', id)).data || [];
-      for (var i = 0; i < mine.length; i++) {
-        var members = (await client().from('conversation_members').select('user_id').eq('conversation_id', mine[i].conversation_id)).data || [];
-        if (members.length === 2 && members.some(function (m) { return m.user_id === otherId; })) return mine[i].conversation_id;
-      }
-      var c = await client().from('conversations').insert({ is_group: false, created_by: id }).select('id').single();
-      await client().from('conversation_members').insert([{ conversation_id: c.data.id, user_id: id }, { conversation_id: c.data.id, user_id: otherId }]);
-      return c.data.id;
-    },
-    async createGroup(memberIds, name) {
-      var id = await uid();
-      var c = await client().from('conversations').insert({ is_group: true, name: name || null, created_by: id }).select('id').single();
-      var rows = [{ conversation_id: c.data.id, user_id: id }].concat(memberIds.map(function (m) { return { conversation_id: c.data.id, user_id: m }; }));
-      await client().from('conversation_members').insert(rows);
-      return c.data.id;
-    },
+    /* ---------------- Direct messages ----------------
+       All of these go through SECURITY DEFINER RPCs so a conversation is created
+       atomically (both members inserted together) — the old client-side version
+       could half-create a conversation and silently lose the thread. */
+    async myConversations() { return (await client().rpc('my_conversations')).data || []; },
+    async dmWith(otherId) { return (await client().rpc('dm_with', { p_other: otherId })).data; },
+    async createGroup(memberIds, name) { return (await client().rpc('create_group_conversation', { p_members: memberIds || [], p_name: name || null })).data; },
     async messages(convId) { return (await client().from('messages').select('*').eq('conversation_id', convId).order('created_at')).data || []; },
     async sendMessage(convId, body) { var id = await uid(); return client().from('messages').insert({ conversation_id: convId, sender_id: id, body: body }); },
     subscribeMessages: function (convId, cb) {
       return client().channel('msg:' + convId).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'conversation_id=eq.' + convId }, function (p) { cb(p.new); }).subscribe();
     },
+    // One socket for every thread the user belongs to. RLS decides what actually
+    // arrives, so this can never leak someone else's messages.
+    subscribeAllMessages: function (cb) {
+      return client().channel('msg:all').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, function (p) { cb(p.new); }).subscribe();
+    },
+
+    /* ---------------- Notifications (real, server-generated) ---------------- */
+    async notifications(limit) { return (await client().rpc('my_notifications', { p_limit: limit || 80 })).data || []; },
+    async markNotificationsRead(ids) { return client().rpc('mark_notifications_read', { p_ids: ids || null }); },
+    subscribeNotifications: function (myId, cb) {
+      return client().channel('notif:' + myId)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + myId }, function (p) { cb(p.new); })
+        .subscribe();
+    },
 
     /* ---------------- Meetups ---------------- */
-    async nearbyMeetups() { return (await client().from('meetups').select('*').eq('status', 'open').gt('expires_at', new Date().toISOString())).data || []; },
+    // Returns each meetup together with its join requests (RLS limits requests to
+    // the host and the guest who made them), so requests survive a refresh.
+    async nearbyMeetups(lng, lat, radius) {
+      if (typeof lng === 'number' && typeof lat === 'number')
+        return (await client().rpc('meetups_nearby', { lng: lng, lat: lat, radius_m: radius || 25000 })).data || [];
+      return (await client().from('meetups').select('*').eq('status', 'open').gt('expires_at', new Date().toISOString())).data || [];
+    },
     async createMeetup(m) {
       var id = await uid();
       return client().from('meetups').insert({
@@ -191,6 +195,7 @@
     },
     async requestMeetup(meetupId) { var id = await uid(); return client().from('meetup_requests').insert({ meetup_id: meetupId, guest_id: id }); },
     async respondRequest(reqId, accept) { return client().from('meetup_requests').update({ status: accept ? 'accepted' : 'declined' }).eq('id', reqId); },
+    async cancelMeetupRequest(reqId) { return client().from('meetup_requests').delete().eq('id', reqId); },
     async meetupMessages(meetupId) { return (await client().from('meetup_messages').select('*').eq('meetup_id', meetupId).order('created_at')).data || []; },
     async sendMeetupMessage(meetupId, body) { var id = await uid(); return client().from('meetup_messages').insert({ meetup_id: meetupId, sender_id: id, body: body }); },
 
@@ -210,7 +215,7 @@
     async activeStories() { var cut = new Date(Date.now() - 24 * 3600 * 1000).toISOString(); return (await client().from('stories').select('*,profiles(display_name,username,avatar_url)').gt('created_at', cut).order('created_at', { ascending: false })).data || []; },
     async createStory(file, caption) { var id = await uid(); var url = await this.uploadImage('stories', file); if (!url) return { error: 'upload failed' }; await this.award('story', 3, null); return client().from('stories').insert({ author_id: id, media_url: url, caption: caption || null }).select('id').single(); },
     async recordStoryView(storyId) { var id = await uid(); return client().from('story_views').upsert({ story_id: storyId, viewer_id: id }, { onConflict: 'story_id,viewer_id', ignoreDuplicates: true }); },
-    async storyViewers(storyId) { return (await client().from('story_views').select('viewer_id,created_at,profiles(display_name,username,avatar_url)').eq('story_id', storyId).order('created_at', { ascending: false })).data || []; },
+    async storyViewers(storyId) { return (await client().from('story_views').select('viewer_id,created_at,profiles(display_name,username,avatar_url,avatar_preset)').eq('story_id', storyId).order('created_at', { ascending: false })).data || []; },
     async storyViewCount(storyId) { var r = await client().from('story_views').select('viewer_id', { count: 'exact', head: true }).eq('story_id', storyId); return r.count || 0; },
 
     /* ---------------- Super Spot (weekly bonus, admin-configured) ---------------- */
@@ -232,9 +237,18 @@
     /* ---------------- Points ---------------- */
     async award(action, points, ref) { return (await client().rpc('award_points', { p_action: action, p_points: points, p_ref: ref ? String(ref) : null })).data; },
 
-    /* ---------------- Presence ---------------- */
-    async setVisibility(v) { var id = await uid(); return client().from('profiles').update({ visibility: v }).eq('id', id); },
+    /* ---------------- Presence ----------------
+       nearby_people only returns profiles seen in the last 5 minutes, so a heartbeat
+       is what keeps you on the map and going quiet takes you off it. */
+    async setVisibility(v) {
+      var id = await uid();
+      var patch = { visibility: v };
+      if (v === 'live') patch.last_seen = new Date().toISOString(); else patch.last_seen = null;
+      return client().from('profiles').update(patch).eq('id', id);
+    },
     async updateLocation(lng, lat) { var id = await uid(); return client().from('profiles').update({ loc: wkt(lng, lat), last_seen: new Date().toISOString() }).eq('id', id); },
+    // Called on sign-out and on page-hide so a signed-out user stops showing as online.
+    async goOffline() { return client().rpc('go_offline'); },
     async nearbyPeople(lng, lat, radius) { return (await client().rpc('nearby_people', { lng: lng, lat: lat, radius_m: radius || 5000 })).data || []; },
 
     /* ---------------- Storage ---------------- */

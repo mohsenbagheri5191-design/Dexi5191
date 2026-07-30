@@ -416,7 +416,9 @@ img{max-width:100%}
 .loc-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 
 /* ---------- Live presence ---------- */
-#nearbyPill{position:absolute;left:12px;z-index:16;top:calc(var(--safe-top) + 108px);height:34px;padding:0 13px;border-radius:99px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--paper);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#mapChrome{position:absolute;left:12px;z-index:16;top:calc(var(--safe-top) + 96px);display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none;max-width:calc(100% - 84px)}
+#mapChrome>*{pointer-events:auto}
+#nearbyPill{position:static;height:34px;padding:0 13px;border-radius:99px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--paper);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
 :root[data-theme="light"] #nearbyPill{background:rgba(255,255,255,.9)}
 .livedot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px rgba(34,229,163,.28);animation:livepulse 2s ease-in-out infinite}
 @keyframes livepulse{0%,100%{opacity:1}50%{opacity:.45}}
@@ -580,7 +582,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .lyr .lyi{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .lyr .lchk{margin-left:auto;display:flex;align-items:center}
 .lyr span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#weatherBanner{display:none;position:absolute;top:calc(var(--safe-top,0px) + 96px);left:12px;z-index:6;align-items:center;gap:8px;background:rgba(16,19,58,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 12px;font-size:13px;color:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#weatherBanner{display:none;position:static;align-items:center;gap:8px;background:rgba(16,19,58,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 12px;font-size:13px;color:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 :root[data-theme="light"] #weatherBanner{background:rgba(255,255,255,.9);color:#10133A}
 #cityToday{display:none;position:absolute;left:12px;bottom:calc(var(--safe-bottom,0px) + 150px);z-index:6;align-items:center;gap:6px;background:var(--social);color:#fff;border:none;border-radius:999px;padding:9px 15px;font-weight:800;font-size:13px;box-shadow:0 10px 28px rgba(124,92,255,.5);cursor:pointer}
 .city-marker{width:22px;height:22px;cursor:pointer}
@@ -685,8 +687,12 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
   </div>
 
   <button id="fab" aria-label="Drop a pin">＋ Drop a pin</button>
-  <button id="nearbyPill" aria-label="People nearby" style="display:none"><span class="livedot"></span>0 nearby</button>
-  <div id="weatherBanner" aria-live="polite"></div>
+  <!-- Weather and the nearby-people pill stack in one column so they can never overlap,
+       whichever of the two happens to be visible. -->
+  <div id="mapChrome">
+    <div id="weatherBanner" aria-live="polite"></div>
+    <button id="nearbyPill" aria-label="People nearby" style="display:none"><span class="livedot"></span>0 nearby</button>
+  </div>
   <button id="cityToday" aria-label="What's on in the city today"></button>
 
   <!-- PIN PLACEMENT MODE (drop directly on the main map) -->
@@ -873,7 +879,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
   <div class="handle"></div>
   <div class="sheet-body scroll">
     <div class="sheet-head"><h2>Your avatar</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="avClose">Done</button></div>
-    <div class="hint" style="margin:0 0 12px">Pick your Pinly character — 29 hand-drawn originals. Or upload your own photo.</div>
+    <div class="hint" style="margin:0 0 12px">Pick your Pinly character. Or upload your own photo.</div>
     <div class="av-grid" id="avGrid"></div>
     <input type="file" id="avFile" accept="image/*" hidden />
   </div>
@@ -926,7 +932,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 13 · 2026-07-29';
+window.PINLY_BUILD = 'build 14 · 2026-07-30';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -1117,51 +1123,38 @@ const AV_ART=[
 /* 50 cute modern characters — animals, people & fun (single-codepoint emoji so they
    render as color glyphs everywhere, including as HTML map markers). Pick any as your map avatar. */
 /* ============================================================================
-   PINLY CHARACTERS — 28 original, hand-drawn SVG fantasy avatars.
-   Each: [name, bgA, bgB, artSVG]. Drawn on a 64×64 grid, readable at 28px.
-   Shared helpers keep them consistent: E()=eyes, SM()=smile, BL()=blush.
+   PINLY CHARACTERS — the illustrated avatar pack supplied by the owner.
+   Each entry is [name, viewBox, innerSVG]. Class names and gradient ids inside
+   every file are prefixed per avatar, so any number of them can be inlined on
+   the same page without their styles or defs fighting each other.
    ============================================================================ */
-const E=(x1,x2,y,r,c)=>'<circle cx="'+x1+'" cy="'+y+'" r="'+(r||2.6)+'" fill="'+(c||'#221a3d')+'"/><circle cx="'+x2+'" cy="'+y+'" r="'+(r||2.6)+'" fill="'+(c||'#221a3d')+'"/><circle cx="'+(x1+.9)+'" cy="'+(y-1)+'" r="'+((r||2.6)*.36)+'" fill="#fff"/><circle cx="'+(x2+.9)+'" cy="'+(y-1)+'" r="'+((r||2.6)*.36)+'" fill="#fff"/>';
-const SM=(y,w,c)=>'<path d="M'+(32-(w||5))+' '+y+'q'+(w||5)+' '+((w||5)*.85)+' '+((w||5)*2)+' 0" stroke="'+(c||'#221a3d')+'" stroke-width="1.9" fill="none" stroke-linecap="round"/>';
-const BL=(y,c)=>'<ellipse cx="20.5" cy="'+y+'" rx="3.1" ry="2.1" fill="'+(c||'#FF8FBF')+'" opacity=".55"/><ellipse cx="43.5" cy="'+y+'" rx="3.1" ry="2.1" fill="'+(c||'#FF8FBF')+'" opacity=".55"/>';
-const CHARACTERS=[
- ['Star Mage','#8B5CFF','#4A2AB8','<path d="M32 12 46 32H18Z" fill="#5B3AD6"/><path d="M32 12 46 32H18Z" fill="none" stroke="#31207A" stroke-width="1.4"/><path d="M31 15.5l1.4 3.3 3.4.4-2.6 2.3.8 3.4-3-1.8-3 1.8.8-3.4-2.6-2.3 3.4-.4Z" fill="#FFD866"/><ellipse cx="32" cy="40" rx="12" ry="11" fill="#FFDCC2"/>'+E(27,37,38)+SM(43,4.5)+BL(43)+'<path d="M20 33h24" stroke="#31207A" stroke-width="2.4" stroke-linecap="round"/><path d="M24 49q8 6 16 0" stroke="#EDEBFF" stroke-width="3.4" fill="none" stroke-linecap="round"/>'],
- ['Moon Elf','#5AD1FF','#2A6BB8','<ellipse cx="32" cy="36" rx="12" ry="12.5" fill="#FFE3CC"/><path d="M20 32c-4-3-6-8-5-12 4 1 8 4 9 8Z" fill="#FFE3CC"/><path d="M44 32c4-3 6-8 5-12-4 1-8 4-9 8Z" fill="#FFE3CC"/>'+E(27,37,35)+SM(41,4.2)+BL(40,'#7BD8FF')+'<path d="M20 27q12-9 24 0-6-6-12-6t-12 6Z" fill="#BFE9FF"/><path d="M32 20a5 5 0 0 1 0 6 5 5 0 0 1 0-6Z" fill="#FFF6C9"/><circle cx="32" cy="18" r="2.4" fill="#FFF6C9"/>'],
- ['Fang','#FF6FA5','#8C2E63','<path d="M32 22c9 0 13 6 13 13s-6 14-13 14-13-6-13-14 4-13 13-13Z" fill="#F3E4FF"/><path d="M19 30q13-13 26 0-4-11-13-11t-13 11Z" fill="#2B1B3F"/>'+E(27,37,35)+'<path d="M28 42h8l-2.4 3.4L32 43l-1.6 2.8Z" fill="#fff"/>'+BL(40,'#FF9CC8')+'<path d="M18 50q14 8 28 0l-4 8H22Z" fill="#B0304F"/>'],
- ['Dragonlet','#3BE0B0','#127A63','<path d="M22 24l-5-8 9 3ZM42 24l5-8-9 3Z" fill="#0E5C4C"/><ellipse cx="32" cy="37" rx="13" ry="12" fill="#54EFC0"/><path d="M32 44c-5 0-8 2-8 4s3 3 8 3 8-1 8-3-3-4-8-4Z" fill="#25B892"/>'+E(26.5,37.5,34)+'<circle cx="29" cy="47.5" r="1" fill="#0E5C4C"/><circle cx="35" cy="47.5" r="1" fill="#0E5C4C"/><path d="M22 30q4-4 8 0" stroke="#25B892" stroke-width="1.6" fill="none" stroke-linecap="round"/>'],
- ['Pixie','#FFC85A','#D2761B','<path d="M17 34c-5-4-7-10-4-14 5 1 9 6 10 11ZM47 34c5-4 7-10 4-14-5 1-9 6-10 11Z" fill="#FFF0B8" opacity=".9"/><ellipse cx="32" cy="37" rx="11" ry="11.5" fill="#FFE0C4"/><path d="M21 32q11-11 22 0-3-10-11-10t-11 10Z" fill="#FF9F5A"/>'+E(27.5,36.5,36,2.4)+SM(41.5,4)+BL(41)+'<circle cx="24" cy="24" r="1.6" fill="#FFF6C9"/><circle cx="41" cy="22" r="1.3" fill="#FFF6C9"/>'],
- ['Wisp','#9AA9FF','#3D46A8','<path d="M32 20c8 0 12 6 12 13v16c-3-2-4 2-6 0s-3 2-6 0-3 2-6 0-3 2-6 0V33c0-7 4-13 12-13Z" fill="#E7ECFF" opacity=".95"/>'+E(27,37,34,2.8)+'<ellipse cx="32" cy="41" rx="3" ry="3.6" fill="#3D46A8" opacity=".8"/><circle cx="22" cy="26" r="1.4" fill="#fff"/>'],
- ['Bolt Kid','#FFE14D','#C79000','<ellipse cx="32" cy="36" rx="12" ry="12" fill="#FFDCC2"/><path d="M20 30 33 10l-3 15h7L24 44l3-14Z" fill="#FFE14D" stroke="#C79000" stroke-width="1.2" stroke-linejoin="round"/>'+E(27,37,36)+SM(42,4.4)+BL(41)+'<path d="M22 48q10 6 20 0" stroke="#3B2E00" stroke-width="2.6" fill="none" stroke-linecap="round"/>'],
- ['Sir Pebble','#B9C6E8','#5A6A94','<path d="M32 19c8 0 12 6 12 13v10a12 12 0 0 1-24 0V32c0-7 4-13 12-13Z" fill="#D8E2F7"/><path d="M20 33h24v5H20Z" fill="#2C3A5E"/>'+E(27,37,35.5,2.4,'#7FE9FF')+'<path d="M32 19v26" stroke="#9BAAD0" stroke-width="1.4"/><path d="M25 21q7-8 14 0" stroke="#9BAAD0" stroke-width="1.6" fill="none"/><path d="M32 12l3 6h-6Z" fill="#FF5CA8"/>'],
- ['Skull King','#C9A0FF','#5B2A9E','<path d="M32 20c9 0 13 6 13 14 0 5-2 8-5 10l1 6H23l1-6c-3-2-5-5-5-10 0-8 4-14 13-14Z" fill="#F2ECFF"/>'+'<ellipse cx="26.5" cy="35" rx="3.4" ry="4" fill="#2B1B3F"/><ellipse cx="37.5" cy="35" rx="3.4" ry="4" fill="#2B1B3F"/><circle cx="27.4" cy="34" r="1.2" fill="#C9A0FF"/><circle cx="38.4" cy="34" r="1.2" fill="#C9A0FF"/><path d="M30 43h4v4h-4Z" fill="#2B1B3F"/><path d="M18 20l4-8 5 6 5-8 5 8 5-6 4 8Z" fill="#FFD866" stroke="#B98A12" stroke-width="1"/>'],
- ['Ghostie','#DCE4FF','#6B77C4','<path d="M32 18c9 0 13 7 13 15v17c-3 0-4-3-6.5-3s-3.5 3-6.5 3-4-3-6.5-3-3.5 3-6.5 3V33c0-8 4-15 13-15Z" fill="#fff"/>'+E(27,37,34,3)+'<ellipse cx="32" cy="41.5" rx="3.4" ry="4" fill="#6B77C4"/>'+BL(40,'#A9B6FF')],
- ['Foxfire','#FF9A4D','#B84A12','<path d="M19 26l1-11 10 6ZM45 26l-1-11-10 6Z" fill="#FF9A4D"/><path d="M20.5 24l.5-6 5 3ZM43.5 24l-.5-6-5 3Z" fill="#FFD6B8"/><ellipse cx="32" cy="37" rx="12.5" ry="11.5" fill="#FFB877"/><path d="M32 41c-4 0-7 2-7 4s3 3 7 3 7-1 7-3-3-4-7-4Z" fill="#FFF0E0"/>'+E(26.5,37.5,34)+'<path d="M30.5 43.5h3l-1.5 2Z" fill="#8A3A0E"/>'+BL(40,'#FF7BA3')],
- ['Owlet','#7FD6FF','#2C6E9E','<ellipse cx="32" cy="37" rx="13" ry="12" fill="#BFE4FF"/><path d="M20 27l3-8 5 5ZM44 27l-3-8-5 5Z" fill="#8FC9EE"/><circle cx="26.5" cy="35" r="5.4" fill="#fff"/><circle cx="37.5" cy="35" r="5.4" fill="#fff"/><circle cx="26.5" cy="35" r="2.6" fill="#221a3d"/><circle cx="37.5" cy="35" r="2.6" fill="#221a3d"/><circle cx="27.4" cy="34" r="1" fill="#fff"/><circle cx="38.4" cy="34" r="1" fill="#fff"/><path d="M32 40l3 3.5h-6Z" fill="#FFB020"/><path d="M24 47q8 4 16 0" stroke="#8FC9EE" stroke-width="2" fill="none"/>'],
- ['Sprout','#6BE38A','#1F8A46','<ellipse cx="32" cy="38" rx="12" ry="11.5" fill="#CFF7D8"/><path d="M32 26c0-6 4-10 9-10 0 6-4 10-9 10Z" fill="#3FC96A"/><path d="M32 26c0-5-3-8-7-8 0 5 3 8 7 8Z" fill="#69E08F"/><path d="M32 20v8" stroke="#1F8A46" stroke-width="2" stroke-linecap="round"/>'+E(27,37,37)+SM(42.5,4.4)+BL(42,'#8BE8A8')],
- ['Bubble','#5AE0E8','#1B7E93','<circle cx="32" cy="37" r="13" fill="#C9F6FA"/><circle cx="27" cy="31" r="3.4" fill="#fff" opacity=".8"/>'+E(27,37,37,2.8)+'<ellipse cx="32" cy="43" rx="3.6" ry="3" fill="#1B7E93" opacity=".75"/><circle cx="45" cy="24" r="2.6" fill="#C9F6FA" opacity=".7"/><circle cx="50" cy="30" r="1.6" fill="#C9F6FA" opacity=".55"/>'],
- ['Cyclo','#FF7A7A','#A32626','<ellipse cx="32" cy="37" rx="12.5" ry="12" fill="#FFC9A8"/><circle cx="32" cy="34" r="6.4" fill="#fff"/><circle cx="32" cy="34" r="3.2" fill="#221a3d"/><circle cx="33.4" cy="32.6" r="1.3" fill="#fff"/>'+SM(43,4.6)+BL(42)+'<path d="M20 28q12-8 24 0" stroke="#8A3A0E" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M27 21l2 5M37 21l-2 5" stroke="#8A3A0E" stroke-width="2" stroke-linecap="round"/>'],
- ['Mush','#FF7BAE','#A32763','<path d="M14 34c0-10 8-16 18-16s18 6 18 16Z" fill="#FF7BAE"/><circle cx="23" cy="27" r="3" fill="#FFE3F0"/><circle cx="39" cy="25" r="3.6" fill="#FFE3F0"/><circle cx="32" cy="31" r="2.2" fill="#FFE3F0"/><path d="M24 34h16v10a8 8 0 0 1-16 0Z" fill="#FFF0E2"/>'+E(28,36,39,2.2)+SM(43.5,3.4)],
- ['Robo','#9AE7FF','#28607E','<rect x="19" y="24" width="26" height="24" rx="8" fill="#DDF4FF"/><rect x="24" y="31" width="16" height="9" rx="4.5" fill="#1F3346"/><circle cx="28.5" cy="35.5" r="2.2" fill="#7FE9FF"/><circle cx="35.5" cy="35.5" r="2.2" fill="#7FE9FF"/><path d="M27 44h10" stroke="#98B3C6" stroke-width="2" stroke-linecap="round"/><path d="M32 24v-5" stroke="#98B3C6" stroke-width="2"/><circle cx="32" cy="16" r="3" fill="#FF5CA8"/><rect x="15" y="32" width="4" height="8" rx="2" fill="#98B3C6"/><rect x="45" y="32" width="4" height="8" rx="2" fill="#98B3C6"/>'],
- ['Alien','#8CFFB8','#1F8A63','<ellipse cx="32" cy="36" rx="13" ry="14" fill="#B6FFD5"/><ellipse cx="26" cy="34" rx="4" ry="5.6" fill="#1B2B24" transform="rotate(-12 26 34)"/><ellipse cx="38" cy="34" rx="4" ry="5.6" fill="#1B2B24" transform="rotate(12 38 34)"/><circle cx="27" cy="32" r="1.4" fill="#fff"/><circle cx="39" cy="32" r="1.4" fill="#fff"/>'+SM(44,3.6,'#1F8A63')+'<path d="M25 22l-2-6M39 22l2-6" stroke="#7BEFB0" stroke-width="2" stroke-linecap="round"/><circle cx="22.6" cy="15" r="2.2" fill="#FFF6C9"/><circle cx="41.4" cy="15" r="2.2" fill="#FFF6C9"/>'],
- ['Kitsune','#FFD1E8','#B03A7A','<path d="M19 27l1-10 9 6ZM45 27l-1-10-9 6Z" fill="#FFF0F6"/><path d="M21 25l.5-5 4.5 3ZM43 25l-.5-5-4.5 3Z" fill="#FF9AC6"/><ellipse cx="32" cy="37" rx="12.5" ry="11.5" fill="#FFF0F6"/><path d="M22 33q5-3 9 0M33 33q5-3 9 0" stroke="#B03A7A" stroke-width="1.6" fill="none" stroke-linecap="round"/>'+E(26.5,37.5,36,2.4)+'<path d="M30.6 41h2.8l-1.4 1.8Z" fill="#B03A7A"/>'+SM(45,3.6,'#B03A7A')+BL(42,'#FF9AC6')],
- ['Wave Rider','#4FC3FF','#1A5F9E','<path d="M32 22c8 0 12 5 12 12s-5 15-12 15-12-7-12-15 4-12 12-12Z" fill="#FFE0C4"/><path d="M20 32q12-13 24 0-2-12-12-12t-12 12Z" fill="#2FA8E0"/><path d="M18 44q6 4 12 0t12 0" stroke="#2FA8E0" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+E(27,37,34)+SM(40,4.2)+BL(39,'#7BD8FF')],
- ['Ember','#FF8A4D','#B8340F','<path d="M32 16c6 7 12 10 12 19a12 12 0 0 1-24 0c0-9 6-12 12-19Z" fill="#FFB877"/><path d="M32 27c3 4 6 6 6 10a6 6 0 0 1-12 0c0-4 3-6 6-10Z" fill="#FFE07A"/>'+E(28.5,35.5,36,2.2)+SM(41,3.2,'#B8340F')],
- ['Frost','#BFE9FF','#3B7FB0','<ellipse cx="32" cy="37" rx="12" ry="12" fill="#EAF7FF"/><path d="M32 15v10M25 19l7 6M39 19l-7 6" stroke="#8FD3F5" stroke-width="2" stroke-linecap="round"/>'+E(27,37,36,2.6,'#2C5D80')+SM(42,4,'#2C5D80')+BL(41,'#8FD3F5')+'<path d="M22 45q10 6 20 0" stroke="#8FD3F5" stroke-width="2.4" fill="none" stroke-linecap="round"/>'],
- ['Goblin','#A8E063','#4C7A16','<ellipse cx="32" cy="38" rx="12" ry="11" fill="#C6ED91"/><path d="M20 30l-6-6 8-1ZM44 30l6-6-8-1Z" fill="#A8E063"/>'+E(27,37,36,2.4)+'<path d="M25 43q7 5 14 0" stroke="#3E650F" stroke-width="1.9" fill="none" stroke-linecap="round"/><path d="M28 43.5l1.4 2.6M36 43.5l-1.4 2.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M26 27q6-4 12 0" stroke="#7CB33A" stroke-width="1.8" fill="none"/>'],
- ['Nova','#C4A0FF','#5B2AA8','<circle cx="32" cy="36" r="11.5" fill="#EBE0FF"/>'+E(27,37,35,2.6)+SM(41,4,'#5B2AA8')+'<path d="M32 12v7M32 53v7M12 36h7M45 36h7M18 22l5 5M46 50l-5-5M46 22l-5 5M18 50l5-5" stroke="#D9C7FF" stroke-width="2" stroke-linecap="round"/>'],
- ['Sea Sprite','#5AE8C8','#128A72','<path d="M32 22c8 0 12 6 12 12s-4 10-12 10-12-4-12-10 4-12 12-12Z" fill="#FFE0C4"/><path d="M20 31q12-12 24 0-3-11-12-11t-12 11Z" fill="#2FD0B0"/>'+E(27,37,33)+SM(38.5,4)+BL(38,'#6FF0D4')+'<path d="M24 46q8 3 16 0l-3 7H27Z" fill="#2FD0B0"/><path d="M26 53l6 5 6-5" fill="#1DB598"/>'],
- ['Pumpkin','#FFA23D','#B45A00','<path d="M32 24c9 0 14 6 14 13s-5 13-14 13-14-6-14-13 5-13 14-13Z" fill="#FFB55E"/><path d="M24 26q4 11 0 22M40 26q-4 11 0 22" stroke="#E07C10" stroke-width="1.6" fill="none"/><path d="M31 20h2v5h-2Z" fill="#4C7A16"/><path d="M27 33l5 3-5 3ZM37 33l-5 3 5 3Z" fill="#5A2A00"/><path d="M25 42q7 6 14 0-7 2-14 0Z" fill="#5A2A00"/>'],
- ['Yeti','#DCF2FF','#5D87A8','<ellipse cx="32" cy="38" rx="13.5" ry="12.5" fill="#F4FBFF"/><path d="M19 30q13-12 26 0-4-9-13-9t-13 9Z" fill="#DCF2FF"/><circle cx="27" cy="36" r="3.4" fill="#fff"/><circle cx="37" cy="36" r="3.4" fill="#fff"/><circle cx="27" cy="36" r="1.8" fill="#221a3d"/><circle cx="37" cy="36" r="1.8" fill="#221a3d"/><ellipse cx="32" cy="41.5" rx="2.6" ry="2" fill="#8FB6CE"/>'+SM(45,4)+'<path d="M17 34l-4-3M47 34l4-3" stroke="#BEDDF0" stroke-width="2" stroke-linecap="round"/>'],
- ['Phoenix','#FFB03D','#C23A00','<path d="M32 18c7 6 11 10 11 17a11 11 0 0 1-22 0c0-7 4-11 11-17Z" fill="#FFD066"/><path d="M18 30l-6-8 10 2ZM46 30l6-8-10 2Z" fill="#FF7A2E"/>'+E(28,36,34,2.4)+'<path d="M30.6 39h2.8l-1.4 2Z" fill="#C23A00"/>'+SM(43,3.4,'#C23A00')+'<path d="M24 48q8 5 16 0" stroke="#FF7A2E" stroke-width="2.2" fill="none"/>'],
- ['Slime','#8CFF6B','#2E8A12','<path d="M18 44c0-11 6-19 14-19s14 8 14 19c0 3-2 4-5 4-2 0-2-2-4-2s-2 2-5 2-3-2-5-2-2 2-4 2c-3 0-5-1-5-4Z" fill="#B4FF9A" opacity=".95"/>'+E(27,37,37,3)+'<ellipse cx="32" cy="43" rx="3.2" ry="2.6" fill="#2E8A12" opacity=".7"/><circle cx="25" cy="31" r="2.4" fill="#fff" opacity=".7"/>']
+/* Pinly avatar pack — 17 illustrated characters supplied by the owner (SVG Repo).
+   Class names are prefixed per avatar so several can be inlined on one page safely. */
+const PACK_AVATARS=[
+ ["Afro","0 0 128 128","<defs><style>.pa0_1{fill:#ffd8c9;}.pa0_10,.pa0_2{fill:#ffffff;}.pa0_2{opacity:0.3;}.pa0_3,.pa0_9{fill:#8f5653;}.pa0_4{fill:#393c54;}.pa0_5{fill:#ff8475;}.pa0_6,.pa0_8{fill:none;stroke-linecap:round;}.pa0_6{stroke:#8f5653;stroke-miterlimit:10;stroke-width:20px;}.pa0_7{fill:#b56b63;}.pa0_8{stroke:#515570;stroke-linejoin:round;stroke-width:2px;}.pa0_8,.pa0_9{opacity:0.4;}</style></defs><circle class=\"pa0_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa0_2\" cx=\"64\" cy=\"64\" r=\"48\"/><circle class=\"pa0_3\" cx=\"91.32\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa0_4\" d=\"M64,124a59.77,59.77,0,0,0,39.83-15.14l-2.23-5.22c-1.71-4-6.22-6.64-11.29-6.64H37.69c-5.07,0-9.58,2.66-11.29,6.64l-2.23,5.22A59.77,59.77,0,0,0,64,124Z\"/><path class=\"pa0_5\" d=\"M77.43,98.73a13.43,13.43,0,0,1-26.86,0c0-5,6-3.25,13.43-3.25S77.43,93.68,77.43,98.73Z\"/><line class=\"pa0_6\" x1=\"64\" x2=\"64\" y1=\"84.75\" y2=\"98.5\"/><circle class=\"pa0_3\" cx=\"36.68\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa0_7\" d=\"M64,94.37A28.31,28.31,0,0,1,35.68,66.05V47.43a28.32,28.32,0,1,1,56.64,0V66.05A28.31,28.31,0,0,1,64,94.37Z\"/><circle class=\"pa0_4\" cx=\"76.67\" cy=\"59.28\" r=\"3\"/><circle class=\"pa0_4\" cx=\"49.67\" cy=\"59.28\" r=\"3\"/><line class=\"pa0_8\" x1=\"74.39\" x2=\"84\" y1=\"51\" y2=\"52.75\"/><line class=\"pa0_8\" x1=\"53\" x2=\"43.39\" y1=\"51\" y2=\"52.75\"/><path class=\"pa0_3\" d=\"M63.11,60,58.44,70.69a1,1,0,0,0,.92,1.4H68.7a1,1,0,0,0,.91-1.4L64.94,60A1,1,0,0,0,63.11,60Z\"/><path class=\"pa0_9\" d=\"M92.32,47.43a28.32,28.32,0,1,0-56.64,0V53h.93c3.87,0,7-11.13,7-15v.17c3.52,3.76,11.38,6.38,20.52,6.38,9.46,0,17.54-2.8,20.87-6.77V38c0,3.87,3.13,15,7,15h.32Z\"/><path class=\"pa0_10\" d=\"M70.21,76a.79.79,0,0,1,.78.89,7,7,0,0,1-14,0,.79.79,0,0,1,.78-.89Z\"/><line class=\"pa0_8\" x1=\"60.17\" x2=\"67.83\" y1=\"86\" y2=\"86\"/>"],
+ ["Spaceling","0 0 128 128","<defs><style>.pa1_1{fill:#ff8475;}.pa1_10,.pa1_12,.pa1_2{fill:#356cb6;}.pa1_3,.pa1_9{fill:#ffffff;}.pa1_12,.pa1_14,.pa1_3,.pa1_5{opacity:0.3;}.pa1_11,.pa1_4,.pa1_5{fill:none;stroke-linecap:round;}.pa1_4{stroke:#4bc190;}.pa1_11,.pa1_4{stroke-linejoin:round;}.pa1_4,.pa1_5{stroke-width:6px;}.pa1_5{stroke:#356cb6;stroke-miterlimit:10;}.pa1_6{fill:#f8dc25;}.pa1_7{fill:#4bc190;}.pa1_8{fill:#393c54;}.pa1_10{opacity:0.1;}.pa1_11{stroke:#393c54;stroke-width:2px;}.pa1_13{fill:#f85565;}.pa1_14,.pa1_15{fill:#515570;}</style></defs><circle class=\"pa1_1\" cx=\"64\" cy=\"64\" r=\"60\"/><path class=\"pa1_2\" d=\"M113.75,78.27C113.75,73.15,91.47,75,64,75s-49.75-1.85-49.75,3.27S36.53,97.48,64,97.48,113.75,83.39,113.75,78.27Z\"/><path class=\"pa1_3\" d=\"M64,19h0a44,44,0,0,1,44,44v44a0,0,0,0,1,0,0H20a0,0,0,0,1,0,0V63A44,44,0,0,1,64,19Z\"/><line class=\"pa1_4\" x1=\"64\" x2=\"64\" y1=\"27.18\" y2=\"18\"/><line class=\"pa1_5\" x1=\"64\" x2=\"64\" y1=\"27.18\" y2=\"18\"/><circle class=\"pa1_6\" cx=\"64\" cy=\"17\" r=\"4.75\"/><path class=\"pa1_7\" d=\"M64,115A26,26,0,0,1,38,89V52a26,26,0,0,1,52,0V89A26,26,0,0,1,64,115Z\"/><path class=\"pa1_3\" d=\"M64,114A18.59,18.59,0,0,1,45.44,95.44V74.56C45.44,64.33,53.77,61,64,61s18.56,3.33,18.56,13.56V95.44A18.59,18.59,0,0,1,64,114Z\"/><path class=\"pa1_8\" d=\"M72.1,88.31a53.34,53.34,0,0,1-16.25,0,3.75,3.75,0,0,1-3.09-2.93,68.23,68.23,0,0,1-1.12-16.15,3.83,3.83,0,0,1,2.73-3.54,34.22,34.22,0,0,1,19.24,0,3.82,3.82,0,0,1,2.74,3.56,72.18,72.18,0,0,1-1.16,16.09A3.72,3.72,0,0,1,72.1,88.31Z\"/><path class=\"pa1_9\" d=\"M113.19,76.76s-7,15.87-49.19,15.87S14.81,76.76,14.81,76.76l-9,2.07a60,60,0,0,0,116.3,0Z\"/><path class=\"pa1_10\" d=\"M113.19,76.76s-7,15.87-49.19,15.87S14.81,76.76,14.81,76.76l-9,2.07a60,60,0,0,0,116.3,0Z\"/><path class=\"pa1_10\" d=\"M64,100.19c-42.48,0-54.88-15.54-57.68-19.66a60,60,0,0,0,115.36,0C118.88,84.65,106.48,100.19,64,100.19Z\"/><line class=\"pa1_11\" x1=\"64\" x2=\"64\" y1=\"36.42\" y2=\"41.83\"/><line class=\"pa1_11\" x1=\"69\" x2=\"67\" y1=\"37.42\" y2=\"42.83\"/><line class=\"pa1_11\" x1=\"73\" x2=\"70\" y1=\"40.42\" y2=\"43.83\"/><line class=\"pa1_11\" x1=\"59\" x2=\"61\" y1=\"37.42\" y2=\"42.83\"/><line class=\"pa1_11\" x1=\"55\" x2=\"58\" y1=\"40.42\" y2=\"43.83\"/><circle class=\"pa1_9\" cx=\"64\" cy=\"49.67\" r=\"9\"/><circle class=\"pa1_8\" cx=\"64\" cy=\"49.67\" r=\"4.25\"/><path class=\"pa1_7\" d=\"M73,49.67a9,9,0,0,0-18,0A21.23,21.23,0,0,1,73,49.67Z\"/><path class=\"pa1_12\" d=\"M73,49.67a9,9,0,0,0-18,0A21.23,21.23,0,0,1,73,49.67Z\"/><path class=\"pa1_13\" d=\"M75.19,85.34c.32-1.71.56-3.45.75-5.21-2.26-3.41-6.76-4.89-11.95-4.89s-9.77,1.51-12,5c.2,1.75.45,3.47.79,5.16a3.75,3.75,0,0,0,3.09,2.93,53.34,53.34,0,0,0,16.25,0A3.72,3.72,0,0,0,75.19,85.34Z\"/><path class=\"pa1_14\" d=\"M64,75.24c-.34,0-.66,0-1,0V81a1,1,0,0,0,2,0V75.27C64.66,75.26,64.33,75.24,64,75.24Z\"/><path class=\"pa1_9\" d=\"M71.59,85.22a54.36,54.36,0,0,1-15.18,0A1.23,1.23,0,0,0,55,86.43v1.63a4,4,0,0,0,.85.25,53.34,53.34,0,0,0,16.25,0A3.36,3.36,0,0,0,73,88V86.43A1.23,1.23,0,0,0,71.59,85.22Z\"/><path class=\"pa1_9\" d=\"M73.61,65.69a34.22,34.22,0,0,0-19.24,0l-.37.14v1a2,2,0,0,0,2.2,2,86.47,86.47,0,0,1,15.6,0,2,2,0,0,0,2.2-2v-1A2.62,2.62,0,0,0,73.61,65.69Z\"/><path class=\"pa1_3\" d=\"M42.5,39.5C30.78,51.22,28,63.68,28,56s3.93-15.36,9.79-21.21S51.3,25,59,25,54.22,27.78,42.5,39.5Z\"/><path class=\"pa1_15\" d=\"M97.49,51.33l.89,2.79.44,1.4,1.33,4.19a2.93,2.93,0,1,0,3.67,1.91l-2.21-7,4.19-1.33,1.33,4.19a2.93,2.93,0,1,0,3.68,1.9l-2.22-7-1.27-4.21Z\"/>"],
+ ["Anime","0 0 128 128","<defs><style>.pa2_1{fill:#00adfe;}.pa2_2{fill:#356cb6;opacity:0.3;}.pa2_3,.pa2_8{fill:#393c54;}.pa2_4{fill:#ffffff;}.pa2_5,.pa2_6{fill:none;stroke:#393c54;stroke-linecap:round;stroke-miterlimit:10;}.pa2_5{stroke-width:5.51px;}.pa2_6{stroke-width:2.21px;}.pa2_7{fill:#a7aece;}.pa2_8{opacity:0.2;}</style></defs><circle class=\"pa2_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa2_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa2_3\" d=\"M64,124a59.8,59.8,0,0,0,41.54-16.72c-1-22.43-3.94-55.49-12.65-75.18C88.06,21.18,76.74,13.88,64,13.88h0c-12.74,0-24.65,7-28.89,18.22C27.58,51.93,24.35,85.33,23,107.76A59.74,59.74,0,0,0,64,124Z\"/><path class=\"pa2_4\" d=\"M84.13,36.13c-3.52-8.48-10.48-12.82-19.74-13v0h-.78v0c-9.26.22-16.22,4.56-19.74,13-3.63,8.71-4.83,21.77,0,39.19,4.69,17,10.54,20.49,19.74,20.67h.78c9.2-.18,15-3.72,19.74-20.67C89,57.9,87.76,44.84,84.13,36.13Z\"/><line class=\"pa2_5\" x1=\"77.58\" x2=\"81.99\" y1=\"52.83\" y2=\"52.83\"/><path class=\"pa2_3\" d=\"M68.5,88a30.85,30.85,0,0,1-9,0c-1.25-.33-2.5-1.12-2.5-2.5s1.2-2.13,2.5-2.5a20.4,20.4,0,0,1,9,0c1.21.31,2.5,1.12,2.5,2.5S69.73,87.68,68.5,88Z\"/><path class=\"pa2_6\" d=\"M82.05,58.11a9.91,9.91,0,0,1-5.73-.37\"/><path class=\"pa2_7\" d=\"M75.42,65A3.31,3.31,0,0,1,82,65c0,1.83-3.31,14.33-5.51,14.33C75.42,79.29,75.42,66.79,75.42,65Z\"/><path class=\"pa2_7\" d=\"M75.37,45A3.31,3.31,0,0,0,82,45c0-1.82-2.59-9.92-4.41-9.92S75.37,43.19,75.37,45Z\"/><line class=\"pa2_5\" x1=\"46.01\" x2=\"50.42\" y1=\"52.83\" y2=\"52.83\"/><path class=\"pa2_6\" d=\"M51.68,57.76a10,10,0,0,1-5.91.29\"/><path class=\"pa2_7\" d=\"M52.63,45A3.31,3.31,0,0,1,46,45c0-1.82,2.59-9.92,4.41-9.92S52.63,43.19,52.63,45Z\"/><path class=\"pa2_7\" d=\"M52.58,65A3.31,3.31,0,0,0,46,65c0,1.83,3.31,14.33,5.51,14.33C52.58,79.29,52.58,66.79,52.58,65Z\"/><path class=\"pa2_7\" d=\"M68.41,90.32c0,1.22-2,2.21-4.41,2.21s-4.41-1-4.41-2.21c0-.62,2-.27,4.41-.27S68.41,89.7,68.41,90.32Z\"/><path class=\"pa2_8\" d=\"M84.13,36.13a21.8,21.8,0,0,0-4.48-6.94c1.45,10.32.63,23.64-1.36,41.86-2.09,19.1-11.43,23.3-21,24a21.16,21.16,0,0,0,6.35.94h.78c9.2-.18,15-3.72,19.74-20.67C89,57.9,87.76,44.84,84.13,36.13Z\"/>"],
+ ["Starlet","0 0 128 128","<defs><style>.pa3_1,.pa3_11{fill:#f85565;}.pa3_14,.pa3_2{fill:#ffffff;}.pa3_10,.pa3_11,.pa3_2{opacity:0.2;}.pa3_3{fill:#f2bc0f;}.pa3_4{fill:#fba875;}.pa3_5{fill:#ffbb94;}.pa3_10,.pa3_13,.pa3_6,.pa3_8,.pa3_9{fill:none;stroke-linecap:round;}.pa3_6,.pa3_9{stroke:#fba875;}.pa3_13,.pa3_6,.pa3_9{stroke-miterlimit:10;}.pa3_6{stroke-width:14px;}.pa3_7{fill:#515570;}.pa3_10,.pa3_8{stroke:#515570;stroke-linejoin:round;}.pa3_13,.pa3_9{stroke-width:3px;}.pa3_10{stroke-width:2px;}.pa3_12{fill:#f8dc25;}.pa3_13{stroke:#f2bc0f;opacity:0.3;}</style></defs><circle class=\"pa3_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa3_2\" cx=\"64\" cy=\"64\" r=\"48\"/><circle class=\"pa3_3\" cx=\"89\" cy=\"60\" r=\"15\"/><circle class=\"pa3_3\" cx=\"82\" cy=\"77\" r=\"10\"/><circle class=\"pa3_3\" cx=\"39\" cy=\"60\" r=\"15\"/><circle class=\"pa3_3\" cx=\"46\" cy=\"77\" r=\"10\"/><path class=\"pa3_3\" d=\"M64,14.88h0a32,32,0,0,1,32,32v4.71A21.59,21.59,0,0,1,74.41,73.17H53.59A21.59,21.59,0,0,1,32,51.59V46.88a32,32,0,0,1,32-32Z\"/><circle class=\"pa3_4\" cx=\"89\" cy=\"60\" r=\"7\"/><path class=\"pa3_5\" d=\"M64,124a59.69,59.69,0,0,0,32.55-9.61l-3.18-10.75A10,10,0,0,0,84,97H44.05a10,10,0,0,0-9.42,6.64l-3.18,10.75A59.69,59.69,0,0,0,64,124Z\"/><line class=\"pa3_6\" x1=\"64\" x2=\"64\" y1=\"88.75\" y2=\"96.5\"/><circle class=\"pa3_4\" cx=\"39\" cy=\"60\" r=\"7\"/><path class=\"pa3_5\" d=\"M64,90A25,25,0,0,1,39,65V47.52a25,25,0,1,1,50,0V65A25,25,0,0,1,64,90Z\"/><circle class=\"pa3_7\" cx=\"76\" cy=\"58.28\" r=\"3\"/><path class=\"pa3_8\" d=\"M70.5,59.37A6.61,6.61,0,0,1,82,58.06\"/><circle class=\"pa3_7\" cx=\"52\" cy=\"58.28\" r=\"3\"/><path class=\"pa3_9\" d=\"M61.75,69a5.29,5.29,0,0,0,4.5,0\"/><line class=\"pa3_10\" x1=\"55\" x2=\"45.75\" y1=\"52\" y2=\"52\"/><circle class=\"pa3_11\" cx=\"51\" cy=\"67\" r=\"5.08\"/><path class=\"pa3_12\" d=\"M36.51,58.15V47.4c0-14.95,11.71-27.61,26.66-28A27.51,27.51,0,0,1,91.49,46.82v-.24a2,2,0,0,1-2,2h0a7.11,7.11,0,0,1-6.31-3.85L77.58,33.92l-7.4,13.73a31.43,31.43,0,0,1-27.67,16.5h0A6,6,0,0,1,36.51,58.15Z\"/><circle class=\"pa3_12\" cx=\"41.61\" cy=\"49.55\" r=\"14.61\"/><circle class=\"pa3_12\" cx=\"44\" cy=\"33.94\" r=\"7.64\"/><path class=\"pa3_13\" d=\"M70.22,34.94,64.9,44.8A25.41,25.41,0,0,1,42.59,58.15h0c-5.28,0-9.59-3.89-9.59-8.6\"/><circle class=\"pa3_12\" cx=\"89.81\" cy=\"41.13\" r=\"7.64\"/><circle class=\"pa3_11\" cx=\"77\" cy=\"67\" r=\"5.08\"/><circle class=\"pa3_7\" cx=\"74.5\" cy=\"71.5\" r=\"1\"/><path class=\"pa3_14\" d=\"M83.32,120.9,76,96.5H74l-8.76,27.57A59.72,59.72,0,0,0,83.32,120.9Z\"/><path class=\"pa3_14\" d=\"M61.52,124,54,96.5H52l-7.32,24.4A59.66,59.66,0,0,0,61.52,124Z\"/><path class=\"pa3_1\" d=\"M71.12,78.48a.49.49,0,0,0-.19-.7c-.71-.39-2-1.08-2.75-1.61a2.51,2.51,0,0,0-2.76,0h0a2.42,2.42,0,0,1-2.84,0h0a2.51,2.51,0,0,0-2.76,0c-.78.51-2,1.18-2.69,1.58a.49.49,0,0,0-.17.72c.77,1.11,2,4.35,6.82,4.47h.44C69,82.8,70.41,79.61,71.12,78.48Z\"/><path class=\"pa3_14\" d=\"M61,78.85h6s-.6,1.3-3,1.3S61,78.85,61,78.85Z\"/><circle class=\"pa3_14\" cx=\"90\" cy=\"68\" r=\"3\"/><circle class=\"pa3_14\" cx=\"38\" cy=\"68\" r=\"3\"/><path class=\"pa3_10\" d=\"M72,51l5.18-2.36a4.6,4.6,0,0,1,4.67.5L83,50\"/>"],
+ ["Chemist","0 0 128 128","<defs> <style>.pa4_1{fill:#4bc190;}.pa4_2{fill:#356cb6;}.pa4_13,.pa4_2{opacity:0.3;}.pa4_3{fill:#fbc0aa;}.pa4_4{fill:#f8dc25;}.pa4_5{fill:#f2bc0f;}.pa4_6{fill:#ffffff;}.pa4_12,.pa4_13,.pa4_16,.pa4_7{fill:none;stroke-linecap:round;stroke-linejoin:round;}.pa4_12,.pa4_7{stroke:#fbc0aa;}.pa4_7{stroke-width:20px;}.pa4_8{fill:#ffd8c9;}.pa4_14,.pa4_19,.pa4_9{fill:#515570;}.pa4_9{opacity:0.2;}.pa4_10,.pa4_17{fill:#f85565;}.pa4_10{opacity:0.4;}.pa4_11{fill:#7f3838;}.pa4_12{stroke-width:4px;}.pa4_13{stroke:#f85565;}.pa4_13,.pa4_16{stroke-width:2px;}.pa4_14,.pa4_20{opacity:0.1;}.pa4_15{fill:#393c54;}.pa4_16{stroke:#515570;}.pa4_18{fill:#ff8475;}</style> </defs> <circle class=\"pa4_1\" cx=\"64\" cy=\"64\" r=\"60\"/> <circle class=\"pa4_2\" cx=\"64\" cy=\"64\" r=\"48\"/> <circle class=\"pa4_3\" cx=\"91.32\" cy=\"60.43\" r=\"7.93\"/> <path class=\"pa4_4\" d=\"M101.6,103.14c-1.71-4-6.22-6.64-11.29-6.64H88.87C87.57,84.8,76.93,82,64,82S40.43,84.8,39.13,96.5H37.69c-5.07,0-9.58,2.66-11.29,6.64L24,108.82a60,60,0,0,0,80,0Z\"/> <path class=\"pa4_5\" d=\"M64,124.1l1,0V112a1,1,0,0,0-2,0v12.08Z\"/> <path class=\"pa4_6\" d=\"M76,100a12,12,0,1,0-20.93,8H55l7.51,8.35a2,2,0,0,0,3,0L73,108h0A11.89,11.89,0,0,0,76,100Z\"/> <line class=\"pa4_7\" x1=\"64\" x2=\"64\" y1=\"84.75\" y2=\"98.5\"/> <circle class=\"pa4_3\" cx=\"36.68\" cy=\"60.43\" r=\"7.93\"/> <path class=\"pa4_8\" d=\"M64,96C52.47,96,39.88,86.07,36.4,66.2c-3.27-18.66-1-23.74-1-23.74,0-16.41,57.32-16.41,57.32,0,0,0,1.22,7.16-1,23.74C89.19,84,75.55,96,64,96Z\"/> <path class=\"pa4_9\" d=\"M73.17,88.08H54.83c0-1.6-1.08-8.44.17-11.22,2.71-6,9-8.69,9-8.69s6.65,2.53,9.32,8.69C74.41,79.35,73.17,86.62,73.17,88.08Z\"/> <path class=\"pa4_10\" d=\"M64,81c5,0,7-3,7-3H57S59,81,64,81Z\"/> <path class=\"pa4_11\" d=\"M75,78c-.07-5-6-5.08-11-5.08S53.08,73,53,78h0V94.16a28.48,28.48,0,0,0,22,0V78Zm-5,9H67.78a1,1,0,0,1-1-.76l-.62-2.48a1,1,0,0,0-1-.76H62.78a1,1,0,0,0-1,.76l-.62,2.48a1,1,0,0,1-1,.76H58a2,2,0,0,1-2-2V80.08a2,2,0,0,1,2-2H70a2,2,0,0,1,2,2V85A2,2,0,0,1,70,87Z\"/> <line class=\"pa4_12\" x1=\"64\" x2=\"64\" y1=\"59.75\" y2=\"72.25\"/> <line class=\"pa4_12\" x1=\"66.5\" x2=\"61.5\" y1=\"71\" y2=\"71\"/> <line class=\"pa4_13\" x1=\"66\" x2=\"67\" y1=\"70\" y2=\"70\"/> <path class=\"pa4_14\" d=\"M91.61,66.29A9.71,9.71,0,0,0,83,76v9.83A38.42,38.42,0,0,0,91.61,66.29Z\"/> <path class=\"pa4_14\" d=\"M36.42,66.31C37.89,74.62,41,81.17,44.88,86V76A9.72,9.72,0,0,0,36.42,66.31Z\"/> <path class=\"pa4_15\" d=\"M70.41,56H82.59A2.41,2.41,0,0,1,85,58.41V62a6,6,0,0,1-6,6H74.57A6.57,6.57,0,0,1,68,61.43v-3A2.41,2.41,0,0,1,70.41,56Z\"/> <path class=\"pa4_15\" d=\"M49.57,56H54a6,6,0,0,1,6,6v3.56A2.41,2.41,0,0,1,57.59,68H45.41A2.41,2.41,0,0,1,43,65.59v-3A6.57,6.57,0,0,1,49.57,56Z\" transform=\"translate(103 124) rotate(180)\"/> <path class=\"pa4_16\" d=\"M70.41,56H82.59A2.41,2.41,0,0,1,85,58.41V62a6,6,0,0,1-6,6H74.57A6.57,6.57,0,0,1,68,61.43v-3A2.41,2.41,0,0,1,70.41,56Z\"/> <path class=\"pa4_16\" d=\"M49.57,56H54a6,6,0,0,1,6,6v3.56A2.41,2.41,0,0,1,57.59,68H45.41A2.41,2.41,0,0,1,43,65.59v-3A6.57,6.57,0,0,1,49.57,56Z\" transform=\"translate(103 124) rotate(180)\"/> <path class=\"pa4_16\" d=\"M60,62a4,4,0,0,1,8,0\"/> <line class=\"pa4_16\" x1=\"85\" x2=\"92.32\" y1=\"58.41\" y2=\"52.5\"/> <line class=\"pa4_16\" x1=\"43\" x2=\"35.68\" y1=\"58.41\" y2=\"52.57\"/> <rect class=\"pa4_15\" height=\"15\" rx=\"2\" width=\"60\" x=\"34\" y=\"31\"/> <polygon class=\"pa4_15\" points=\"76 25.33 51.61 25.33 40.61 32.33 87 32.33 76 25.33\"/> <line class=\"pa4_16\" x1=\"34\" x2=\"94\" y1=\"32\" y2=\"32\"/> <path class=\"pa4_15\" d=\"M24.22,27H47.79a0,0,0,0,1,0,0v4.71A2.36,2.36,0,0,1,45.42,34H26.58a2.36,2.36,0,0,1-2.36-2.36V27a0,0,0,0,1,0,0Z\" transform=\"translate(-11.02 34.39) rotate(-45)\"/> <rect class=\"pa4_17\" height=\"3.54\" rx=\"1.77\" transform=\"translate(-9.81 31.47) rotate(-45)\" width=\"28.28\" x=\"18.94\" y=\"25.82\"/> <path class=\"pa4_18\" d=\"M30.77,20.73l-8.94,8.94a2.35,2.35,0,0,0,0,3.33l1.67,1.67L40.17,18l-.41-.41A2.36,2.36,0,0,0,37,17.2l-5.66,3.14A2.53,2.53,0,0,0,30.77,20.73Z\"/> <path class=\"pa4_15\" d=\"M82.58,27h18.84a2.36,2.36,0,0,1,2.36,2.36V34a0,0,0,0,1,0,0H80.21a0,0,0,0,1,0,0V29.33A2.36,2.36,0,0,1,82.58,27Z\" transform=\"translate(135.48 117.12) rotate(-135)\"/> <rect class=\"pa4_17\" height=\"3.54\" rx=\"1.77\" transform=\"translate(142.53 114.2) rotate(-135)\" width=\"28.28\" x=\"80.77\" y=\"25.82\"/> <path class=\"pa4_18\" d=\"M97.23,20.73l8.94,8.94a2.35,2.35,0,0,1,0,3.33l-1.67,1.67L87.83,18l.41-.41a2.36,2.36,0,0,1,2.81-.39l5.66,3.14A2.53,2.53,0,0,1,97.23,20.73Z\"/> <polygon class=\"pa4_15\" points=\"71 26 57 26 55 19 73 19 71 26\"/> <line class=\"pa4_16\" x1=\"53\" x2=\"75\" y1=\"19\" y2=\"19\"/> <path class=\"pa4_19\" d=\"M95.38,51.81l-10-9.24,4.07-4.41,10,9.23a3,3,0,0,1,.18,4.24h0A3,3,0,0,1,95.38,51.81Z\"/> <path class=\"pa4_19\" d=\"M32.38,51.81l10-9.24-4.07-4.41-10,9.23a3,3,0,0,0-.17,4.24h0A3,3,0,0,0,32.38,51.81Z\"/> <g class=\"pa4_20\"> <polyline class=\"pa4_16\" points=\"48 48 59 50 71 49 82 48\"/> <polyline class=\"pa4_16\" points=\"47 51 60 54 69 53 82 53\"/> <line class=\"pa4_16\" x1=\"56\" x2=\"61\" y1=\"43\" y2=\"58\"/> <line class=\"pa4_16\" x1=\"65\" x2=\"64\" y1=\"43\" y2=\"58\"/> </g> <path class=\"pa4_5\" d=\"M37.69,96.5a14.18,14.18,0,0,0-3.08.34S36,106,44,110a19.32,19.32,0,0,1-4.87-13.5Z\"/> <path class=\"pa4_5\" d=\"M84,110c8-4,9.39-13.16,9.39-13.16a14.18,14.18,0,0,0-3.08-.34H88.87A19.32,19.32,0,0,1,84,110Z\"/>"],
+ ["Night Bat","0 0 128 128","<defs><style>.pa5_1{fill:#f2bc0f;}.pa5_2,.pa5_8{fill:#ffffff;}.pa5_2{opacity:0.3;}.pa5_3{fill:#515570;}.pa5_4{fill:#393c54;}.pa5_5{fill:#ffd8c9;}.pa5_10,.pa5_12,.pa5_6,.pa5_7,.pa5_9{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:2px;}.pa5_6{stroke:#393c54;}.pa5_10,.pa5_7,.pa5_9{stroke:#515570;}.pa5_7{opacity:0.1;}.pa5_9{opacity:0.4;}.pa5_11{fill:#f8dc25;}.pa5_12{stroke:#fbc0aa;}</style></defs><circle class=\"pa5_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa5_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa5_3\" d=\"M64,124.1a59.78,59.78,0,0,0,40-15.28l-2.39-5.68c-1.71-4-6.22-6.64-11.29-6.64H37.69c-5.07,0-9.58,2.66-11.29,6.64L24,108.82A59.78,59.78,0,0,0,64,124.1Z\"/><path class=\"pa5_4\" d=\"M95.25,60.43c0,4.38.45,7.93-3.93,7.93a7.93,7.93,0,1,1,0-15.86C95.7,52.5,95.25,56.05,95.25,60.43Z\"/><path class=\"pa5_4\" d=\"M44.61,60.43a7.93,7.93,0,0,1-7.93,7.93c-4.38,0-3.93-3.55-3.93-7.93s-.45-7.93,3.93-7.93A7.93,7.93,0,0,1,44.61,60.43Z\"/><path class=\"pa5_5\" d=\"M64,95.37A28.31,28.31,0,0,1,35.68,67.05V52.43c0-15.64,12.68-25.32,28.32-25.32s28.32,9.68,28.32,25.32V67.05A28.31,28.31,0,0,1,64,95.37Z\"/><path class=\"pa5_6\" d=\"M56.41,82.07A.91.91,0,0,1,57.25,81h13.5a.91.91,0,0,1,.84,1.07\"/><path class=\"pa5_7\" d=\"M90.91,67A13.34,13.34,0,0,0,79.09,80.34v4.49\"/><path class=\"pa5_7\" d=\"M37.09,67A13.34,13.34,0,0,1,48.91,80.34v4.49\"/><path class=\"pa5_4\" d=\"M35,67.53l27.68,6.22a6.14,6.14,0,0,0,2.63,0L93,67.53V22.7a1,1,0,0,0-1.6-.8l-10,7.45s-6.12-5.8-17.39-5.8A27.83,27.83,0,0,0,45.92,30l-9.27-7.9a1,1,0,0,0-1.65.76Z\"/><path class=\"pa5_8\" d=\"M46.13,57.75,55.88,60a5,5,0,1,1-9.75-2.21Z\"/><circle class=\"pa5_4\" cx=\"51\" cy=\"59.02\" r=\"2.72\"/><line class=\"pa5_9\" x1=\"56.36\" x2=\"45.64\" y1=\"60.07\" y2=\"57.63\"/><line class=\"pa5_10\" x1=\"56.36\" x2=\"45.64\" y1=\"59.07\" y2=\"56.63\"/><path class=\"pa5_11\" d=\"M78,111.82a.5.5,0,0,0-.26-.93H69.65a.7.7,0,0,0-.65.43h0a3.15,3.15,0,0,1-2.3,1.89l-1,.21a.36.36,0,0,1-.43-.29L65,111.72a.08.08,0,0,0-.15,0l-.28.66a2.37,2.37,0,0,0-1.06,0l-.28-.66a.08.08,0,0,0-.15,0l-.27,1.41a.36.36,0,0,1-.43.29l-1-.21a3.15,3.15,0,0,1-2.3-1.89h0a.7.7,0,0,0-.65-.43H50.29a.5.5,0,0,0-.26.93,5.67,5.67,0,0,1,2.85,4.72.49.49,0,0,0,.56.49,13.27,13.27,0,0,1,5.89.46,9.19,9.19,0,0,1,4.26,3.41.5.5,0,0,0,.82,0,9.19,9.19,0,0,1,4.26-3.41,13.27,13.27,0,0,1,5.89-.46.49.49,0,0,0,.56-.49A5.67,5.67,0,0,1,78,111.82Z\"/><path class=\"pa5_8\" d=\"M81.87,57.75,72.12,60a5,5,0,1,0,9.75-2.21Z\"/><circle class=\"pa5_4\" cx=\"77.06\" cy=\"59.01\" r=\"2.63\"/><line class=\"pa5_9\" x1=\"71.64\" x2=\"82.36\" y1=\"60.07\" y2=\"57.63\"/><line class=\"pa5_10\" x1=\"71.64\" x2=\"82.36\" y1=\"59.07\" y2=\"56.63\"/><path class=\"pa5_4\" d=\"M93,96.5V67l-5,1.36L85.25,80.65a15.8,15.8,0,0,1-7.39,10.16l-2.14.93a29.26,29.26,0,0,1-23.44,0l-2.14-.93a15.8,15.8,0,0,1-7.39-10.16L40,68.36,35,67V96.5l-16.46,6.64,1.37,1.55a60.21,60.21,0,0,0,17.24,13l19.35-13A14,14,0,0,1,64,102.5a16.37,16.37,0,0,1,7.5,1.81l19.37,13.34a60.39,60.39,0,0,0,17-12.72c.56-.61,1.1-1.21,1.61-1.79Z\"/><path class=\"pa5_12\" d=\"M60,90a7,7,0,0,1,8,0\"/><path class=\"pa5_3\" d=\"M64,63.12v8.21a.51.51,0,0,1-.63.49l-3.62-1a.51.51,0,0,1-.31-.71l3.61-7.23A.5.5,0,0,1,64,63.12Z\"/>"],
+ ["Kiddo","0 0 128 128","<defs><style>.pa6_1,.pa6_12{fill:#f85565;}.pa6_15,.pa6_2,.pa6_7{fill:#ffffff;}.pa6_2{opacity:0.2;}.pa6_3{fill:#4bc190;}.pa6_4,.pa6_6{fill:#356cb6;}.pa6_4{opacity:0.3;}.pa6_5{fill:#fbc0aa;}.pa6_10,.pa6_11,.pa6_16,.pa6_8{fill:none;stroke-linecap:round;}.pa6_11,.pa6_8{stroke:#fbc0aa;}.pa6_10,.pa6_11,.pa6_8{stroke-linejoin:round;}.pa6_8{stroke-width:14px;}.pa6_9{fill:#ffd8c9;}.pa6_10,.pa6_16{stroke:#515570;}.pa6_10{stroke-width:1.89px;}.pa6_10,.pa6_15{opacity:0.4;}.pa6_11{stroke-width:3px;}.pa6_12{opacity:0.1;}.pa6_13{fill:#393c54;}.pa6_14{fill:#515570;}.pa6_16{stroke-miterlimit:10;stroke-width:4px;}</style></defs><circle class=\"pa6_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa6_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa6_3\" d=\"M89,51.35l12.66,14.82A4,4,0,0,1,98.11,72H75.67l-4-23Z\"/><path class=\"pa6_4\" d=\"M89,51.35l12.66,14.82A4,4,0,0,1,98.11,72H75.67l-4-23Z\"/><circle class=\"pa6_5\" cx=\"89.84\" cy=\"70.87\" r=\"7.5\"/><path class=\"pa6_6\" d=\"M64,124a59.75,59.75,0,0,0,37.53-13.2l-2-5.53C98,101.5,93.68,99,88.89,99H39.11c-4.79,0-9.07,2.51-10.68,6.28l-2,5.53A59.75,59.75,0,0,0,64,124Z\"/><path class=\"pa6_7\" d=\"M74.26,101.86c0,5.66-4.6,9.25-10.26,9.25s-10.26-3.59-10.26-9.25,4.6-3.42,10.26-3.42S74.26,96.19,74.26,101.86Z\"/><line class=\"pa6_8\" x1=\"64\" x2=\"64\" y1=\"88.88\" y2=\"100.88\"/><circle class=\"pa6_5\" cx=\"38.16\" cy=\"70.87\" r=\"7.5\"/><path class=\"pa6_9\" d=\"M64,98A26.78,26.78,0,0,1,37.21,71.19V61.57a26.79,26.79,0,0,1,53.58,0v9.62A26.78,26.78,0,0,1,64,98Z\"/><circle class=\"pa6_3\" cx=\"64\" cy=\"27.38\" r=\"4\"/><circle class=\"pa6_4\" cx=\"64\" cy=\"27.38\" r=\"4\"/><line class=\"pa6_10\" x1=\"74.12\" x2=\"83.21\" y1=\"64.84\" y2=\"64.6\"/><line class=\"pa6_10\" x1=\"53.88\" x2=\"44.79\" y1=\"64.84\" y2=\"64.6\"/><polyline class=\"pa6_11\" points=\"64 70 64 75 66.36 79.03 61.63 79.03\"/><ellipse class=\"pa6_12\" cx=\"51.15\" cy=\"78.72\" rx=\"4.34\" ry=\"2.82\"/><ellipse class=\"pa6_12\" cx=\"76.85\" cy=\"78.72\" rx=\"4.34\" ry=\"2.82\"/><path class=\"pa6_13\" d=\"M71.55,84a1,1,0,0,1,.94,1.07,8.56,8.56,0,0,1-17,0A1,1,0,0,1,56.45,84Z\"/><path class=\"pa6_1\" d=\"M59,90.91a8.52,8.52,0,0,0,10.08,0C68,89.16,66.17,89,64,89S60,89.16,59,90.91Z\"/><rect class=\"pa6_7\" height=\"2\" width=\"2\" x=\"62\" y=\"84\"/><rect class=\"pa6_7\" height=\"2\" width=\"2\" x=\"65\" y=\"84\"/><circle class=\"pa6_14\" cx=\"76\" cy=\"70.87\" r=\"3\"/><circle class=\"pa6_14\" cx=\"52\" cy=\"70.87\" r=\"3\"/><path class=\"pa6_13\" d=\"M91.49,60.12V59.4c0-14.95-11.71-27.61-26.66-28A27.51,27.51,0,0,0,36.51,58.82v1.33a2,2,0,0,0,2,2h7.38a6.23,6.23,0,0,0,5.35-3l2.52-4.19s13,0,13,0c4.4,4.34,10,7.18,16.21,7.18h6.44A2,2,0,0,0,91.49,60.12Z\"/><path class=\"pa6_3\" d=\"M90.92,57a2,2,0,0,0,2-2.15c-1.06-14.82-13-27-28-27.45-15.67-.47-28.68,12.13-29.8,27.46a2,2,0,0,0,2,2.14Z\"/><path class=\"pa6_15\" d=\"M74,57c.56,0,1-1,1-2.15-.52-14.82-3.29-27-10.57-27.45C56.84,26.93,48.54,39.53,48,54.86,48,56,48.41,57,49,57Z\"/><path class=\"pa6_13\" d=\"M70.67,52c0,5-18.07,5-18.07,0a9,9,0,0,1,18.07,0Z\"/><path class=\"pa6_16\" d=\"M66.08,47.92a6,6,0,0,0-4.45-2H51.94\"/><path class=\"pa6_3\" d=\"M48,52H75.5A2.5,2.5,0,0,1,78,54.5v0A2.5,2.5,0,0,1,75.5,57H48a1,1,0,0,1-1-1V53a1,1,0,0,1,1-1Z\"/><path class=\"pa6_4\" d=\"M48,52H75.5A2.5,2.5,0,0,1,78,54.5v0A2.5,2.5,0,0,1,75.5,57H48a1,1,0,0,1-1-1V53a1,1,0,0,1,1-1Z\"/><circle class=\"pa6_13\" cx=\"74.67\" cy=\"54.5\" r=\"1\"/><circle class=\"pa6_13\" cx=\"70.67\" cy=\"54.5\" r=\"1\"/><circle class=\"pa6_13\" cx=\"66.67\" cy=\"54.5\" r=\"1\"/><circle class=\"pa6_13\" cx=\"62.67\" cy=\"54.5\" r=\"1\"/><circle class=\"pa6_13\" cx=\"58.67\" cy=\"54.5\" r=\"1\"/><circle class=\"pa6_13\" cx=\"54.67\" cy=\"54.5\" r=\"1\"/>"],
+ ["Cactus","0 0 128 128","<defs><style>.pa7_1{fill:#ffd8c9;}.pa7_2{fill:#ffffff;}.pa7_15,.pa7_2,.pa7_5,.pa7_6,.pa7_9{opacity:0.3;}.pa7_16,.pa7_17,.pa7_3,.pa7_4,.pa7_5,.pa7_6,.pa7_8{fill:none;stroke-linecap:round;}.pa7_3,.pa7_4{stroke:#4bc190;}.pa7_16,.pa7_17,.pa7_3,.pa7_4,.pa7_5,.pa7_6{stroke-linejoin:round;}.pa7_3,.pa7_5{stroke-width:2.42px;}.pa7_4,.pa7_6{stroke-width:2.5px;}.pa7_5,.pa7_6{stroke:#356cb6;}.pa7_7{fill:#4bc190;}.pa7_8{stroke:#ffffff;stroke-miterlimit:10;stroke-width:4px;}.pa7_17,.pa7_8{opacity:0.2;}.pa7_9{fill:#356cb6;}.pa7_10,.pa7_15{fill:#f85565;}.pa7_11{fill:#8f5653;}.pa7_12{fill:#b56b63;}.pa7_13{fill:#db7a72;opacity:0.5;}.pa7_14{fill:#393c54;}.pa7_16{stroke:#393c54;}.pa7_16,.pa7_17{stroke-width:2px;}.pa7_17{stroke:#515570;}</style></defs><circle class=\"pa7_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa7_2\" cx=\"64\" cy=\"64\" r=\"48\"/><polyline class=\"pa7_3\" points=\"38.77 76.14 42.77 79 38.77 81.86\"/><polyline class=\"pa7_3\" points=\"38.77 60.14 42.77 63 38.77 65.86\"/><polyline class=\"pa7_3\" points=\"38.77 44.14 42.77 47 38.77 49.86\"/><polyline class=\"pa7_4\" points=\"46.67 29.5 47.5 34.5 42.5 33.67\"/><polyline class=\"pa7_3\" points=\"89.53 76.14 85.53 79 89.53 81.86\"/><polyline class=\"pa7_3\" points=\"89.53 60.14 85.53 63 89.53 65.86\"/><polyline class=\"pa7_3\" points=\"90.53 44.14 86.53 47 90.53 49.86\"/><polyline class=\"pa7_4\" points=\"81.63 29.5 80.79 34.5 85.79 33.67\"/><polyline class=\"pa7_5\" points=\"89.53 76.14 85.53 79 89.53 81.86\"/><polyline class=\"pa7_5\" points=\"89.53 60.14 85.53 63 89.53 65.86\"/><polyline class=\"pa7_5\" points=\"90.53 44.14 86.53 47 90.53 49.86\"/><polyline class=\"pa7_6\" points=\"81.63 29.5 80.79 34.5 85.79 33.67\"/><path class=\"pa7_7\" d=\"M64,109A22,22,0,0,1,42,87V49a22,22,0,0,1,44,0V87A22,22,0,0,1,64,109Z\"/><path class=\"pa7_8\" d=\"M48,49A16,16,0,0,1,64,33\"/><path class=\"pa7_9\" d=\"M76.27,30.73A22,22,0,0,1,80,43V74A22,22,0,0,1,45.73,92.27,22,22,0,0,0,64,102c12.15,0,22-2.85,22-15V49A22,22,0,0,0,76.27,30.73Z\"/><path class=\"pa7_10\" d=\"M63.5,21.17a3.29,3.29,0,0,0-4.88.24,3.38,3.38,0,0,0,.31,4.52l4,4a.78.78,0,0,0,1.1,0l4-4a3.38,3.38,0,0,0,.31-4.52A3.29,3.29,0,0,0,63.5,21.17Z\"/><path class=\"pa7_11\" d=\"M40,119a60,60,0,0,0,47,.45L90,93H37Z\"/><rect class=\"pa7_12\" height=\"11\" rx=\"2\" width=\"62\" x=\"33\" y=\"88\"/><path class=\"pa7_13\" d=\"M93,88H35a2,2,0,0,0-2,2v3a2,2,0,0,1,2-2H93a2,2,0,0,1,2,2V90A2,2,0,0,0,93,88Z\"/><path class=\"pa7_14\" d=\"M71.55,66.34a1,1,0,0,1,.94,1.08,8.54,8.54,0,0,1-17,0,1,1,0,0,1,.94-1.08Z\"/><path class=\"pa7_10\" d=\"M64,69a9.08,9.08,0,0,0-6.6,2.84,8.47,8.47,0,0,0,13.2,0A9.08,9.08,0,0,0,64,69Z\"/><ellipse class=\"pa7_15\" cx=\"53\" cy=\"63.31\" rx=\"3\" ry=\"2.02\"/><ellipse class=\"pa7_15\" cx=\"75\" cy=\"63.31\" rx=\"3\" ry=\"2.02\"/><ellipse class=\"pa7_14\" cx=\"75\" cy=\"58.25\" rx=\"2\" ry=\"2.02\"/><path class=\"pa7_14\" d=\"M57.65,57.16c-.61-2.73-2.84-2.46-5.54-1.84s-4.82,1.35-4.21,4.08a5,5,0,1,0,9.75-2.24Z\"/><line class=\"pa7_16\" x1=\"55\" x2=\"83\" y1=\"56.23\" y2=\"37.01\"/><line class=\"pa7_16\" x1=\"49\" x2=\"42\" y1=\"58.25\" y2=\"58.25\"/><line class=\"pa7_17\" x1=\"61\" x2=\"67\" y1=\"78\" y2=\"78\"/>"],
+ ["Rainy","0 0 128 128","<defs><style>.pa8_1{fill:#00adfe;}.pa8_2,.pa8_3{fill:#ffffff;}.pa8_2{opacity:0.3;}.pa8_10,.pa8_4{fill:#393c54;}.pa8_4{opacity:0.1;}.pa8_5{fill:#f85565;}.pa8_6{fill:#f8dc25;}.pa8_7{fill:#4bc190;}.pa8_8{fill:#356cb6;}.pa8_9{fill:none;stroke:#515570;stroke-linecap:round;stroke-linejoin:round;stroke-width:2px;}</style></defs><circle class=\"pa8_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa8_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa8_3\" d=\"M109.39,68.76A17.56,17.56,0,0,0,91.82,51.2a18.1,18.1,0,0,0-3.85.43,26.19,26.19,0,0,0-40-10A16.33,16.33,0,0,0,24.82,59a8.78,8.78,0,0,0-3.37,15.75,21,21,0,0,0,24.86,28.09,11.37,11.37,0,0,0,19.21,3.8A21,21,0,0,0,99.13,89.81,21.27,21.27,0,0,0,98.56,85,17.56,17.56,0,0,0,109.39,68.76Z\"/><path class=\"pa8_4\" d=\"M109.39,68.76A17.56,17.56,0,0,0,91.82,51.2a18.1,18.1,0,0,0-3.85.43,26.19,26.19,0,0,0-40-10A16.33,16.33,0,0,0,24.82,59a8.78,8.78,0,0,0-3.37,15.75,21,21,0,0,0,24.86,28.09,11.37,11.37,0,0,0,19.21,3.8A21,21,0,0,0,99.13,89.81,21.27,21.27,0,0,0,98.56,85,17.56,17.56,0,0,0,109.39,68.76Z\"/><path class=\"pa8_3\" d=\"M106.53,60.49c-.07-.48-.18-1.09-.32-1.78A17.51,17.51,0,0,0,91.82,51.2a18.1,18.1,0,0,0-3.85.43,26.19,26.19,0,0,0-40-10A16.33,16.33,0,0,0,24.82,59a8.8,8.8,0,0,0-6.47,5.5A9.88,9.88,0,0,0,29.41,71,17.89,17.89,0,0,0,59.08,88.19a17.77,17.77,0,0,0,32.73-9.6,18,18,0,0,0-.35-3.47,12.93,12.93,0,0,0,15.07-14.63Z\"/><path class=\"pa8_5\" d=\"M97.22,14A59.64,59.64,0,0,0,81.14,6.5,72.93,72.93,0,0,0,43.69,58.18L56.76,60.5A59.72,59.72,0,0,1,97.22,14Z\"/><path class=\"pa8_6\" d=\"M97.23,14.05A60,60,0,0,0,56.76,60.5l13.08,2.32a46.53,46.53,0,0,1,39.61-38A60,60,0,0,0,97.23,14.05Z\"/><path class=\"pa8_7\" d=\"M118,37.83a60,60,0,0,0-8.55-13,46.42,46.42,0,0,0-39.61,38l13.08,2.32a33.13,33.13,0,0,1,32.63-27.41C116.36,37.73,117.18,37.77,118,37.83Z\"/><path class=\"pa8_4\" d=\"M82.92,65.14a33.14,33.14,0,0,1,4.63-12A13,13,0,0,0,71,54.11a16.49,16.49,0,0,0-10.21-3.56h-.33a12.94,12.94,0,0,0-8-8.74A12.63,12.63,0,0,0,49,41a73.4,73.4,0,0,0-5.26,17.14L56.76,60.5h0l13.08,2.32h0Z\"/><path class=\"pa8_8\" d=\"M70,123.7a59.86,59.86,0,0,0,10-1.87V76H70Z\"/><path class=\"pa8_8\" d=\"M40,119a59.62,59.62,0,0,0,10,3.35V76H40Z\"/><path class=\"pa8_3\" d=\"M83,55.21A9,9,0,0,0,71.4,60.5h0a12.42,12.42,0,0,0-14.55-5.3A9,9,0,1,0,49,63a12.44,12.44,0,0,0,23.42,8.41A12.7,12.7,0,0,0,73,69.49,9,9,0,1,0,83,55.21Z\"/><path class=\"pa8_9\" d=\"M66,72a4,4,0,0,0,4,4H80\"/><path class=\"pa8_9\" d=\"M53.67,72a4,4,0,0,1-4,4H40\"/><path class=\"pa8_10\" d=\"M52.45,94a1,1,0,0,1-.94-1.06,8.56,8.56,0,0,1,17,0A1,1,0,0,1,67.55,94Z\"/><path class=\"pa8_5\" d=\"M65.75,94a6.06,6.06,0,0,0-11.5,0Z\"/><path class=\"pa8_8\" d=\"M36,110a2,2,0,0,1-4,0c0-1.1.9-3.41,2-3.41S36,108.9,36,110Z\"/><path class=\"pa8_8\" d=\"M58.67,119a2,2,0,0,1-4,0c0-1.1.89-3.41,2-3.41S58.67,117.9,58.67,119Z\"/><path class=\"pa8_8\" d=\"M66,115.41a2,2,0,0,1-4,0c0-1.1.9-3.41,2-3.41S66,114.31,66,115.41Z\"/><path class=\"pa8_8\" d=\"M87.55,115.41a2,2,0,0,1-4,0c0-1.1.9-3.41,2-3.41S87.55,114.31,87.55,115.41Z\"/>"],
+ ["Bean","0 0 128 128","<defs><style>.pa9_1{fill:#515570;}.pa9_2{fill:#6b718e;}.pa9_11,.pa9_3,.pa9_6{fill:#ffffff;}.pa9_4{fill:#356cb6;opacity:0.1;}.pa9_5{fill:#a7aece;}.pa9_6{opacity:0.3;}.pa9_7,.pa9_8{fill:#393c54;}.pa9_8{opacity:0.15;}.pa9_9{fill:#f85565;}.pa9_10{fill:none;stroke:#f85565;stroke-linecap:round;stroke-linejoin:round;stroke-width:2px;}.pa9_11{opacity:0.2;}</style></defs><circle class=\"pa9_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa9_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa9_3\" d=\"M40.55,119.5A59.73,59.73,0,0,0,64,124.1a59.73,59.73,0,0,0,23.45-4.6L92,51H36Z\"/><path class=\"pa9_4\" d=\"M84.56,51l-5.92,54.15A16.41,16.41,0,0,1,67.46,119a89.27,89.27,0,0,1-18.58,3.32A62.17,62.17,0,0,0,64,124.1a59.73,59.73,0,0,0,23.45-4.6L92,51Z\"/><path class=\"pa9_5\" d=\"M84,32.67H45a3,3,0,0,0-2.76,1.81L38,44.33H91l-4.22-9.85A3,3,0,0,0,84,32.67Z\"/><path class=\"pa9_6\" d=\"M84,32.67H45a3,3,0,0,0-2.76,1.81L38,44.33H91l-4.22-9.85A3,3,0,0,0,84,32.67Z\"/><path class=\"pa9_7\" d=\"M64,94H81a0,0,0,0,1,0,0v0a5,5,0,0,1-5,5H69a5,5,0,0,1-5-5v0a0,0,0,0,1,0,0Z\" transform=\"translate(27.44 -15.47) rotate(15)\"/><path class=\"pa9_7\" d=\"M47,94H64a0,0,0,0,1,0,0v0a5,5,0,0,1-5,5H52a5,5,0,0,1-5-5v0A0,0,0,0,1,47,94Z\" transform=\"translate(-23.07 17.66) rotate(-15)\"/><rect class=\"pa9_5\" height=\"12\" rx=\"2.06\" width=\"66\" x=\"31\" y=\"41\"/><path class=\"pa9_8\" d=\"M94.94,41h-9A2.06,2.06,0,0,1,88,43.06v7.88A2.06,2.06,0,0,1,85.94,53h9A2.06,2.06,0,0,0,97,50.94V43.06A2.06,2.06,0,0,0,94.94,41Z\"/><path class=\"pa9_9\" d=\"M91.65,91.13l1.8-27a2,2,0,0,0-2-2.13H35.54a2,2,0,0,0-2,2.13l1.8,27a2,2,0,0,0,2,1.87H89.66A2,2,0,0,0,91.65,91.13Z\"/><path class=\"pa9_9\" d=\"M91.65,91.13l1.8-27a2,2,0,0,0-2-2.13H35.54a2,2,0,0,0-2,2.13l1.8,27a2,2,0,0,0,2,1.87H89.66A2,2,0,0,0,91.65,91.13Z\"/><path class=\"pa9_8\" d=\"M91.46,62h-8a2,2,0,0,1,2,2.13l-1.8,27a2,2,0,0,1-2,1.87h8a2,2,0,0,0,2-1.87l1.8-27A2,2,0,0,0,91.46,62Z\"/><ellipse class=\"pa9_3\" cx=\"76.5\" cy=\"80\" rx=\"8.17\" ry=\"4.61\"/><ellipse class=\"pa9_3\" cx=\"51.5\" cy=\"80\" rx=\"8.17\" ry=\"4.61\"/><circle class=\"pa9_1\" cx=\"76.75\" cy=\"78.8\" r=\"3\"/><circle class=\"pa9_1\" cx=\"51.25\" cy=\"78.8\" r=\"3\"/><line class=\"pa9_10\" x1=\"59\" x2=\"69\" y1=\"104\" y2=\"104\"/><path class=\"pa9_9\" d=\"M100,65h10a0,0,0,0,1,0,0v0a7,7,0,0,1-7,7H93a0,0,0,0,1,0,0v0A7,7,0,0,1,100,65Z\"/><path class=\"pa9_9\" d=\"M100,72h10a0,0,0,0,1,0,0v0a7,7,0,0,1-7,7H93a0,0,0,0,1,0,0v0A7,7,0,0,1,100,72Z\" transform=\"translate(83.12 -49.66) rotate(45)\"/><path class=\"pa9_11\" d=\"M100,72h10a0,0,0,0,1,0,0v0a7,7,0,0,1-7,7H93a0,0,0,0,1,0,0v0A7,7,0,0,1,100,72Z\" transform=\"translate(83.12 -49.66) rotate(45)\"/><path class=\"pa9_6\" d=\"M98,21.83H83.83a7.5,7.5,0,0,0-7.5,7.5H90.5a7.5,7.5,0,0,0,7.5-7.5Z\"/><path class=\"pa9_6\" d=\"M94.77,12.49a7.5,7.5,0,0,0-4.44,6.84h13.72A60,60,0,0,0,94.77,12.49Z\"/>"],
+ ["Monster","0 0 128 128","<defs><style>.pa10_1{fill:#515570;}.pa10_12,.pa10_2{fill:#393c54;}.pa10_15,.pa10_2{opacity:0.5;}.pa10_3{fill:#4bc190;}.pa10_4{fill:#ff8475;}.pa10_5{fill:#00adfe;}.pa10_6,.pa10_9{fill:#356cb6;}.pa10_10,.pa10_13,.pa10_15,.pa10_16,.pa10_17,.pa10_18,.pa10_7,.pa10_8{fill:none;stroke-linecap:round;stroke-linejoin:round;}.pa10_7{stroke:#4bc190;}.pa10_7,.pa10_8{stroke-width:20px;}.pa10_8{stroke:#356cb6;}.pa10_8,.pa10_9{opacity:0.3;}.pa10_10{stroke:#f85565;stroke-width:3px;}.pa10_11{fill:#ffffff;}.pa10_13,.pa10_15,.pa10_16,.pa10_17,.pa10_18{stroke:#515570;}.pa10_13,.pa10_15,.pa10_16,.pa10_18{stroke-width:2px;}.pa10_13{opacity:0.4;}.pa10_14{fill:#f85565;}.pa10_16{opacity:0.1;}.pa10_17{stroke-width:4px;}</style></defs><circle class=\"pa10_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa10_2\" cx=\"64\" cy=\"64\" r=\"48\"/><circle class=\"pa10_3\" cx=\"91.32\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa10_4\" d=\"M86.94,36.78A5.12,5.12,0,0,0,87,36a6,6,0,0,0-5.08-5.92A6,6,0,0,0,76,25a5.12,5.12,0,0,0-.78.06,6,6,0,0,0-8.67-2A6,6,0,0,0,56,27c0,3.31,2.69,19,6,19,1.29,0,18.69,2,22,2a6,6,0,0,0,2.94-11.22Z\"/><path class=\"pa10_3\" d=\"M63,123.32a56.83,56.83,0,0,0,38-14.52l-2.27-5.31c-1.62-3.78-5.91-6.31-10.73-6.31H38c-4.82,0-9.11,2.53-10.73,6.31L25,108.8A56.83,56.83,0,0,0,63,123.32Z\"/><path class=\"pa10_5\" d=\"M64,124a59.77,59.77,0,0,0,39.83-15.14l-2.23-5.22c-1.71-4-6.22-6.64-11.29-6.64H38.64a1,1,0,0,0-1,.94L37,109.5s-4.78-6.82-6.52-9.24A1,1,0,0,0,29,100.1a10,10,0,0,0-2.61,3.54l-2.23,5.22A59.77,59.77,0,0,0,64,124Z\"/><path class=\"pa10_6\" d=\"M77.43,98.73a13.43,13.43,0,0,1-26.86,0c0-5,6-3.25,13.43-3.25S77.43,93.68,77.43,98.73Z\"/><line class=\"pa10_7\" x1=\"64\" x2=\"64\" y1=\"84.75\" y2=\"98.5\"/><line class=\"pa10_8\" x1=\"64\" x2=\"64\" y1=\"84.75\" y2=\"98.5\"/><circle class=\"pa10_3\" cx=\"36.68\" cy=\"60.43\" r=\"7.93\"/><circle class=\"pa10_9\" cx=\"91.32\" cy=\"60.43\" r=\"7.93\"/><circle class=\"pa10_9\" cx=\"36.68\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa10_9\" d=\"M90,42a.22.22,0,0,0,0-.08c-.65,0-1.32.08-2,.08A26,26,0,0,1,62.49,21,3.91,3.91,0,0,0,62,21a6,6,0,0,0-6,6c0,3.31,2.69,19,6,19,1.29,0,18.69,2,22,2A6,6,0,0,0,90,42Z\"/><path class=\"pa10_3\" d=\"M86,44A26,26,0,0,1,60.24,21.5a2,2,0,0,0-2.4-1.71A28.32,28.32,0,0,0,35.68,47.43v18c0,15.43,12.1,28.47,27.52,28.89A28.32,28.32,0,0,0,92.32,66.05V47.43c0-.64,0-1.28-.07-1.91a2,2,0,0,0-2.32-1.82A25.42,25.42,0,0,1,86,44Z\"/><path class=\"pa10_10\" d=\"M53.65,29.73a23.15,23.15,0,0,0-9,10.61\"/><circle class=\"pa10_11\" cx=\"77.5\" cy=\"60\" r=\"5\"/><circle class=\"pa10_12\" cx=\"77.5\" cy=\"60\" r=\"1.75\"/><circle class=\"pa10_12\" cx=\"50.5\" cy=\"60\" r=\"5\"/><path class=\"pa10_3\" d=\"M56.33,60H44.67a5.83,5.83,0,0,1,11.66,0Z\"/><path class=\"pa10_9\" d=\"M56.33,60H44.67a5.83,5.83,0,0,1,11.66,0Z\"/><path class=\"pa10_3\" d=\"M83.33,60H71.67a5.83,5.83,0,0,1,11.66,0Z\"/><path class=\"pa10_9\" d=\"M83.33,60H71.67a5.83,5.83,0,0,1,11.66,0Z\"/><line class=\"pa10_13\" x1=\"60.17\" x2=\"63.83\" y1=\"86\" y2=\"86\"/><path class=\"pa10_12\" d=\"M70,83H58a4,4,0,0,1,0-8H70a4,4,0,0,1,0,8Z\"/><path class=\"pa10_11\" d=\"M57,75h3a0,0,0,0,1,0,0v1.5A1.5,1.5,0,0,1,58.5,78h0A1.5,1.5,0,0,1,57,76.5V75a0,0,0,0,1,0,0Z\"/><path class=\"pa10_14\" d=\"M56.36,82.64A3.9,3.9,0,0,0,58,83H70a3.9,3.9,0,0,0,1.64-.36C71.36,80.05,68.05,78,64,78S56.64,80.05,56.36,82.64Z\"/><path class=\"pa10_15\" d=\"M67.62,68.35,64.76,61.8a.61.61,0,0,0-1.12,0l-2.86,6.55\"/><path class=\"pa10_16\" d=\"M85.75,70.5a7.5,7.5,0,0,0-7.5,7.5v5\"/><path class=\"pa10_16\" d=\"M42.25,70.5a7.5,7.5,0,0,1,7.5,7.5v5\"/><line class=\"pa10_17\" x1=\"69\" x2=\"82\" y1=\"50\" y2=\"50\"/><line class=\"pa10_17\" x1=\"46\" x2=\"59\" y1=\"50\" y2=\"50\"/><line class=\"pa10_18\" x1=\"44\" x2=\"49\" y1=\"36\" y2=\"39\"/><line class=\"pa10_18\" x1=\"48.44\" x2=\"52.56\" y1=\"30.44\" y2=\"34.56\"/><line class=\"pa10_10\" x1=\"68.5\" x2=\"68.5\" y1=\"81.5\" y2=\"85.5\"/><path class=\"pa10_6\" d=\"M29.16,99.52l-1,4.69a1,1,0,0,0,.57,1.12L37,109s-4.77-6.81-6.51-9.23A1,1,0,0,0,29.16,99.52Z\"/>"],
+ ["Jester","0 0 128 128","<defs><style>.pa11_1{fill:#515570;}.pa11_2{fill:#6b718e;}.pa11_3{fill:#ffffff;}.pa11_4{fill:url(#pa11_linear-gradient);}.pa11_5{fill:#fbc0aa;}.pa11_6{fill:url(#pa11_linear-gradient-2);}.pa11_14,.pa11_7{fill:#f85565;}.pa11_8{fill:#ffd8c9;}.pa11_11,.pa11_12,.pa11_13,.pa11_15,.pa11_16,.pa11_9{fill:none;stroke-linecap:round;stroke-linejoin:round;}.pa11_11,.pa11_9{stroke:#fbc0aa;}.pa11_9{stroke-width:14px;}.pa11_10{fill:#00adfe;}.pa11_10,.pa11_14{opacity:0.5;}.pa11_11{stroke-width:5px;}.pa11_12,.pa11_15{stroke:#515570;}.pa11_12,.pa11_13{stroke-width:2px;}.pa11_12{opacity:0.2;}.pa11_13{stroke:#f85565;}.pa11_16{stroke:#ffffff;stroke-width:4px;}.pa11_17{fill:#393c54;}.pa11_18{fill:#356cb6;}</style><linearGradient gradientTransform=\"matrix(-1, 0, 0, 1, 67.62, 0)\" gradientUnits=\"userSpaceOnUse\" id=\"pa11_linear-gradient\" x1=\"-28.47\" x2=\"-28.47\" y1=\"40.35\" y2=\"94\"><stop offset=\"0\" stop-color=\"#ffffff\"/><stop offset=\"0.99\" stop-color=\"#00adfe\"/></linearGradient><linearGradient gradientUnits=\"userSpaceOnUse\" id=\"pa11_linear-gradient-2\" x1=\"31.91\" x2=\"31.91\" y1=\"40.35\" y2=\"94\"><stop offset=\"0\" stop-color=\"#ffffff\"/><stop offset=\"0.99\" stop-color=\"#f85565\"/></linearGradient></defs><circle class=\"pa11_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa11_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa11_3\" d=\"M64,21h0A29.69,29.69,0,0,1,93.69,50.69v8.93A15.93,15.93,0,0,1,77.76,75.55H50.24A15.93,15.93,0,0,1,34.31,59.62V50.69A29.69,29.69,0,0,1,64,21Z\"/><path class=\"pa11_4\" d=\"M89.81,34c1.56,5,.46,41.91.82,53.58A6.62,6.62,0,0,0,97.25,94h0a6.62,6.62,0,0,0,6.62-6.59c.06-12.28,1.86-51.18-.62-59.09a10,10,0,0,0-12.54-6.54C85.44,23.44,88.15,28.73,89.81,34Z\"/><circle class=\"pa11_5\" cx=\"89\" cy=\"63\" r=\"7\"/><path class=\"pa11_6\" d=\"M38.19,34c-1.56,5-.46,41.91-.82,53.58A6.62,6.62,0,0,1,30.75,94h0a6.62,6.62,0,0,1-6.62-6.59c-.06-12.28-1.86-51.18.62-59.09a10,10,0,0,1,12.54-6.54C42.56,23.44,39.85,28.73,38.19,34Z\"/><path class=\"pa11_3\" d=\"M64,124.05a59.66,59.66,0,0,0,34.69-11l-3.32-9.36A10,10,0,0,0,86,97H42.05a10,10,0,0,0-9.42,6.64L29.31,113A59.66,59.66,0,0,0,64,124.05Z\"/><path class=\"pa11_7\" d=\"M86,97H42.05a10,10,0,0,0-8.2,4.29l9.25,12.5A3,3,0,0,0,45.51,115h37a3,3,0,0,0,2.41-1.21l9.25-12.5A10,10,0,0,0,86,97Z\"/><path class=\"pa11_8\" d=\"M50.5,98.19a13.5,13.5,0,0,0,27,0A10.74,10.74,0,0,0,77.43,97H50.57A10.74,10.74,0,0,0,50.5,98.19Z\"/><line class=\"pa11_9\" x1=\"64\" x2=\"64\" y1=\"86.75\" y2=\"97.5\"/><circle class=\"pa11_5\" cx=\"39\" cy=\"63\" r=\"7\"/><path class=\"pa11_8\" d=\"M64,93A25,25,0,0,1,39,68V51.52a25,25,0,1,1,50,0V68A25,25,0,0,1,64,93Z\"/><path class=\"pa11_10\" d=\"M74.79,57.39A3.79,3.79,0,0,0,71,61.56,3.89,3.89,0,0,0,75,65h4.58a6.63,6.63,0,0,1,6.63,6.64H89V66.12a8.73,8.73,0,0,0-8.72-8.73Z\"/><circle class=\"pa11_1\" cx=\"75\" cy=\"61\" r=\"2.5\"/><line class=\"pa11_11\" x1=\"64\" x2=\"64\" y1=\"65.75\" y2=\"70.25\"/><line class=\"pa11_12\" x1=\"72.39\" x2=\"81\" y1=\"55\" y2=\"54\"/><line class=\"pa11_13\" x1=\"58\" x2=\"58\" y1=\"84\" y2=\"88\"/><line class=\"pa11_13\" x1=\"57\" x2=\"57\" y1=\"81\" y2=\"85\"/><path class=\"pa11_14\" d=\"M54.22,57.39A3.78,3.78,0,0,1,58,61.55,3.88,3.88,0,0,1,54.06,65H49.48a6.64,6.64,0,0,0-6.64,6.64H40V66.12a8.73,8.73,0,0,1,8.73-8.73Z\"/><circle class=\"pa11_1\" cx=\"54.01\" cy=\"61\" r=\"2.5\"/><path class=\"pa11_15\" d=\"M58.49,63.33a6.62,6.62,0,0,0-10.72-4.39\"/><path class=\"pa11_16\" d=\"M32.5,86.75c3.87,0,9-3.13,9-7V69.43c0-16,6.58-30.81,20.49-38.76l2-1.15,2,1.15C79.92,38.62,87.5,53.41,87.5,69.43V79.75c0,3.87,5.13,7,9,7\"/><path class=\"pa11_3\" d=\"M40,71.82V69.43c0-15.29,7.82-24.9,20.61-32.65a7.56,7.56,0,0,1,3.89-1.11h0a7.56,7.56,0,0,1,3.89,1.11C81.18,44.53,89,54.14,89,69.43v1.48a15.87,15.87,0,0,0,4.69-11.29V50.69A29.69,29.69,0,0,0,64,21h0A29.69,29.69,0,0,0,34.31,50.69v8.93A15.88,15.88,0,0,0,40,71.82Z\"/><path class=\"pa11_12\" d=\"M56,53s-1-2-5-2-5,2-5,2\"/><path class=\"pa11_7\" d=\"M64,87.56a9.58,9.58,0,0,1-9.49-8.37A2,2,0,0,1,56.45,77h15.1a2,2,0,0,1,1.94,2.19A9.58,9.58,0,0,1,64,87.56Z\"/><path class=\"pa11_17\" d=\"M71.1,78.25a.89.89,0,0,1,.89,1,8.05,8.05,0,0,1-16,0,.89.89,0,0,1,.89-1Z\"/><path class=\"pa11_3\" d=\"M56,79.26a6.08,6.08,0,0,0,.16.87H71.83a6.21,6.21,0,0,0,.16-.86.89.89,0,0,0-.89-1H56.9A.89.89,0,0,0,56,79.26Z\"/><path class=\"pa11_15\" d=\"M70.52,63.33a6.62,6.62,0,0,1,10.72-4.39\"/><rect class=\"pa11_17\" height=\"6\" width=\"16\" x=\"56\" y=\"94\"/><polygon class=\"pa11_18\" points=\"88.83 34.74 89.62 32 87.62 24 83.25 29.17 88.83 34.74\"/><polygon class=\"pa11_7\" points=\"38.79 34.74 38 32 40 24 44.37 29.17 38.79 34.74\"/>"],
+ ["Sloth","0 0 128 128","<defs><style>.pa12_1{fill:#a7aece;}.pa12_2{fill:#ffffff;opacity:0.3;}.pa12_3{fill:#7f3838;}.pa12_4{fill:#bc5b57;}.pa12_5{fill:#ffd8c9;}.pa12_10,.pa12_6,.pa12_9{fill:none;stroke-linecap:round;}.pa12_10,.pa12_6{stroke:#393c54;stroke-linejoin:round;}.pa12_6{stroke-width:3px;}.pa12_7{fill:#393c54;}.pa12_8{fill:#515570;}.pa12_9{stroke:#ffffff;stroke-miterlimit:10;stroke-width:2px;opacity:0.1;}.pa12_10{stroke-width:6px;}</style></defs><circle class=\"pa12_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa12_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa12_3\" d=\"M40,22A10,10,0,0,0,30,32v81.43a59.62,59.62,0,0,0,20,8.91V32A10,10,0,0,0,40,22Z\"/><path class=\"pa12_4\" d=\"M107.85,85.85c0-14.49-9.1-25-21.9-28.94l2-3.31a.59.59,0,0,0-.58-.9l-6,.82a.59.59,0,0,1-.54-1l2.66-3.2a.59.59,0,0,0-.54-1,100,100,0,0,0-21.07,5.4A35,35,0,0,0,40.15,85.85v3.22c0,15.48-1.65,21.18-6.36,26.76h0a59.94,59.94,0,0,0,72-8.77l0-.16A94.24,94.24,0,0,0,107.85,85.85Z\"/><path class=\"pa12_5\" d=\"M88.74,93.46a6.31,6.31,0,0,1-5-7.63,6.55,6.55,0,0,1,7.58-4.72l5.91,1A.8.8,0,0,0,98,81c-3.89-7-13.76-12.64-24-12.64S53.88,74,50,81a.8.8,0,0,0,.83,1.18l5.91-1a6.55,6.55,0,0,1,7.58,4.72,6.31,6.31,0,0,1-5.05,7.63L51.09,94.9a.8.8,0,0,0-.53,1.23c3.23,5,10.2,8.42,23.44,8.42s20.21-3.38,23.44-8.42a.8.8,0,0,0-.53-1.23Z\"/><path class=\"pa12_6\" d=\"M81.89,92.19a9,9,0,0,1-2.77,2.21,11.61,11.61,0,0,1-10.24,0\"/><path class=\"pa12_7\" d=\"M79.12,86.62c0,2.83-2.29,4.25-5.12,4.25s-5.12-1.42-5.12-4.25C68.88,85,79.12,84.75,79.12,86.62Z\"/><path class=\"pa12_7\" d=\"M57.33,87.48l3.05-.73a.71.71,0,0,1,.89.68,4,4,0,0,1-4.28,4,3.9,3.9,0,0,1-3-1.84,3.94,3.94,0,0,1,5.53-5.37.73.73,0,0,1,.08,1.11Z\"/><path class=\"pa12_7\" d=\"M90.4,87.48l3-.73a.72.72,0,0,1,.89.68,4,4,0,0,1-4.29,4,3.88,3.88,0,0,1-3-1.84,3.94,3.94,0,0,1,5.52-5.37.72.72,0,0,1,.09,1.11Z\"/><path class=\"pa12_7\" d=\"M92,29H15.28A59.76,59.76,0,0,0,7.09,45H92a8,8,0,0,0,0-16Z\"/><circle class=\"pa12_8\" cx=\"92\" cy=\"37\" r=\"8\"/><circle class=\"pa12_9\" cx=\"92\" cy=\"37\" r=\"4.31\"/><line class=\"pa12_10\" x1=\"13\" x2=\"20.5\" y1=\"42\" y2=\"49.5\"/><line class=\"pa12_10\" x1=\"66\" x2=\"74.38\" y1=\"32.1\" y2=\"23.72\"/>"],
+ ["Classic","0 0 128 128","<defs><style>.pa13_1{fill:#4bc190;}.pa13_13,.pa13_2{fill:#356cb6;}.pa13_2{opacity:0.3;}.pa13_3{fill:#393c54;}.pa13_4{fill:#fba875;}.pa13_5{fill:#ffffff;}.pa13_12,.pa13_6,.pa13_8,.pa13_9{fill:none;stroke-linecap:round;}.pa13_6,.pa13_9{stroke:#fba875;}.pa13_12,.pa13_6,.pa13_9{stroke-miterlimit:10;}.pa13_6{stroke-width:20px;}.pa13_7{fill:#ffbb94;}.pa13_8{stroke:#515570;stroke-linejoin:round;stroke-width:2px;opacity:0.4;}.pa13_9{stroke-width:4px;}.pa13_10{fill:#f85565;}.pa13_11{fill:#515570;}.pa13_12{stroke:#ffffff;stroke-width:3.28px;}.pa13_12,.pa13_13{opacity:0.1;}</style></defs><circle class=\"pa13_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa13_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa13_3\" d=\"M31.08,61.57V45.92a32.92,32.92,0,0,1,65.84,0V61.57Z\"/><circle class=\"pa13_4\" cx=\"91.32\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa13_5\" d=\"M64,124.1a59.78,59.78,0,0,0,40-15.28l-2.39-5.68c-1.71-4-6.22-6.64-11.29-6.64H37.69c-5.07,0-9.58,2.66-11.29,6.64L24,108.82A59.78,59.78,0,0,0,64,124.1Z\"/><path class=\"pa13_5\" d=\"M81.72,98.25a3.06,3.06,0,0,0-3.08-2.88H49.36a3.07,3.07,0,0,0-3.08,2.93c0,.11,0,.21,0,.32-.17,7.32,10.52,16.64,10.52,16.64L64,108.05l7.17,7.17s10.56-9,10.56-16.22C81.73,98.74,81.73,98.49,81.72,98.25Z\"/><line class=\"pa13_6\" x1=\"64\" x2=\"64\" y1=\"84.75\" y2=\"98.5\"/><circle class=\"pa13_4\" cx=\"36.68\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa13_7\" d=\"M64,94.37A28.31,28.31,0,0,1,35.68,66.05V47.43a28.32,28.32,0,1,1,56.64,0V66.05A28.31,28.31,0,0,1,64,94.37Z\"/><circle class=\"pa13_3\" cx=\"76.67\" cy=\"59.28\" r=\"3\"/><circle class=\"pa13_3\" cx=\"49.67\" cy=\"59.28\" r=\"3\"/><line class=\"pa13_8\" x1=\"74.39\" x2=\"84\" y1=\"53\" y2=\"52.75\"/><line class=\"pa13_8\" x1=\"53\" x2=\"43.39\" y1=\"53\" y2=\"52.75\"/><path class=\"pa13_3\" d=\"M71.55,74a1,1,0,0,1,.94,1.07,8.56,8.56,0,0,1-17,0A1,1,0,0,1,56.45,74Z\"/><line class=\"pa13_8\" x1=\"60\" x2=\"68\" y1=\"86\" y2=\"86\"/><line class=\"pa13_9\" x1=\"63.35\" x2=\"63.35\" y1=\"60.75\" y2=\"67.25\"/><line class=\"pa13_9\" x1=\"66\" x2=\"61\" y1=\"68\" y2=\"68\"/><path class=\"pa13_10\" d=\"M59,80.91a8.52,8.52,0,0,0,10.08,0,5.79,5.79,0,0,0-10.08,0Z\"/><path class=\"pa13_5\" d=\"M69,76H59a1.84,1.84,0,0,1-1.73-2H70.77A1.84,1.84,0,0,1,69,76Z\"/><path class=\"pa13_11\" d=\"M64,16.85a30,30,0,0,0-30,30V53a4,4,0,0,0,4-4V41.56a4.18,4.18,0,0,1,4.18-4.18h7.36A20.61,20.61,0,0,0,64,42.77a20.61,20.61,0,0,0,14.41-5.39h7.36A4.18,4.18,0,0,1,90,41.56v7.35a4,4,0,0,0,4,4V46.84A30,30,0,0,0,64,16.85Z\"/><path class=\"pa13_3\" d=\"M60.16,123.86c1.27.08,2.55.14,3.84.14s2.57-.06,3.84-.14L67,115H61Z\"/><path class=\"pa13_12\" d=\"M52.19,31.87A16.93,16.93,0,0,0,64,36.29a16.93,16.93,0,0,0,11.81-4.42h7.58\"/><path class=\"pa13_11\" d=\"M64.58,117.22H63.26a4.58,4.58,0,0,1-4.58-4.58V108H69.17v4.64A4.58,4.58,0,0,1,64.58,117.22Z\"/><polygon class=\"pa13_5\" points=\"64 108 74.17 95.38 78.64 95.38 71.17 115.22 64 108\"/><polygon class=\"pa13_5\" points=\"64 108 53.83 95.38 49.36 95.38 56.83 115.22 64 108\"/><path class=\"pa13_13\" d=\"M81.72,98.25a3.06,3.06,0,0,0-3.08-2.88H74.17L64,108,53.83,95.37H49.36a3.06,3.06,0,0,0-3.08,2.92c0,.11,0,.21,0,.32-.17,7.32,10.52,16.64,10.52,16.64L64,108.05l7.17,7.17s10.56-9,10.56-16.22C81.73,98.74,81.73,98.49,81.72,98.25Z\"/>"],
+ ["Rocker","0 0 128 128","<defs><style>.pa14_1{fill:#a7aece;}.pa14_2,.pa14_3{fill:#515570;}.pa14_2{opacity:0.2;}.pa14_4{fill:#393c54;}.pa14_12,.pa14_15,.pa14_16,.pa14_17,.pa14_5,.pa14_6,.pa14_7,.pa14_9{fill:none;stroke-linecap:round;}.pa14_5{stroke:#393c54;stroke-miterlimit:10;}.pa14_15,.pa14_16,.pa14_5,.pa14_7{stroke-width:2px;}.pa14_6{stroke:#efb19e;stroke-width:20px;}.pa14_12,.pa14_15,.pa14_16,.pa14_17,.pa14_6,.pa14_7,.pa14_9{stroke-linejoin:round;}.pa14_12,.pa14_15,.pa14_16,.pa14_17,.pa14_7{stroke:#515570;}.pa14_8{fill:#ffd8c9;}.pa14_9{stroke:#ffffff;stroke-width:1.5px;}.pa14_10{fill:#fbc0aa;}.pa14_11{fill:#8f5653;opacity:0.7;}.pa14_12{stroke-width:2.22px;}.pa14_13{fill:#f85565;}.pa14_14{fill:#ffffff;}.pa14_15{opacity:0.1;}.pa14_16{opacity:0.5;}.pa14_17{stroke-width:4px;}</style></defs><circle class=\"pa14_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa14_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa14_3\" d=\"M31,101.76v-54a33,33,0,0,1,66,0v54C97,120.1,31,120.1,31,101.76Z\"/><path class=\"pa14_4\" d=\"M64,124a59.77,59.77,0,0,0,39.83-15.14l-2.23-5.22c-1.71-4-6.22-6.64-11.29-6.64H37.69c-5.07,0-9.58,2.66-11.29,6.64l-2.23,5.22A59.77,59.77,0,0,0,64,124Z\"/><path class=\"pa14_4\" d=\"M77.43,98.73a13.43,13.43,0,0,1-26.86,0c0-5,6-3.25,13.43-3.25S77.43,93.68,77.43,98.73Z\"/><path class=\"pa14_5\" d=\"M78.43,98.73c0,7.42-7,13.43-14.43,13.43s-14.43-6-14.43-13.43\"/><line class=\"pa14_6\" x1=\"64\" x2=\"64\" y1=\"89.75\" y2=\"98.5\"/><path class=\"pa14_4\" d=\"M54,95.26l8.68,8a2,2,0,0,0,2.7,0l8.68-8,4.4,14.53-17.26,6.88-12.34-6.84-3.16-4.39Z\"/><line class=\"pa14_7\" x1=\"76.78\" x2=\"65.17\" y1=\"96.5\" y2=\"113.88\"/><line class=\"pa14_7\" x1=\"51.17\" x2=\"62.78\" y1=\"96.5\" y2=\"113.88\"/><path class=\"pa14_8\" d=\"M64,94.37c-10,0-28.32-12.67-28.32-28.32V47.43a28.32,28.32,0,1,1,56.64,0V66.05C92.32,81.7,74,94.37,64,94.37Z\"/><polygon class=\"pa14_9\" points=\"67.5 113.88 65.17 113.88 65.17 111.54 62.83 111.54 62.83 113.88 60.5 113.88 60.5 116.21 62.83 116.21 62.83 121.46 65.17 121.46 65.17 116.21 67.5 116.21 67.5 113.88\"/><path class=\"pa14_3\" d=\"M94.72,102.72s-.06-37-.06-55.29c0-19.69-15.62-30.32-30.32-30.32a1.86,1.86,0,0,0-.34,0,1.86,1.86,0,0,0-.34,0c-14.7,0-30.32,10.63-30.32,30.32,0,18.25-.31,55.29-.31,55.29l4,8.53a1.56,1.56,0,0,0,3-.7V54c0-7.19,4.6-14.06,11.47-17.5L64,30.25l12.53,6.27C83.4,40,88,46.84,88,54v56.28a1.56,1.56,0,0,0,3,.67Z\"/><path class=\"pa14_10\" d=\"M68,69.21c0,3.4-1.79,6.16-4,6.16s-4-2.76-4-6.16,1.79-8.7,4-8.7S68,65.8,68,69.21Z\"/><circle class=\"pa14_11\" cx=\"75.5\" cy=\"62.05\" r=\"8\"/><circle class=\"pa14_12\" cx=\"75.5\" cy=\"62.05\" r=\"8\"/><circle class=\"pa14_11\" cx=\"52.5\" cy=\"62.05\" r=\"8\"/><circle class=\"pa14_12\" cx=\"52.5\" cy=\"62.05\" r=\"8\"/><path class=\"pa14_13\" d=\"M72,79H56V92.43a20.94,20.94,0,0,0,8,1.94,20.94,20.94,0,0,0,8-1.94Z\"/><path class=\"pa14_4\" d=\"M71.55,78a1,1,0,0,1,.94,1.07,8.56,8.56,0,0,1-17,0A1,1,0,0,1,56.45,78Z\"/><path class=\"pa14_14\" d=\"M58,78h2a0,0,0,0,1,0,0v2a1,1,0,0,1-1,1h0a1,1,0,0,1-1-1V78A0,0,0,0,1,58,78Z\"/><path class=\"pa14_13\" d=\"M70,78H68v4a1,1,0,0,0,1,1h0a1,1,0,0,0,1-1Z\"/><path class=\"pa14_14\" d=\"M68,78h2a0,0,0,0,1,0,0v2a1,1,0,0,1-1,1h0a1,1,0,0,1-1-1V78A0,0,0,0,1,68,78Z\"/><line class=\"pa14_12\" x1=\"68\" x2=\"60\" y1=\"59\" y2=\"59\"/><line class=\"pa14_15\" x1=\"74\" x2=\"70\" y1=\"77\" y2=\"73\"/><line class=\"pa14_15\" x1=\"54\" x2=\"58\" y1=\"77\" y2=\"73\"/><path class=\"pa14_16\" d=\"M70.48,52.63a5,5,0,0,1,4.11-3.45l6.93-1\"/><path class=\"pa14_16\" d=\"M57.52,52.63a5,5,0,0,0-4.11-3.45l-6.93-1\"/><path class=\"pa14_17\" d=\"M40,43V73a4,4,0,0,0,4,4h0\"/>"],
+ ["Pilot","0 0 128 128","<defs><style>.pa15_1{fill:#4bc190;}.pa15_2,.pa15_5{fill:#ffffff;}.pa15_2{opacity:0.3;}.pa15_3{fill:#356cb6;}.pa15_4{fill:#8f5653;}.pa15_10,.pa15_17,.pa15_6,.pa15_7{fill:none;stroke-linecap:round;stroke-linejoin:round;}.pa15_6{stroke:#356cb6;stroke-width:24px;}.pa15_7{stroke:#fbc0aa;stroke-width:20px;}.pa15_8{fill:#ffd8c9;}.pa15_9{fill:#393c54;}.pa15_10,.pa15_17{stroke:#515570;}.pa15_10{stroke-width:2px;opacity:0.4;}.pa15_11{fill:#f85565;}.pa15_12{fill:#db7a72;}.pa15_13{fill:#bc5b57;}.pa15_14{fill:#ff6d00;}.pa15_15{fill:#fbc0aa;}.pa15_16{fill:#a7aece;}.pa15_17{stroke-width:2.22px;}</style></defs><circle class=\"pa15_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa15_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa15_3\" d=\"M120.57,84H67v16h45A60,60,0,0,0,120.57,84Z\"/><rect class=\"pa15_4\" height=\"15\" width=\"29\" x=\"50\" y=\"95\"/><path class=\"pa15_5\" d=\"M64,124.1A59.73,59.73,0,0,0,103.8,109l-2.2-5.36c-1.71-4-6.22-6.64-11.29-6.64H37.69c-5.07,0-9.58,2.66-11.29,6.64L24.2,109A59.73,59.73,0,0,0,64,124.1Z\"/><line class=\"pa15_6\" x1=\"64\" x2=\"64\" y1=\"95.75\" y2=\"98.5\"/><line class=\"pa15_7\" x1=\"64\" x2=\"64\" y1=\"77.75\" y2=\"90.5\"/><path class=\"pa15_8\" d=\"M64,94.37A28.31,28.31,0,0,1,35.68,66.05V47.43a28.32,28.32,0,1,1,56.64,0V66.05A28.31,28.31,0,0,1,64,94.37Z\"/><circle class=\"pa15_9\" cx=\"76.67\" cy=\"59.28\" r=\"3\"/><circle class=\"pa15_9\" cx=\"49.67\" cy=\"59.28\" r=\"3\"/><line class=\"pa15_10\" x1=\"74.39\" x2=\"84\" y1=\"53\" y2=\"52.75\"/><line class=\"pa15_10\" x1=\"53\" x2=\"43.39\" y1=\"53\" y2=\"52.75\"/><line class=\"pa15_10\" x1=\"60\" x2=\"68\" y1=\"86\" y2=\"86\"/><path class=\"pa15_9\" d=\"M69.5,82h-11a3.5,3.5,0,0,1,0-7h11a3.5,3.5,0,0,1,0,7Z\"/><path class=\"pa15_5\" d=\"M58,75H70a0,0,0,0,1,0,0v0a2,2,0,0,1-2,2H60a2,2,0,0,1-2-2v0A0,0,0,0,1,58,75Z\"/><path class=\"pa15_11\" d=\"M60,82h9.5A3.5,3.5,0,0,0,73,78.5a4,4,0,0,0,0-.5H66A6.5,6.5,0,0,0,60,82Z\"/><path class=\"pa15_12\" d=\"M103.8,109l-2.2-5.36c-1.71-4-6.22-6.64-11.29-6.64H78v25.2C87.34,119.79,96.8,115.21,103.8,109Z\"/><path class=\"pa15_12\" d=\"M26.4,103.64,24.2,109A59.86,59.86,0,0,0,50,122.46V97H37.69C32.62,97,28.11,99.66,26.4,103.64Z\"/><path class=\"pa15_13\" d=\"M78,95h5a3,3,0,0,1,3,3v9a8,8,0,0,1-8,8h0a0,0,0,0,1,0,0V95a0,0,0,0,1,0,0Z\"/><path class=\"pa15_14\" d=\"M64,70H81a0,0,0,0,1,0,0v0a5,5,0,0,1-5,5H69a5,5,0,0,1-5-5v0A0,0,0,0,1,64,70Z\"/><path class=\"pa15_14\" d=\"M47,70H64a0,0,0,0,1,0,0v0a5,5,0,0,1-5,5H52a5,5,0,0,1-5-5v0A0,0,0,0,1,47,70Z\"/><path class=\"pa15_12\" d=\"M93,74l3.79-1.89A4,4,0,0,0,99,68.53V52.88a4,4,0,0,0-2.74-3.79L93,48Z\"/><path class=\"pa15_15\" d=\"M64,72h0a3,3,0,0,1-3-3V50h6V69A3,3,0,0,1,64,72Z\"/><path class=\"pa15_12\" d=\"M35,74l-3.79-1.89A4,4,0,0,1,29,68.53V52.88a4,4,0,0,1,2.74-3.79L35,48Z\"/><path class=\"pa15_14\" d=\"M63.78,52.56a7.78,7.78,0,0,1,0-15.56\"/><path class=\"pa15_14\" d=\"M70.44,57a7.78,7.78,0,0,1,0-15.56\"/><path class=\"pa15_13\" d=\"M42,95h0a8,8,0,0,1,8,8v9a3,3,0,0,1-3,3H42a0,0,0,0,1,0,0V95A0,0,0,0,1,42,95Z\" transform=\"translate(92 210) rotate(180)\"/><path class=\"pa15_13\" d=\"M63.08,15.13c-16.49.49-29.4,14.45-29.4,30.95v30c0,.48,0,11,0,11.42.13,2.76,4.29,2.62,4.29-.15V55A10,10,0,0,1,48,45H80A10,10,0,0,1,90,55V87.32c0,2.77,4.16,2.91,4.29.15,0-.47,0-10.94,0-11.42V45.43A30.35,30.35,0,0,0,63.08,15.13Z\"/><path class=\"pa15_4\" d=\"M87,35h7a2,2,0,0,1,2,2v2a2,2,0,0,1-2,2H87a0,0,0,0,1,0,0V35A0,0,0,0,1,87,35Z\"/><path class=\"pa15_5\" d=\"M87,34h3a2,2,0,0,1,2,2v4a2,2,0,0,1-2,2H87a0,0,0,0,1,0,0V34A0,0,0,0,1,87,34Z\"/><path class=\"pa15_4\" d=\"M34,35h7a0,0,0,0,1,0,0v6a0,0,0,0,1,0,0H34a2,2,0,0,1-2-2V37A2,2,0,0,1,34,35Z\"/><path class=\"pa15_5\" d=\"M36,34h3a2,2,0,0,1,2,2v4a2,2,0,0,1-2,2H36a0,0,0,0,1,0,0V34A0,0,0,0,1,36,34Z\" transform=\"translate(77 76) rotate(180)\"/><rect class=\"pa15_4\" height=\"6\" width=\"10\" x=\"58\" y=\"35\"/><circle class=\"pa15_3\" cx=\"77\" cy=\"39.28\" r=\"11\"/><circle class=\"pa15_16\" cx=\"77\" cy=\"39.28\" r=\"6.88\"/><path class=\"pa15_2\" d=\"M77,32.4a5.49,5.49,0,0,0-.58,0L70.15,38.7c0,.19,0,.38,0,.58a6.9,6.9,0,0,0,1,3.6l9.46-9.45A6.85,6.85,0,0,0,77,32.4Z\"/><path class=\"pa15_2\" d=\"M73.84,45.38l9.26-9.26A6.82,6.82,0,0,0,82,34.6l-9.71,9.71A7.31,7.31,0,0,0,73.84,45.38Z\"/><circle class=\"pa15_17\" cx=\"77\" cy=\"39.28\" r=\"9.98\"/><circle class=\"pa15_3\" cx=\"51\" cy=\"39.28\" r=\"11\"/><circle class=\"pa15_17\" cx=\"51\" cy=\"39.28\" r=\"9.98\"/><circle class=\"pa15_16\" cx=\"51\" cy=\"39.28\" r=\"6.88\"/><path class=\"pa15_2\" d=\"M51,32.4a5.49,5.49,0,0,0-.58,0L44.15,38.7c0,.19,0,.38,0,.58a6.9,6.9,0,0,0,1,3.6l9.46-9.45A6.85,6.85,0,0,0,51,32.4Z\"/><path class=\"pa15_2\" d=\"M47.84,45.38l9.26-9.26A6.82,6.82,0,0,0,56,34.6l-9.71,9.71A7.31,7.31,0,0,0,47.84,45.38Z\"/>"],
+ ["Hipster","0 0 128 128","<defs><style>.pa16_1{fill:#00adfe;}.pa16_2,.pa16_6{fill:#ffffff;}.pa16_14,.pa16_2{opacity:0.3;}.pa16_3{fill:#393c54;}.pa16_4{fill:#fba875;}.pa16_5{fill:#b56b63;}.pa16_10,.pa16_11,.pa16_13,.pa16_14,.pa16_7,.pa16_9{fill:none;stroke-linecap:round;}.pa16_10,.pa16_7{stroke:#fba875;}.pa16_10,.pa16_11,.pa16_13,.pa16_7{stroke-miterlimit:10;}.pa16_7{stroke-width:20px;}.pa16_8{fill:#ffbb94;}.pa16_9{stroke:#515570;opacity:0.4;}.pa16_14,.pa16_9{stroke-linejoin:round;stroke-width:2px;}.pa16_10,.pa16_11,.pa16_13{stroke-width:4px;}.pa16_11{stroke:#393c54;}.pa16_12{fill:#515570;}.pa16_13{stroke:#ffffff;}.pa16_13,.pa16_15{opacity:0.1;}.pa16_14{stroke:#f85565;}.pa16_15{fill:#f85565;}</style></defs><circle class=\"pa16_1\" cx=\"64\" cy=\"64\" r=\"60\"/><circle class=\"pa16_2\" cx=\"64\" cy=\"64\" r=\"48\"/><path class=\"pa16_3\" d=\"M31.08,61.57V45.92a32.92,32.92,0,0,1,65.84,0V61.57Z\"/><circle class=\"pa16_4\" cx=\"91.32\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa16_5\" d=\"M64,124.1a59.78,59.78,0,0,0,40-15.28l-2.39-5.68c-1.71-4-6.22-6.64-11.29-6.64H37.69c-5.07,0-9.58,2.66-11.29,6.64L24,108.82A59.78,59.78,0,0,0,64,124.1Z\"/><path class=\"pa16_6\" d=\"M81.72,98.25a3.06,3.06,0,0,0-3.08-2.88H49.36a3.07,3.07,0,0,0-3.08,2.93c0,.11,0,.21,0,.32-.17,7.32,10.52,16.64,10.52,16.64L64,108.05l7.17,7.17s10.56-9,10.56-16.22C81.73,98.74,81.73,98.49,81.72,98.25Z\"/><line class=\"pa16_7\" x1=\"64\" x2=\"64\" y1=\"84.75\" y2=\"98.5\"/><circle class=\"pa16_4\" cx=\"36.68\" cy=\"60.43\" r=\"7.93\"/><path class=\"pa16_8\" d=\"M64,94.37A28.31,28.31,0,0,1,35.68,66.05V47.43a28.32,28.32,0,1,1,56.64,0V66.05A28.31,28.31,0,0,1,64,94.37Z\"/><circle class=\"pa16_3\" cx=\"77.5\" cy=\"59.28\" r=\"3\"/><circle class=\"pa16_3\" cx=\"50.5\" cy=\"59.28\" r=\"3\"/><line class=\"pa16_9\" x1=\"74.69\" x2=\"84.31\" y1=\"53\" y2=\"52.75\"/><line class=\"pa16_9\" x1=\"53.31\" x2=\"43.69\" y1=\"53\" y2=\"52.75\"/><path class=\"pa16_3\" d=\"M92.32,64.81h-1.1A3.22,3.22,0,0,0,88,68h0a3.22,3.22,0,0,1-3.22,3.22H43.22A3.22,3.22,0,0,1,40,68h0a3.22,3.22,0,0,0-3.22-3.22h-1.1V82.28c0,15.43,12.1,28.47,27.52,28.9A28.32,28.32,0,0,0,92.32,82.87Z\"/><path class=\"pa16_6\" d=\"M71.55,75a1,1,0,0,1,.94,1.07,8.56,8.56,0,0,1-17,0A1,1,0,0,1,56.45,75Z\"/><line class=\"pa16_10\" x1=\"64\" x2=\"64\" y1=\"60.75\" y2=\"67.25\"/><line class=\"pa16_10\" x1=\"66.5\" x2=\"61.5\" y1=\"68\" y2=\"68\"/><line class=\"pa16_11\" x1=\"36\" x2=\"36\" y1=\"56\" y2=\"36\"/><line class=\"pa16_11\" x1=\"92\" x2=\"92\" y1=\"56\" y2=\"35\"/><path class=\"pa16_12\" d=\"M31,23.83A15.17,15.17,0,0,0,46.17,39H91.5a1,1,0,0,0,1-1.29A29.92,29.92,0,0,0,64,17H31Z\"/><path class=\"pa16_13\" d=\"M70.5,33H47.73a10,10,0,0,1-10-10\"/><line class=\"pa16_14\" x1=\"65\" x2=\"67\" y1=\"67\" y2=\"67\"/><ellipse class=\"pa16_15\" cx=\"50.42\" cy=\"67.67\" rx=\"4.58\" ry=\"2.98\"/><ellipse class=\"pa16_15\" cx=\"77.58\" cy=\"67.67\" rx=\"4.58\" ry=\"2.98\"/>"]
 ];
-const AV_COUNT=CHARACTERS.length;
+const AV_COUNT=PACK_AVATARS.length;
 function presetAvatar(i){
-  const idx=((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT;
-  const c=CHARACTERS[idx], id='c'+idx+'_'+Math.random().toString(36).slice(2,6);
-  return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><rect width="64" height="64" rx="17" fill="url(#'+id+')"/>'+c[3]+'</svg>';
+  const a=PACK_AVATARS[((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT];
+  return '<svg viewBox="'+a[1]+'" xmlns="http://www.w3.org/2000/svg">'+a[2]+'</svg>';
 }
-function characterName(i){return CHARACTERS[((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT][0];}
+function characterName(i){return PACK_AVATARS[((i-1)%AV_COUNT+AV_COUNT)%AV_COUNT][0];}
 function avatarInner(user){
   if(user.avatarPhoto) return '<img src="'+user.avatarPhoto+'" alt="avatar">';
   if(user.avatarPreset) return presetAvatar(user.avatarPreset);
@@ -1470,7 +1463,8 @@ function refreshPresence(){
     const [lng,lat]=u.loc;if(lng<b.getWest()||lng>b.getEast()||lat<b.getSouth()||lat>b.getNorth())continue;
     const el=document.createElement('div');el.className='presence-marker';el.setAttribute('role','button');
     el.setAttribute('aria-label',u.name+' is nearby');
-    el.innerHTML='<div class="pdot"></div><div class="pav">'+avatarInner(u)+'</div>';
+    // on the map people show their chosen map avatar, never their profile photo
+    el.innerHTML='<div class="pdot"></div><div class="pav">'+presetAvatar(u.mapAvatar||u.avatarPreset||1)+'</div>';
     el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openUserProfile(u.id);});
     presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(u.loc).addTo(map));
   }
@@ -1743,6 +1737,45 @@ function notify(type,toUser,ref,opts){
 }
 function updateBell(){const n=state.notifications.filter(x=>!x.read).length;const dot=document.getElementById('bellDot');dot.style.display=n?'flex':'none';dot.textContent=n>9?'9+':n;const td=document.getElementById('alertDot');if(td)td.style.display=n?'block':'none';}
 
+/* --- Real notifications (LIVE mode) -----------------------------------------
+   Rows come from my_notifications(); database triggers are what create them, so
+   they are always about something that actually happened to this account. */
+const NOTIF_KIND={
+  comment:          ['💬','commented on your pin','post'],
+  reaction:         ['♥','liked your pin','post'],
+  follow:           ['➕','started following you','user'],
+  message:          ['✉️','sent you a message','conversation'],
+  meetup_request:   ['🤝','wants to join your meetup','meetup'],
+  meetup_accepted:  ['✅','accepted your meetup request','meetup'],
+  meetup_declined:  ['🚫','declined your meetup request','meetup'],
+  meetup_message:   ['✉️','sent a meetup message','meetup'],
+  story_view:       ['👁','viewed your story','story'],
+  badge:            ['🏅','You earned a badge','user']
+};
+function liveRowToNotif(r){
+  const k=NOTIF_KIND[r.kind]||['🔔','Notification',null];
+  return {id:r.id,type:r.kind,ic:k[0],text:k[1],refType:r.ref_type||k[2],ref:r.ref_id,
+    at:r.created_at?Date.parse(r.created_at):Date.now(),read:!!r.read,
+    actorName:r.actor_name||null,actorId:r.actor_id||null,detail:r.body||''};
+}
+function markNotifRead(n){
+  if(!n||n.read)return;
+  n.read=true;updateBell();
+  if(window.LIVE)liveSafe(L.markNotificationsRead([n.id]));
+}
+/* Tapping a notification goes to the thing it is about. */
+function openNotification(n){
+  markNotifRead(n);
+  const t=n.refType||'';
+  if(t==='post'&&n.ref){if(getPost(n.ref)){switchTab('map');openDetail(n.ref);}else{switchTab('feed');toast('That pin is no longer available');}return;}
+  if(t==='conversation'&&n.ref){switchTab('dm');renderDm();openConversation(n.ref);return;}
+  if(t==='meetup'){switchTab('meet');return;}
+  if(t==='story'){if((state.stories||[]).some(x=>x.authorId==='me'))openStories('me');else switchTab('feed');return;}
+  if(t==='user'&&n.actorId&&state.users[n.actorId]){openUserProfile(n.actorId);return;}
+  if(n.type==='super'||n.type==='super_won'){switchTab('map');if(map&&state.superSpot)map.easeTo({center:state.superSpot.location,zoom:16});if(superActive())openSuperSpot();return;}
+  renderAlerts();
+}
+
 /* ============================================================
    FEED (§7)
    ============================================================ */
@@ -1816,7 +1849,7 @@ function renderFeed(){
 }
 function bindFeedViewTabs(scope){scope.querySelectorAll('#feedViewTabs button').forEach(b=>b.onclick=()=>{feedView=b.dataset.v;renderFeed();});}
 function bindStoriesRow(scope){
-  const add=scope.querySelector('[data-story-add]');if(add)add.onclick=addStory;
+  scope.querySelectorAll('[data-story-add]').forEach(el=>el.onclick=(ev)=>{ev.stopPropagation();addStory();});
   scope.querySelectorAll('[data-story-user]').forEach(el=>el.onclick=()=>openStories(el.dataset.storyUser));
   const dc=scope.querySelector('#dailyCard');if(dc)dc.onclick=openDaily;
 }
@@ -1911,18 +1944,25 @@ function medalSVG(tier,glyph){
     +'<text x="32" y="41" text-anchor="middle" font-size="24">'+glyph+'</text></svg>';
 }
 function badgeDefs(){
+  /* In LIVE mode the counts come from my_stats(), which are LIFETIME totals kept by
+     the database. The old local maths only saw the pins currently loaded around you,
+     so badges appeared to reset every time you signed in or moved. Demo mode still
+     falls back to the local calculation. */
+  const s=(window.LIVE&&me.stats&&typeof me.stats==='object')?me.stats:null;
   const mine=state.posts.filter(p=>p.authorId==='me');
-  const photos=mine.filter(p=>p.media.length).length;
-  const confirms=state.pointEvents.filter(e=>e.action==='confirm_emergency').length;
-  const reunions=mine.filter(p=>(p.category==='found'||p.category==='lost')&&p.status==='resolved').length;
-  const followers=followersOf('me').length;
-  const night=mine.some(p=>{const h=new Date(p.created_at).getHours();return h>=22||h<4;});
-  const socialTypes=new Set(mine.filter(p=>p.subcat).map(p=>p.subcat)).size;
+  const posts=s?(s.posts||0):mine.length;
+  const photos=s?(s.photos||0):mine.filter(p=>p.media.length).length;
+  const confirms=s?(s.confirms||0):state.pointEvents.filter(e=>e.action==='confirm_emergency').length;
+  const reunions=s?(s.resolved||0):mine.filter(p=>(p.category==='found'||p.category==='lost')&&p.status==='resolved').length;
+  const followers=s?(s.followers||0):followersOf('me').length;
+  const night=s?!!s.night:mine.some(p=>{const h=new Date(p.created_at).getHours();return h>=22||h<4;});
+  const socialTypes=s?(s.subcats||0):new Set(mine.filter(p=>p.subcat).map(p=>p.subcat)).size;
+  const superClaims=s?(s.super_claims||0):(me.superClaims||0);
   const mk=(tier,glyph,name,desc,cur,goal,have)=>{var got=me.isAdmin?true:(have===undefined?cur>=goal:have);return {tier,glyph,name,desc,cur:got?goal:Math.min(cur,goal),goal,have:got};};
   return [
-    mk('bronze','✦','First Drop','Drop your very first pin on the map.',mine.length,1),
-    mk('silver','🗺️','Cartographer','Chart the city with 10 pins.',mine.length,10),
-    mk('gold','🏙️','City Chronicler','Become a local voice with 50 pins.',mine.length,50),
+    mk('bronze','✦','First Drop','Drop your very first pin on the map.',posts,1),
+    mk('silver','🗺️','Cartographer','Chart the city with 10 pins.',posts,10),
+    mk('gold','🏙️','City Chronicler','Become a local voice with 50 pins.',posts,50),
     mk('silver','📸','Shutterbug','Add photos to 25 of your pins.',photos,25),
     mk('bronze','🦉','Night Owl','Post something after 10pm.',night?1:0,1),
     mk('silver','🎭','Tastemaker','Post 5 different kinds of social spots.',socialTypes,5),
@@ -1930,10 +1970,23 @@ function badgeDefs(){
     mk('gold','🗼','Watchtower','Keep the city safe — confirm 50 emergencies.',confirms,50),
     mk('gold','🕊️','Guardian','Reunite someone with what they lost.',reunions,1),
     mk('silver','🔗','Connector','Grow a following of 25 neighbours.',followers,25),
-    mk('gold','🧭','Pathfinder','Be first to claim a weekly Super Spot.',me.superClaims||0,1),
+    mk('gold','🧭','Pathfinder','Be first to claim a weekly Super Spot.',superClaims,1),
     mk('silver','🛡️','Trusted','Collect 500 Golden Racoon Coins.',myPoints(),500),
     mk('platinum','👑','Local Legend','Reach the top level: Cartographer.',myPoints(),10000),
   ];
+}
+/* Record newly-earned badges server-side so the badge shelf is stable across devices. */
+function syncEarnedBadges(){
+  if(!window.LIVE)return;
+  try{
+    badgeDefs().filter(b=>b.have).forEach(function(b){
+      var key=b.name.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+      if(!syncEarnedBadges._sent)syncEarnedBadges._sent={};
+      if(syncEarnedBadges._sent[key])return;
+      syncEarnedBadges._sent[key]=true;
+      liveSafe(L.grantBadge(key));
+    });
+  }catch(e){}
 }
 function badgeCardHTML(b){
   const pct=b.have?100:Math.round(b.cur/b.goal*100);
@@ -1989,17 +2042,21 @@ document.getElementById('lbBack').onclick=()=>switchTab('profile');
 function renderAlerts(){
   const body=document.getElementById('alertBody');
   if(!state.notifications.length){body.innerHTML='<div class="empty"><div class="big">All caught up</div><div>Likes, comments, follows and nearby alerts land here.</div></div>';return;}
-  body.innerHTML=state.notifications.map(n=>{const actor=n.ref&&state.users[n.ref]?userOf(n.ref):null;const who=actor&&['like','comment','follow'].includes(n.type)?esc(actor.name)+' ':'';return '<div class="notif '+(n.read?'':'unread')+'" data-id="'+n.id+'"><div class="ic">'+uiIcon(n.ic,18)+'</div><div style="flex:1"><div class="tx">'+who+n.text+'</div><div class="tm">'+fmtAgo(n.at)+' ago</div></div></div>';}).join('');
-  body.querySelectorAll('.notif').forEach(el=>el.onclick=()=>{const n=state.notifications.find(x=>x.id===el.dataset.id);if(!n)return;n.read=true;updateBell();
-    if(n.ref&&getPost(n.ref)){switchTab('map');openDetail(n.ref);return;}
-    if(n.type==='follow'&&n.ref&&n.ref!=='me'&&state.users[n.ref]){openUserProfile(n.ref);return;}
-    if((n.type==='super'||n.type==='super_won')){switchTab('map');if(map&&state.superSpot)map.easeTo({center:state.superSpot.location,zoom:16});if(superActive())openSuperSpot();return;}
-    if(n.type==='meetup_req'||n.type==='meetup_acc'||n.type==='meetup_msg'){switchTab('meet');return;}
-    if(n.type==='report'){openAdmin();adminTab='reports';renderAdmin();return;}
-    renderAlerts();
+  body.innerHTML=state.notifications.map(n=>{
+    const actor=n.actorName||((n.actorId||n.ref)&&state.users[n.actorId||n.ref]?userOf(n.actorId||n.ref).name:null);
+    const who=actor&&n.type!=='badge'?esc(actor)+' ':'';
+    const sub=n.detail?'<div class="tm" style="opacity:.85">'+esc(n.detail)+'</div>':'';
+    return '<div class="notif '+(n.read?'':'unread')+'" data-id="'+n.id+'"><div class="ic">'+uiIcon(n.ic,18)+'</div><div style="flex:1"><div class="tx">'+who+n.text+'</div>'+sub+'<div class="tm">'+fmtAgo(n.at)+' ago</div></div></div>';
+  }).join('');
+  body.querySelectorAll('.notif').forEach(el=>el.onclick=()=>{
+    const n=state.notifications.find(x=>String(x.id)===el.dataset.id);
+    if(n)openNotification(n);
   });
 }
-document.getElementById('markAll').onclick=()=>{state.notifications.forEach(n=>n.read=true);updateBell();renderAlerts();};
+document.getElementById('markAll').onclick=()=>{
+  state.notifications.forEach(n=>n.read=true);updateBell();renderAlerts();
+  if(window.LIVE)liveSafe(L.markNotificationsRead(null));
+};
 document.getElementById('bellBtn').onclick=()=>{switchTab('alerts');};
 
 /* ============================================================
@@ -2113,7 +2170,12 @@ document.getElementById('meetPublish').onclick=()=>{
 };
 function simulateInboundRequest(id){const m=state.meetups.find(x=>x.id===id);if(!m||m.status!=='open')return;m.requests.push({id:uid(),alias:aliasFor(),avatar:2+Math.floor(Math.random()*8),status:'pending',at:Date.now(),bySim:true});notify('meetup_req','me',id);toast('Someone requested your meetup');if(currentTab()==='meet')renderMeet();}
 
-function openMeetDetail(id){const m=state.meetups.find(x=>x.id===id);if(!m)return;state.currentMeet=id;renderMeetDetail(m);mdScrim.classList.add('open');mdSheet.classList.add('open');dailyTrack('meet');}
+function openMeetDetail(id){const m=state.meetups.find(x=>x.id===id);if(!m)return;state.currentMeet=id;renderMeetDetail(m);mdScrim.classList.add('open');mdSheet.classList.add('open');dailyTrack('meet');
+  if(window.LIVE)liveSafe(L.meetupMessages(id).then(function(rows){
+    if(!rows)return;
+    m.messages=rows.map(function(x){return {me:x.sender_id===state.myUid,text:x.body,at:x.created_at?Date.parse(x.created_at):Date.now()};});
+    if(state.currentMeet===id)renderMeetDetail(m);
+  }));}
 function closeMeetDetail(){mdScrim.classList.remove('open');mdSheet.classList.remove('open');state.currentMeet=null;}
 mdScrim.onclick=closeMeetDetail;
 /* Admin review of a reported meetup — shows content without joining, with moderation actions. */
@@ -2174,18 +2236,47 @@ function renderMeetDetail(m){
   body.querySelector('#mMenu').onclick=()=>openMenu([[['⚑','Report meetup',()=>reportFlow('meetup',m.id),'danger'],['🚫','Block host',()=>{toggleBlock(m.hostId);closeMeetDetail();renderMeet();},'danger']]]);
   const mo=body.querySelector('[data-openuser]');if(mo)mo.onclick=()=>{closeMeetDetail();openUserProfile(mo.dataset.openuser);};
   const am=body.querySelector('#acceptMeet');if(am)am.onclick=()=>{ // §10: request; rate limit 5 accepts/day
+    if(window.LIVE){
+      // the host is notified by a database trigger, and the request survives a refresh
+      liveSafe(L.requestMeetup(m.id)).then(function(){
+        const r={id:uid(),alias:'You',avatar:me.mapAvatar||me.avatarPreset||1,status:'pending',byMe:true,guestId:'me',at:Date.now()};
+        m.requests.push(r);m.myRequest=r;
+        toast('Request sent — waiting for the host');renderMeetDetail(m);
+      });
+      return;
+    }
     m.requests.push({id:uid(),alias:aliasFor(),avatar:1,status:'pending',byMe:true,at:Date.now()});toast('Request sent — waiting for host');renderMeetDetail(m);
     setTimeout(()=>{const r=m.requests.find(x=>x.byMe);if(r&&r.status==='pending'){r.status='accepted';m.status='matched';notify('meetup_acc','me',m.id);toast('Host accepted — chat open');if(state.currentMeet===m.id)renderMeetDetail(m);}},2500);
   };
-  const cr=body.querySelector('#cancelReq');if(cr)cr.onclick=()=>{m.requests=m.requests.filter(r=>!r.byMe);renderMeetDetail(m);};
+  const cr=body.querySelector('#cancelReq');if(cr)cr.onclick=()=>{
+    const mine2=m.requests.filter(r=>r.byMe);
+    if(window.LIVE)mine2.forEach(r=>liveSafe(L.cancelMeetupRequest(r.id)));
+    m.requests=m.requests.filter(r=>!r.byMe);m.myRequest=null;renderMeetDetail(m);
+  };
   const rm=body.querySelector('#reportMeet');if(rm)rm.onclick=()=>reportFlow('meetup',m.id);
-  body.querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>{const r=m.requests.find(x=>x.id===b.dataset.acc);r.status='accepted';m.requests.forEach(x=>{if(x.id!==r.id&&x.status==='pending')x.status='declined';});m.status='matched';m.guestRealId=m.guestRealId||pickRealUser();toast('Accepted — chat open');renderMeetDetail(m);});
-  body.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>{const r=m.requests.find(x=>x.id===b.dataset.dec);r.status='declined';renderMeetDetail(m);});
+  body.querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>{
+    const r=m.requests.find(x=>x.id===b.dataset.acc);if(!r)return;
+    r.status='accepted';m.status='matched';
+    if(window.LIVE){liveSafe(L.respondRequest(r.id,true));}
+    else{m.requests.forEach(x=>{if(x.id!==r.id&&x.status==='pending')x.status='declined';});m.guestRealId=m.guestRealId||pickRealUser();}
+    toast('Accepted — chat open');renderMeetDetail(m);
+  });
+  body.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>{
+    const r=m.requests.find(x=>x.id===b.dataset.dec);if(!r)return;
+    r.status='declined';
+    if(window.LIVE)liveSafe(L.respondRequest(r.id,false));
+    renderMeetDetail(m);
+  });
   const dm=body.querySelector('#delMeet');if(dm)dm.onclick=()=>{if(confirm('Delete this meetup?')){m.status='expired';closeMeetDetail();renderMeet();toast('Meetup deleted');}};
   const cs=body.querySelector('#chatSend'),ci=body.querySelector('#chatInput');
   if(cs){const go=()=>{const t=ci.value.trim();if(!t)return;m.messages.push({me:true,text:t,at:Date.now()});ci.value='';renderMeetDetail(m);
+    if(window.LIVE){liveSafe(L.sendMeetupMessage(m.id,t));return;} // real chat: the other side is a real person
     setTimeout(()=>{m.messages.push({me:false,text:['Sounds good!','See you there 👍','What time works?','On my way soon'][Math.floor(Math.random()*4)],at:Date.now()});if(state.currentMeet===m.id)renderMeetDetail(m);},1400);};cs.onclick=go;ci.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
-  const rb=body.querySelector('#revealBtn');if(rb)rb.onclick=()=>{if(mine)m.revealHost=true;else m.revealGuest=true;if(!(m.revealHost&&m.revealGuest)){toast('You revealed — waiting for the other person');setTimeout(()=>{if(mine)m.revealGuest=true;else m.revealHost=true;if(state.currentMeet===m.id){toast('Both revealed 🎉');renderMeetDetail(m);}},1800);}else toast('Both revealed 🎉');renderMeetDetail(m);};
+  const rb=body.querySelector('#revealBtn');if(rb)rb.onclick=()=>{if(mine)m.revealHost=true;else m.revealGuest=true;
+    if(!(m.revealHost&&m.revealGuest)){toast('You revealed — waiting for the other person');
+      // demo only: pretend the other side reveals back. A real person has to actually tap it.
+      if(!window.LIVE)setTimeout(()=>{if(mine)m.revealGuest=true;else m.revealHost=true;if(state.currentMeet===m.id){toast('Both revealed 🎉');renderMeetDetail(m);}},1800);
+    }else toast('Both revealed 🎉');renderMeetDetail(m);};
   const lb=body.querySelector('#leaveBtn');if(lb)lb.onclick=()=>{m.status='expired';closeMeetDetail();renderMeet();toast('You left — chat closed');};
 }
 
@@ -2200,7 +2291,8 @@ function renderSettings(){
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Username</div><div class="sub">@'+esc(me.username)+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="username">Edit</button></div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Bio</div><div class="sub">'+esc(me.bio||'—')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="bio">Edit</button></div>';
   html+='<div class="setrow"><div style="flex:0 0 auto">'+avatarHTML(me,40)+'</div><div style="flex:1"><div class="lbl">Avatar</div><div class="sub">'+(me.avatarPhoto?'Your photo':'Generated art')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editAvatar">Change</button></div>';
-  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Age band</div><div class="sub">'+me.ageBand+' · used for meetup matching</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editBand">Change</button></div>';
+  html+='<div class="setrow"><div style="flex:0 0 auto;width:40px;height:40px;border-radius:14px;overflow:hidden;background:var(--surface-2)">'+presetAvatar(me.mapAvatar||me.avatarPreset||1)+'</div><div style="flex:1"><div class="lbl">Map avatar</div><div class="sub">'+esc(characterName(me.mapAvatar||me.avatarPreset||1))+' · what neighbours see on the map</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editMapAv">Change</button></div>';
+  html+='<div class="setrow"><div style="flex:1"><div class="lbl">Age</div><div class="sub">'+(me.age?me.age+' years old':'Not set')+' · only the '+esc(me.ageBand||'—')+' range is shown to others</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" id="editBand">Change</button></div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Email</div><div class="sub">'+esc(me.email||'—')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="email">Edit</button></div>';
   html+='<div class="setrow"><div style="flex:1"><div class="lbl">Phone</div><div class="sub">'+esc(me.phone||'Not set')+'</div></div><button class="btn-ghost" style="width:auto;padding:0 14px;height:38px" data-edit="phone">Edit</button></div>';
 
@@ -2242,11 +2334,26 @@ function renderSettings(){
   body.querySelector('#editAvatar').onclick=openAvatarPicker;
   const adminRow=body.querySelector('#adminRow');if(adminRow)adminRow.onclick=openAdmin;
   const installBtn=body.querySelector('#installBtn');if(installBtn)installBtn.onclick=installApp;
-  body.querySelector('#editBand').onclick=()=>openMenu([AGE_BANDS.map(b=>['🎂',b,()=>{me.ageBand=b;if(window.LIVE)liveSafe(L.updateProfile({age_band:b}));renderSettings();toast('Age band: '+b);}])]);
+  body.querySelector('#editBand').onclick=()=>{
+    const v=prompt('How old are you?',me.age||'');
+    if(v==null)return;
+    const n=parseInt(v,10);
+    if(!isFinite(n)||n<18||n>120){toast(n<18&&isFinite(n)?'Pinly is 18+ only':'Enter a real age');return;}
+    me.age=n;me.ageBand=bandForAge(n);
+    if(window.LIVE)liveSafe(L.updateProfile({age:n,age_band:me.ageBand}));
+    renderSettings();toast('Age updated');
+  };
+  const mav=body.querySelector('#editMapAv');if(mav)mav.onclick=openMapAvatarPicker;
   body.querySelector('#mgBlocked').onclick=()=>manageList('blocked');
   body.querySelector('#mgMuted').onclick=()=>manageList('muted');
   body.querySelector('#deleteAcct').onclick=()=>{if(confirm('Delete your account? A 30-day grace period applies before data is purged.')){toast('Account deletion scheduled — 30-day grace period started');}};
-  const lo=body.querySelector('#logoutBtn');if(lo)lo.onclick=()=>{if(!confirm('Log out of Pinly?'))return;if(window.LIVE&&L.auth&&L.auth.signOut){liveSafe(L.auth.signOut()).then(function(){location.reload();});}else{try{localStorage.removeItem('pinly-auth');}catch(e){}location.reload();}};
+  const lo=body.querySelector('#logoutBtn');if(lo)lo.onclick=()=>{
+    if(!confirm('Log out of Pinly?'))return;
+    if(window.LIVE&&L.auth&&L.auth.signOut){
+      // drop off the map BEFORE the session goes away, or the dot lingers for others
+      liveSafe(L.goOffline()).then(function(){return liveSafe(L.auth.signOut());}).then(function(){location.reload();});
+    }else{try{localStorage.removeItem('pinly-auth');}catch(e){}location.reload();}
+  };
 }
 function manageList(kind){const set=kind==='blocked'?state.blocked:state.muted;if(!set.size){toast('Nobody '+kind+' yet');return;}openMenu([[...set].map(id=>['↩️','Un'+(kind==='blocked'?'block':'mute')+' '+userOf(id).name,()=>{set.delete(id);renderSettings();refreshPins();}])]);}
 function exportData(){
@@ -2262,7 +2369,45 @@ function ageOK(){if(state.ageVerified)return true;try{if(localStorage.getItem('p
 function persistAge(){try{localStorage.setItem('pd_age_ok','1');}catch(e){}}
 function showAgeGate(){const g=document.getElementById('ageGate');g.classList.remove('blocked','pickband');g.classList.add('show');}
 function hideAgeGate(){document.getElementById('ageGate').classList.remove('show');}
-function renderGateBands(){const wrap=document.getElementById('gateBands');wrap.innerHTML='';AGE_BANDS.forEach(b=>{const btn=document.createElement('button');btn.className='agechip';btn.textContent=b;btn.onclick=()=>{me.ageBand=b;me.isAdult=true;state.ageVerified=true;persistAge();if(window.LIVE)liveSafe(L.verifyAge(b));hideAgeGate();updateMeetTab();if(map)setTimeout(()=>map.resize(),60);if(needsSetup())setTimeout(startSetup,250);else toast('Welcome to Pinly 👋');};wrap.appendChild(btn);});}
+/* Users give their exact age; the band is derived from it so meetup matching,
+   which works in bands, keeps behaving the same. */
+function bandForAge(n){
+  n=parseInt(n,10);
+  if(!isFinite(n))return AGE_BANDS[1];
+  if(n<25)return '18-24'; if(n<35)return '25-34'; if(n<45)return '35-44';
+  if(n<55)return '45-54'; if(n<65)return '55-64'; return '65+';
+}
+function acceptAge(n){
+  n=parseInt(n,10);
+  if(!isFinite(n)||n<18||n>120)return false;
+  me.age=n;me.ageBand=bandForAge(n);me.isAdult=true;state.ageVerified=true;persistAge();
+  if(window.LIVE)liveSafe(L.verifyAge(n,me.ageBand));
+  hideAgeGate();updateMeetTab();
+  if(map)setTimeout(()=>map.resize(),60);
+  if(state.liveNeedsSetup||(!window.LIVE&&needsSetup()))setTimeout(startSetup,250);else toast('Welcome to Pinly 👋');
+  return true;
+}
+function renderGateBands(){
+  const wrap=document.getElementById('gateBands');
+  wrap.innerHTML='<div class="field" style="text-align:left;width:100%;max-width:280px;margin:0 auto">'
+    +'<label style="font-size:12.5px;color:var(--muted);font-weight:700">How old are you?</label>'
+    +'<input class="input" id="gateAge" type="number" inputmode="numeric" min="18" max="120" placeholder="e.g. 27" '
+    +'style="height:52px;font-size:20px;text-align:center;letter-spacing:1px;margin-top:6px">'
+    +'<div id="gateAgeMsg" style="font-size:12px;color:var(--muted);min-height:16px;margin-top:6px;text-align:center">Your exact age stays private — only an age range is used for meetup matching.</div>'
+    +'<button class="btn-primary" id="gateAgeGo" style="margin-top:10px">Continue</button>'
+    +'</div>';
+  const inp=wrap.querySelector('#gateAge'),msg=wrap.querySelector('#gateAgeMsg');
+  const go=()=>{
+    const v=parseInt(inp.value,10);
+    if(!isFinite(v)||v<1){msg.textContent='Enter your age to continue';msg.style.color='#FF5CA8';return;}
+    if(v<18){document.getElementById('ageGate').classList.add('blocked');return;}
+    if(v>120){msg.textContent='Enter a real age';msg.style.color='#FF5CA8';return;}
+    acceptAge(v);
+  };
+  wrap.querySelector('#gateAgeGo').onclick=go;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  setTimeout(()=>inp.focus(),80);
+}
 document.getElementById('gateYes').onclick=()=>{const g=document.getElementById('ageGate');g.classList.add('pickband');renderGateBands();};
 document.getElementById('gateNo').onclick=()=>{document.getElementById('ageGate').classList.add('blocked');};
 
@@ -2292,7 +2437,10 @@ document.getElementById('listBack').onclick=()=>switchTab('profile');
    AVATAR PICKER (§6)
    ============================================================ */
 const avScrim=document.getElementById('avScrim'),avSheet=document.getElementById('avSheet');
-function openAvatarPicker(){renderAvGrid();avScrim.classList.add('open');avSheet.classList.add('open');}
+/* The same sheet picks either the profile avatar or the map-only one. */
+let avPickerMode='profile';
+function openAvatarPicker(){avPickerMode='profile';renderAvGrid();avScrim.classList.add('open');avSheet.classList.add('open');}
+function openMapAvatarPicker(){avPickerMode='map';renderAvGrid();avScrim.classList.add('open');avSheet.classList.add('open');}
 function closeAvatarPicker(){avScrim.classList.remove('open');avSheet.classList.remove('open');}
 avScrim.onclick=closeAvatarPicker;document.getElementById('avClose').onclick=closeAvatarPicker;
 function afterAvatarChange(){toast('Avatar updated ✓');if(currentTab()==='profile')renderProfile();if(document.getElementById('settingsScreen').classList.contains('active'))renderSettings();
@@ -2302,11 +2450,33 @@ function afterAvatarChange(){toast('Avatar updated ✓');if(currentTab()==='prof
   }
 }
 function renderAvGrid(){
-  const grid=document.getElementById('avGrid');let html='';
-  for(let i=1;i<=AV_COUNT;i++){const on=(!me.avatarPhoto&&me.avatarPreset===i);html+='<button class="av-opt" aria-pressed="'+on+'" data-av="'+i+'" title="'+esc(characterName(i))+'">'+presetAvatar(i)+'<span class="chk">'+ICON('check',12,'#0b0e2e')+'</span><span class="avname">'+esc(characterName(i))+'</span></button>';}
-  grid.innerHTML=html+'<button class="av-upload" id="avUpload"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Photo</button>';
-  grid.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{me.avatarPreset=parseInt(b.dataset.av,10);me.avatarPhoto=null;renderAvGrid();afterAvatarChange();});
-  document.getElementById('avUpload').onclick=()=>document.getElementById('avFile').click();
+  const grid=document.getElementById('avGrid');
+  const mapMode=avPickerMode==='map';
+  const head=avSheet.querySelector('.sheet-head h2'),hint=avSheet.querySelector('.hint');
+  if(head)head.textContent=mapMode?'Map avatar':'Your avatar';
+  if(hint)hint.textContent=mapMode
+    ? 'This is the character neighbours see on the map. It can be different from your profile picture.'
+    : 'Pick your Pinly character — '+AV_COUNT+' illustrated originals. Or upload your own photo.';
+  const cur=mapMode?(me.mapAvatar||me.avatarPreset||1):null;
+  let html='';
+  for(let i=1;i<=AV_COUNT;i++){
+    const on=mapMode?(cur===i):(!me.avatarPhoto&&me.avatarPreset===i);
+    html+='<button class="av-opt" aria-pressed="'+on+'" data-av="'+i+'" title="'+esc(characterName(i))+'">'+presetAvatar(i)+'<span class="chk">'+ICON('check',12,'#0b0e2e')+'</span><span class="avname">'+esc(characterName(i))+'</span></button>';
+  }
+  grid.innerHTML=html+(mapMode?'':'<button class="av-upload" id="avUpload"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Photo</button>');
+  grid.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{
+    const i=parseInt(b.dataset.av,10);
+    if(mapMode){
+      me.mapAvatar=i;
+      if(window.LIVE)liveSafe(L.updateProfile({map_avatar:i}));
+      renderAvGrid();refreshPresence();
+      if(screenActive('settings'))renderSettings();
+      toast('Map avatar: '+characterName(i));
+    }else{
+      me.avatarPreset=i;me.avatarPhoto=null;renderAvGrid();afterAvatarChange();
+    }
+  });
+  const up=document.getElementById('avUpload');if(up)up.onclick=()=>document.getElementById('avFile').click();
 }
 document.getElementById('avFile').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{openCropper(rd.result,cropped=>{me.avatarPhoto=cropped;me.avatarPreset=null;renderAvGrid();afterAvatarChange();});};rd.readAsDataURL(f);e.target.value='';};
 
@@ -2630,6 +2800,8 @@ document.getElementById('adminBack').onclick=()=>{showScreen('settings');renderS
    NAV / TABS
    ============================================================ */
 function currentTab(){const t=document.querySelector('.tab.active');return t?t.dataset.tab:'map';}
+/* Screens (DMs, a conversation, alerts…) are not tabs, so ask the screen directly. */
+function screenActive(name){const el=SCREENS[name]&&document.getElementById(SCREENS[name]);return !!(el&&el.classList.contains('active'));}
 const SCREENS={feed:'feedScreen',search:'searchScreen',meet:'meetScreen',alerts:'alertScreen',profile:'profileScreen',settings:'settingsScreen',lb:'lbScreen',list:'listScreen',admin:'adminScreen',dm:'dmScreen',conv:'convScreen'};
 function showScreen(name){if(name!=='map'&&state.placing)endPlacement();Object.values(SCREENS).forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.setAttribute('aria-hidden','true');});if(SCREENS[name]){const el=document.getElementById(SCREENS[name]);el.classList.add('active');el.setAttribute('aria-hidden','false');}const showMap=name==='map';document.getElementById('fab').style.display=(showMap&&!state.placing)?'flex':'none';document.getElementById('mapctrls').style.display=showMap?'flex':'none';document.getElementById('topbar').style.display=showMap?'flex':'none';const np=document.getElementById('nearbyPill');if(np){if(showMap&&!state.placing)updateNearbyPill();else np.style.display='none';}
   document.getElementById('tabbar').style.display=(name==='conv')?'none':'flex';
@@ -2926,8 +3098,12 @@ function seedStories(){
 function storiesRowHTML(){
   const byU=storiesByUser();const ids=Object.keys(byU);
   let html='<div class="stories-row">';
-  html+='<div class="story-bubble story-add" data-story-add="1"><div class="story-ring mine"><div>'+avatarInner(me)+'</div></div><span class="plus">＋</span><div class="story-name">Your story</div></div>';
-  ids.forEach(id=>{const u=userOf(id);const seen=byU[id].every(s=>s.seen);html+='<div class="story-bubble" data-story-user="'+id+'"><div class="story-ring'+(seen?' seen':'')+'"><div>'+avatarInner(u)+'</div></div><div class="story-name">'+esc(u.name.split(' ')[0])+'</div></div>';});
+  /* Your own bubble opens YOUR story when you have one (with the viewer count),
+     and the ＋ corner always adds another. */
+  const myStories=byU['me']||[];
+  const mineAttr=myStories.length?' data-story-user="me"':' data-story-add="1"';
+  html+='<div class="story-bubble story-add"'+mineAttr+'><div class="story-ring mine"><div>'+avatarInner(me)+'</div></div><span class="plus" data-story-add="1">＋</span><div class="story-name">Your story</div></div>';
+  ids.filter(id=>id!=='me').forEach(id=>{const u=userOf(id);const seen=byU[id].every(s=>s.seen);html+='<div class="story-bubble" data-story-user="'+id+'"><div class="story-ring'+(seen?' seen':'')+'"><div>'+avatarInner(u)+'</div></div><div class="story-name">'+esc(u.name.split(' ')[0])+'</div></div>';});
   return html+'</div>';
 }
 function openStories(authorId){
@@ -2959,7 +3135,11 @@ function openStoryViewers(s){
   render((s.viewers||[]).map(function(id){return {user:userOf(id)};}));
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
-  if(window.LIVE)liveSafe(L.storyViewers(s.id).then(function(list){render((list||[]).map(function(r){var p=r.profiles||{};return {user:{name:p.display_name||'Someone',username:p.username,avatarUrl:p.avatar_url}};}));}));
+  if(window.LIVE)liveSafe(L.storyViewers(s.id).then(function(list){
+    render((list||[]).map(function(r){var p=r.profiles||{};
+      return {user:{name:p.display_name||'Someone',username:p.username,
+        avatarPhoto:p.avatar_url||null,avatarPreset:p.avatar_url?null:(p.avatar_preset||1)}};}));
+  }));
 }
 function nextStory(){if(storyState.idx<storyState.items.length-1){storyState.idx++;renderStory();}else closeStories();}
 function prevStory(){if(storyState.idx>0){storyState.idx--;renderStory();}}
@@ -3043,7 +3223,23 @@ function startGroupChat(){
   const step=()=>{openMenu([cands.filter(u=>!picked.includes(u.id)).slice(0,8).map(u=>['➕',u.name+(picked.length?' (add)':''),()=>{picked.push(u.id);if(picked.length>=2){openMenu([[['✅','Create group ('+ (picked.length+1) +')',()=>{const c={id:uid(),group:true,name:picked.map(id=>userOf(id).name.split(' ')[0]).join(', '),members:['me'].concat(picked),messages:[],created_at:Date.now()};state.conversations.unshift(c);openConversation(c.id);}],['➕','Add another',step]]]);}else step();}])]);};
   if(!cands.length){toast('No one to add');return;}step();
 }
-function messageUser(id){if(!canDM(id)){const m=userOf(id).dmPrivacy;toast(m==='none'?userOf(id).name+' isn’t accepting messages':'Only '+userOf(id).name+'’s friends can message them');return;}openConversation(convWith(id).id);}
+function messageUser(id){
+  if(!canDM(id)){const m=userOf(id).dmPrivacy;toast(m==='none'?userOf(id).name+' isn’t accepting messages':'Only '+userOf(id).name+'’s friends can message them');return;}
+  if(window.LIVE){
+    /* Create the conversation on the server up front. Both people then share one
+       real thread id, so messages reach each other and survive a refresh. */
+    const existing=state.conversations.find(x=>!x.group&&x.members.length===2&&x.members.indexOf(id)>=0);
+    if(existing){switchTab('dm');renderDm();openConversation(existing.id);return;}
+    liveSafe(L.dmWith(id)).then(function(cid){
+      if(!cid){toast('You can’t start a chat with this person');return;}
+      if(!state.conversations.some(function(x){return x.id===cid;}))
+        state.conversations.unshift({id:cid,_liveId:cid,group:false,members:['me',id],messages:[],created_at:Date.now(),unread:false});
+      switchTab('dm');renderDm();openConversation(cid);
+    });
+    return;
+  }
+  openConversation(convWith(id).id);
+}
 document.getElementById('dmBack').onclick=()=>switchTab('feed');
 document.getElementById('convBack').onclick=()=>openMessages();
 document.getElementById('newDmBtn').onclick=startNewDm;
@@ -3054,8 +3250,19 @@ document.getElementById('newDmBtn').onclick=startNewDm;
 let setupStep=0;const SETUP_STEPS=['name','avatar','bio','privacy','done'];
 function needsSetup(){try{return localStorage.getItem('pd_setup')!=='1';}catch(e){return !state.setupDone;}}
 function startSetup(){setupStep=0;document.getElementById('setupWizard').classList.add('show');renderSetup();}
-function finishSetup(){state.setupDone=true;try{localStorage.setItem('pd_setup','1');}catch(e){}document.getElementById('setupWizard').classList.remove('show');
-  if(window.LIVE){const patch={display_name:me.name,bio:me.bio||null,dm_privacy:me.dmPrivacy||'everyone',visibility:state.settings.visibility||'invisible'};if(me.username)patch.username=me.username;if(!me.avatarPhoto&&me.avatarPreset)patch.avatar_preset=me.avatarPreset;liveSafe(L.updateProfile(patch));if(me.avatarPhoto)liveSafe(L.uploadImage('avatars',me.avatarPhoto).then(function(url){if(url)return L.updateProfile({avatar_url:url});}));}
+function finishSetup(){state.setupDone=true;state.liveNeedsSetup=false;try{localStorage.setItem('pd_setup','1');}catch(e){}document.getElementById('setupWizard').classList.remove('show');
+  if(window.LIVE){
+    // profile_complete is the flag startLive() reads, so this runs once per account
+    const patch={display_name:me.name,bio:me.bio||null,dm_privacy:me.dmPrivacy||'everyone',
+      visibility:state.settings.visibility||'invisible',profile_complete:true};
+    if(me.username)patch.username=me.username;
+    if(me.age)patch.age=me.age;
+    if(me.ageBand)patch.age_band=me.ageBand;
+    if(!me.avatarPhoto&&me.avatarPreset)patch.avatar_preset=me.avatarPreset;
+    patch.map_avatar=me.mapAvatar||me.avatarPreset||1;
+    liveSafe(L.updateProfile(patch));
+    if(me.avatarPhoto)liveSafe(L.uploadImage('avatars',me.avatarPhoto).then(function(url){if(url)return L.updateProfile({avatar_url:url});}));
+  }
   toast('You’re all set 🎉');if(currentTab()==='profile')renderProfile();}
 function setDmQuiet(mode){state.settings.dmPrivacy=mode;me.dmPrivacy=mode;const l=document.getElementById('suDmLabel');if(l)l.textContent={everyone:'Everyone',friends:'Friends only',none:'No one'}[mode];}
 function renderSetup(){
@@ -3141,6 +3348,7 @@ setInterval(expiryTick,1000);
 
 /* Simulated realtime inbound pin (§6.6) */
 function simulateRealtime(){
+  if(window.LIVE)return; // demo only — real pins come from the server, never invented here
   if(document.hidden)return;
   const [clng,clat]=state.center;const off=[clng+(Math.random()-.5)*0.006,clat+(Math.random()-.5)*0.006];
   const authors=['u1','u6','u8','u4'];const cat=['social','social','found','hazard'][Math.floor(Math.random()*4)];
@@ -3250,7 +3458,8 @@ function liveProfileToUser(p){
   var u=state.users[p.id]||(state.users[p.id]={id:p.id});
   u.name=p.display_name||'Someone';u.username=p.username||u.username||'user';u.bio=p.bio||'';
   if(p.avatar_url)u.avatarUrl=p.avatar_url;if(p.avatar_preset)u.avatarPreset=p.avatar_preset;
-  u.ageBand=p.age_band||u.ageBand;u.isAdult=!!p.age_verified;u.isAdmin=!!p.is_admin;u.perms=p.perms||[];
+  if(p.map_avatar)u.mapAvatar=p.map_avatar;
+  u.ageBand=p.age_band||u.ageBand;u.age=p.age||u.age||null;u.isAdult=!!p.age_verified;u.isAdmin=!!p.is_admin;u.perms=p.perms||[];
   u.status=p.status||'active';u.points=p.points||0;u.dmPrivacy=p.dm_privacy||'everyone';
   u.email=p.email||u.email||'';u.phone=p.phone||u.phone||'';u.color=u.color||'#7C5CFF';
   u.joined=p.created_at?Date.parse(p.created_at):(u.joined||Date.now());
@@ -3263,7 +3472,8 @@ function liveApplyMe(p){
   me.name=p.display_name||me.name;me.username=p.username||me.username;me.bio=p.bio||'';
   if(p.avatar_url){me.avatarUrl=p.avatar_url;me.avatarPhoto=p.avatar_url;me.avatarPreset=null;}
   else if(p.avatar_preset){me.avatarPreset=p.avatar_preset;me.avatarPhoto=null;}
-  me.ageBand=p.age_band||me.ageBand;me.isAdult=!!p.age_verified;me.isAdmin=!!p.is_admin;me.perms=p.perms||[];
+  me.ageBand=p.age_band||me.ageBand;me.age=p.age||me.age||null;me.isAdult=!!p.age_verified;me.isAdmin=!!p.is_admin;me.perms=p.perms||[];
+  me.mapAvatar=p.map_avatar||me.mapAvatar||null;
   me.status=p.status||'active';me.points=p.points||0;me.streak=p.streak||0;me.streakDay=p.streak_day||null;
   me.dmPrivacy=p.dm_privacy||'everyone';
   state.ageVerified=!!p.age_verified;
@@ -3281,13 +3491,19 @@ function liveRowToPost(r){
   var media=(r.media||[]).map(function(x){return typeof x==='string'?{url:x,alt:''}:{url:x.url||x.media_url,alt:x.alt||''};}).filter(function(x){return x.url;});
   var created=r.created_at?Date.parse(r.created_at):Date.now();
   var expires=r.expires_at?Date.parse(r.expires_at):null;
+  // comments ride along with the feed, so a refresh no longer empties every thread
+  var comments=(r.comments||[]).map(function(c){
+    var aid=(c.author_id===state.myUid)?'me':c.author_id;
+    if(aid!=='me')liveRegisterUser(c.author_id,c.author_name,c.author_avatar!=null?c.author_avatar:c.author_preset);
+    return {id:c.id,authorId:aid,text:c.body||'',created_at:c.created_at?Date.parse(c.created_at):Date.now()};
+  });
   return {id:r.id,authorId:authorId,category:r.category||'social',subcat:r.subcat||null,vibe:r.vibe||null,
     text:r.body||r.text||'',media:media,exact_location:disp,display_location:disp,
     precision:r.precision||'approx_50m',status:r.status||'active',
     created_at:created,lifetime_seconds:expires?Math.max(1,Math.round((expires-created)/1000)):null,expires_at:expires,
-    like_count:r.reaction_count||0,liked:!!r.my_reaction,saved:state.saved.has(r.id),
+    like_count:r.reaction_count||0,liked:!!r.my_reaction,saved:(r.saved!=null?!!r.saved:state.saved.has(r.id)),
     confirm_count:r.confirm_count||0,confirmed:false,repliesOff:false,
-    comments:[],tags:parseHashtags(r.body||r.text||''),reactions:reactions,myReaction:r.my_reaction||null};
+    comments:comments,tags:parseHashtags(r.body||r.text||''),reactions:reactions,myReaction:r.my_reaction||null};
 }
 function liveRowToWhisper(r){
   return {id:r.id,alias:aliasFor(),text:r.body||r.text||'',up:r.up||0,down:r.down||0,
@@ -3302,21 +3518,39 @@ function liveRowToStory(r){
     created_at:r.created_at?Date.parse(r.created_at):Date.now(),seen:authorId==='me'};
 }
 function liveRowToConv(c){
-  var members=(c.conversation_members||[]).map(function(m){return m.user_id===state.myUid?'me':m.user_id;});
+  // my_conversations() returns members as full profile stubs — register them so
+  // names and avatars render for the other side of every thread.
+  var members=(c.members||c.conversation_members||[]).map(function(m){
+    if(m.user_id===state.myUid)return 'me';
+    liveRegisterUser(m.user_id,m.display_name,m.avatar_url!=null?m.avatar_url:m.avatar_preset);
+    if(state.users[m.user_id]){
+      if(m.username)state.users[m.user_id].username=m.username;
+      if(m.map_avatar)state.users[m.user_id].mapAvatar=m.map_avatar;
+    }
+    return m.user_id;
+  });
   var msgs=(c.messages||[]).slice().sort(function(a,b){return Date.parse(a.created_at)-Date.parse(b.created_at);}).map(function(m){
-    return {me:m.sender_id===state.myUid,from:m.sender_id===state.myUid?null:m.sender_id,text:m.body,at:Date.parse(m.created_at)};});
-  return {id:c.id,group:!!c.is_group,name:c.name||null,members:members,
+    return {id:m.id,me:m.sender_id===state.myUid,from:m.sender_id===state.myUid?null:m.sender_id,text:m.body,at:Date.parse(m.created_at)};});
+  return {id:c.id,_liveId:c.id,group:!!c.is_group,name:c.name||null,members:members,
     created_at:c.created_at?Date.parse(c.created_at):Date.now(),unread:false,messages:msgs};
 }
 function liveRowToMeetup(m){
   var mine=m.host_id===state.myUid;
-  var loc=coordOf(m.display_location,state.center)||state.center;
-  if(!mine&&m.identity==='real')liveRegisterUser(m.host_id,null,null);
+  var loc=(m.lng!=null&&m.lat!=null)?[m.lng,m.lat]:(coordOf(m.display_location,state.center)||state.center);
+  if(!mine&&m.identity==='real')liveRegisterUser(m.host_id,m.host_name,m.host_avatar!=null?m.host_avatar:m.host_preset);
+  // Join requests come back with the meetup, so they survive a refresh on both sides.
+  var reqs=(m.requests||[]).map(function(r){
+    var g=(r.guest_id===state.myUid)?'me':r.guest_id;
+    return {id:r.id,guestId:g,byMe:g==='me',status:r.status||'pending',
+      alias:(g==='me'?'You':aliasFor()),avatar:(r.guest_preset||1),
+      at:r.created_at?Date.parse(r.created_at):Date.now()};
+  });
   return {id:m.id,hostId:mine?'me':m.host_id,activity:m.activity,note:m.note||'',ageBand:m.age_band,
     bands:m.bands||[m.age_band],display_location:loc,venue:m.venue,status:m.status||'open',
     created_at:m.created_at?Date.parse(m.created_at):Date.now(),
     expires_at:m.expires_at?Date.parse(m.expires_at):Date.now()+3600e3,
-    identity:m.identity||'anon',hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],
+    identity:m.identity||'anon',hostAlias:aliasFor(),hostAvatar:m.host_preset||1,requests:reqs,messages:[],
+    myRequest:(reqs.find(function(r){return r.guestId==='me';})||null),
     revealHost:m.identity==='real',revealGuest:false,mine:mine};
 }
 function liveRowToReport(r){
@@ -3330,7 +3564,12 @@ function liveEnsureConv(c){
   var p;
   if(c.group){p=L.createGroup(c.members.filter(function(m){return m!=='me';}),c.name);}
   else{var other=c.members.find(function(m){return m!=='me';});if(!other)return Promise.resolve(c.id);p=L.dmWith(other);}
-  return Promise.resolve(p).then(function(cid){if(cid){c._liveId=cid;c.id=cid;liveSubscribeConv(c);}return cid||c.id;}).catch(function(){return c.id;});
+  return Promise.resolve(p).then(function(cid){
+    if(cid){var was=c.id;c._liveId=cid;c.id=cid;
+      if(state.currentConv===was)state.currentConv=cid; // keep the open thread pointing at the real row
+      liveSubscribeConv(c);}
+    return cid||c.id;
+  }).catch(function(){return c.id;});
 }
 function liveSubscribeConv(c){
   if(!c||!/^[0-9a-f]{8}-/i.test(c.id)||_liveConvSubs[c.id])return;
@@ -3449,7 +3688,11 @@ async function liveHydrate(){
   try{state.whispers=(await L.whispers()).map(liveRowToWhisper);}catch(e){state.whispers=[];}
   try{state.stories=(await L.activeStories()).map(liveRowToStory);}catch(e){state.stories=[];}
   try{state.conversations=(await L.myConversations()).map(liveRowToConv);}catch(e){state.conversations=[];}
-  try{state.meetups=(await L.nearbyMeetups()).map(liveRowToMeetup);}catch(e){state.meetups=[];}
+  try{state.meetups=(await L.nearbyMeetups(lng,lat,Math.max(radius,25000))).map(liveRowToMeetup);}catch(e){state.meetups=[];}
+  try{state.notifications=(await L.notifications(80)).map(liveRowToNotif);}catch(e){state.notifications=[];}
+  // Lifetime totals drive badges and coins, so both come back on every sign-in.
+  try{var st=await L.myStats();if(st&&typeof st==='object'){me.stats=st;if(typeof st.points==='number')me.points=st.points;}}catch(e){}
+  try{syncEarnedBadges();}catch(e){}
   try{(await L.nearbyPeople(lng,lat,Math.max(radius,5000))).forEach(function(r){var u=liveRegisterUser(r.id,r.display_name||r.name,r.avatar_url!=null?r.avatar_url:r.avatar_preset);var c=coordOf(r.loc!=null?r.loc:[r.lng,r.lat]);if(c)u.loc=c;u.visible=true;u.lastSeen=r.last_seen?Date.parse(r.last_seen):Date.now();});}catch(e){}
   if(me.isAdmin){
     try{(await L.admin.allUsers()).forEach(liveProfileToUser);}catch(e){}
@@ -3461,7 +3704,53 @@ function liveRealtime(){
   try{
     setInterval(function(){liveSafe(L.feed(state.center[0],state.center[1],RADII[state.radiusIdx][0]||50000).then(function(rows){
       state.posts=rows.map(liveRowToPost);refreshPins();if(currentTab()==='feed')renderFeed();}));},45000);
-    setInterval(function(){if(state.settings.visibility==='live')liveSafe(L.updateLocation(state.center[0],state.center[1]));},60000);
+
+    /* Presence heartbeat. nearby_people only counts profiles seen in the last five
+       minutes, so this must beat faster than that — and when the tab is hidden or
+       closed we go quiet, which is what stops a signed-out user lingering on the map. */
+    var beat=function(){if(state.settings.visibility==='live')liveSafe(L.updateLocation(state.center[0],state.center[1]));};
+    beat();setInterval(beat,120000);
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')beat();});
+    window.addEventListener('pagehide',function(){liveSafe(L.goOffline());});
+
+    /* Real notifications, pushed the moment the database creates them. */
+    if(state.myUid)liveSafe(L.subscribeNotifications(state.myUid,function(row){
+      var n=liveRowToNotif(row);
+      if(state.notifications.some(function(x){return String(x.id)===String(n.id);}))return;
+      state.notifications.unshift(n);updateBell();
+      if(screenActive('alerts'))renderAlerts();
+      var who=n.actorName?n.actorName+' ':'';
+      toast(who+n.text);
+    }));
+
+    /* Incoming DMs for every thread, not just the one that happens to be open. */
+    liveSafe(L.subscribeAllMessages(function(row){
+      if(!row||row.sender_id===state.myUid)return;
+      var c=state.conversations.find(function(x){return x.id===row.conversation_id;});
+      if(!c){liveSafe(L.myConversations().then(function(rows){state.conversations=rows.map(liveRowToConv);updateDmDot();if(screenActive('dm'))renderDm();}));return;}
+      if(c.messages.some(function(m){return m.id&&m.id===row.id;}))return;
+      c.messages.push({id:row.id,me:false,from:row.sender_id,text:row.body,at:row.created_at?Date.parse(row.created_at):Date.now()});
+      if(state.currentConv===c.id&&screenActive('conv'))renderConv(c);else{c.unread=true;updateDmDot();if(screenActive('dm'))renderDm();}
+    }));
+
+    /* Meetups and their join requests, so both sides stay in sync. */
+    setInterval(function(){liveSafe(L.nearbyMeetups(state.center[0],state.center[1],25000).then(function(rows){
+      if(!rows)return;state.meetups=rows.map(liveRowToMeetup);
+      if(currentTab()==='meet')renderMeet();refreshMeetMarkers();}));},60000);
+
+    /* Other people's presence dots. */
+    setInterval(function(){liveSafe(L.nearbyPeople(state.center[0],state.center[1],Math.max(RADII[state.radiusIdx][0]||50000,5000)).then(function(rows){
+      var seen={};
+      (rows||[]).forEach(function(r){
+        var u=liveRegisterUser(r.id,r.display_name||r.name,r.avatar_url!=null?r.avatar_url:r.avatar_preset);
+        if(r.map_avatar)u.mapAvatar=r.map_avatar;
+        var c=coordOf(r.loc!=null?r.loc:[r.lng,r.lat]);if(c)u.loc=c;
+        u.visible=true;u.lastSeen=r.last_seen?Date.parse(r.last_seen):Date.now();seen[r.id]=true;
+      });
+      // anyone the server no longer reports is offline now
+      Object.keys(state.users).forEach(function(k){if(k!=='me'&&!seen[k]&&state.users[k].visible)state.users[k].visible=false;});
+      refreshPresence();
+    }));},45000);
   }catch(e){}
 }
 async function startLive(){
@@ -3486,8 +3775,10 @@ async function startLive(){
   var prof=null;try{prof=await L.myProfile();}catch(e){}
   if(prof){liveApplyMe(prof);}
   else{try{var au=await L.auth.user();state.myUid=au?au.id:null;}catch(e){}state.users['me']=me;}
-  // a profile still on its trigger-created defaults means the account isn't set up yet
-  var liveNeedsSetup=!prof||!prof.display_name||prof.display_name==='New neighbour'||/^u[0-9a-f]{12}$/i.test(prof.username||'');
+  /* profiles.profile_complete is set once the wizard finishes and is never cleared,
+     so returning users are not asked to build their profile all over again. */
+  var liveNeedsSetup=!prof||!prof.profile_complete;
+  state.liveNeedsSetup=liveNeedsSetup;
   try{L.auth.onChange(function(s){if(!s)location.reload();});}catch(e){}
   try{state.center=await liveGetCenter();}catch(e){}
   await liveHydrate();
