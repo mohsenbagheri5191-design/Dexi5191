@@ -115,3 +115,48 @@ $$;
 -- toggle_reaction(post,kind) -> text: one reaction per user (upsert/remove)
 -- vote_whisper(whisper,dir): cast/undo a vote, keep counters correct
 -- (Full definitions are in the applied migration; see INTEGRATION.md for how the client uses them.)
+
+-- ============================================================================
+-- BUILD 14 — cross-user persistence, real notifications, exact age, map avatars
+-- ============================================================================
+
+-- Profile fields the app was missing.
+alter table public.profiles add column if not exists age int;
+alter table public.profiles add column if not exists map_avatar int;         -- avatar shown on the MAP (separate from the profile picture)
+alter table public.profiles add column if not exists profile_complete boolean not null default false;
+
+-- Real, server-generated notifications. There is deliberately NO insert policy:
+-- rows can only be produced by the SECURITY DEFINER triggers below, so a client
+-- can never forge one.
+create table if not exists public.notifications (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references public.profiles(id) on delete cascade,  -- recipient
+  actor_id   uuid references public.profiles(id) on delete cascade,           -- who caused it
+  kind       text not null,   -- comment|reaction|follow|message|meetup_request|meetup_accepted|story_view|badge
+  ref_type   text,            -- post|conversation|meetup|story|user
+  ref_id     text,
+  body       text,
+  read       boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists notifications_user_idx on public.notifications(user_id, created_at desc);
+alter table public.notifications enable row level security;
+create policy notif_read   on public.notifications for select using (user_id = auth.uid());
+create policy notif_update on public.notifications for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy notif_delete on public.notifications for delete using (user_id = auth.uid());
+
+-- push_notification(): never notifies you about yourself, respects blocks, and can
+-- never abort the action that caused it.
+-- Triggers: comments, reactions, follows, messages, meetup requests/responses, story views.
+-- Readers:  my_notifications(limit), mark_notifications_read(ids).
+
+-- Badges must survive a re-sign-in.
+create unique index if not exists badges_user_key_uidx on public.badges(user_id, badge_key);
+create policy badges_insert on public.badges for insert with check (user_id = auth.uid());
+
+-- feed_nearby() now also returns each post's comments, reaction breakdown and saved
+-- flag, so a refresh no longer empties every comment thread.
+-- meetups_nearby() returns meetups WITH their join requests (RLS still limits the
+-- request rows to the host and the guest who made them).
+-- nearby_people() only returns profiles seen in the last 5 minutes, and go_offline()
+-- clears visibility + last_seen so a signed-out user stops showing as online.
