@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Pin Drop" />
-<meta name="theme-color" content="#090B24" />
+<meta name="theme-color" content="#171A32" />
 <title>Pin Drop</title>
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -27,10 +27,21 @@
 
 <style>
 :root{
-  --void:#090B24; --ink:#10133A; --surface:#191D4D; --surface-2:#232866; --line:rgba(255,255,255,.09);
-  --paper:#EDEBFF; --muted:#9AA0D6;
-  --social:#7C5CFF; --fire:#FF4438; --hazard:#FFB020; --found:#22E5A3; --lost:#FF5CA8; --meetup:#35E5FF;
-  --cyan:#35E5FF; --success:#22E5A3; --danger:#FF4438;
+  /* Night-to-dawn palette: deep indigo sky at the top easing into lavender and
+     warm cream at the bottom, the way the reference screens do. */
+  --void:#171A32; --ink:#1E2140; --surface:#2A2E52; --surface-2:#353A66; --line:rgba(198,205,255,.11);
+  --paper:#EDEFFF; --muted:#9BA2CE;
+  --social:#7E82D8; --fire:#FF6B6B; --hazard:#FFC46B; --found:#6BE3B8; --lost:#FF8FC0; --meetup:#8FD8F0;
+  --cyan:#9FD8F5; --success:#6BE3B8; --danger:#FF6B6B;
+  /* dawn ramp — used by sheets, cards and the bottom of the map */
+  --dawn-1:#C9CCEB; --dawn-2:#DCD9EC; --dawn-3:#F2EAE0; --cream:#F6EFE5;
+  --glow:rgba(190,205,255,.55);
+  /* layered depth: a soft ambient shadow plus a tighter contact shadow */
+  --depth-1:0 1px 2px rgba(10,12,30,.20), 0 4px 10px rgba(10,12,30,.22);
+  --depth-2:0 2px 6px rgba(10,12,30,.24), 0 12px 28px rgba(10,12,30,.34);
+  --depth-3:0 6px 18px rgba(10,12,30,.30), 0 26px 60px rgba(10,12,30,.46);
+  --inner-top:inset 0 1px 0 rgba(255,255,255,.10);
+  --ring:0 0 0 1px rgba(198,205,255,.10);
   --font-display:'Bricolage Grotesque', system-ui, sans-serif;
   --font-body:'Plus Jakarta Sans', system-ui, sans-serif;
   --font-mono:'Space Mono', ui-monospace, monospace;
@@ -61,7 +72,26 @@ input,textarea,select{font-family:inherit;font-size:16px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 img{max-width:100%}
 
-#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--ink);max-width:560px;margin:0 auto}
+/* Night sky: the starfield is painted into #app's own background stack, not a
+   pseudo-element, so it never creates a stacking context that the map, tab bar
+   and sheets would have to fight. */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--ink);max-width:560px;margin:0 auto;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 14%, rgba(255,255,255,.60), transparent 60%),
+    radial-gradient(1.1px 1.1px at 78% 9%,  rgba(255,255,255,.50), transparent 60%),
+    radial-gradient(1.6px 1.6px at 62% 22%, rgba(255,255,255,.42), transparent 60%),
+    radial-gradient(1px 1px   at 30% 30%,  rgba(255,255,255,.38), transparent 60%),
+    radial-gradient(1.3px 1.3px at 88% 34%, rgba(255,255,255,.34), transparent 60%),
+    radial-gradient(1px 1px   at 45% 8%,   rgba(255,255,255,.45), transparent 60%),
+    radial-gradient(1.2px 1.2px at 20% 44%, rgba(255,255,255,.28), transparent 60%),
+    radial-gradient(1px 1px   at 68% 48%,  rgba(255,255,255,.24), transparent 60%),
+    radial-gradient(140% 70% at 50% -10%, #232748 0%, #1B1E3C 42%, #171A32 100%)}
+:root[data-theme="light"] #app{background-image:radial-gradient(140% 70% at 50% -10%, #FFFFFF 0%, #F2F1FA 46%, #E9EDF6 100%)}
+
+/* ---------- Depth helpers shared across the app ---------- */
+.squircle{border-radius:28px}
+.lift{box-shadow:var(--depth-2),var(--inner-top)}
+.glowring{box-shadow:0 0 0 1px rgba(255,255,255,.16), 0 0 22px var(--glow), var(--depth-2)}
 
 /* ---------- Top bar ---------- */
 #topbar{position:absolute;left:0;right:0;z-index:20;top:calc(var(--safe-top) + 8px);padding:0 12px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -592,6 +622,148 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 @keyframes laFloat{0%{transform:translate(0,0) scale(1)}33%{transform:translate(24px,-30px) scale(1.12)}66%{transform:translate(-22px,18px) scale(.92)}100%{transform:translate(0,0) scale(1)}}
 #liveAuth>*{position:relative;z-index:1}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+
+/* ============================================================================
+   NIGHT-TO-DAWN SKIN — soft depth, glowing edges, cream sheets.
+   Layered last so it restyles the components above without rewriting them.
+   ============================================================================ */
+
+/* --- Sheets and panels: the warm dawn gradient from the reference --- */
+.sheet{background:linear-gradient(180deg,var(--dawn-1) 0%,var(--dawn-2) 34%,var(--dawn-3) 100%);
+  border-radius:34px 34px 0 0;border-top:none;
+  box-shadow:0 -2px 0 rgba(255,255,255,.55) inset, 0 -30px 80px rgba(10,12,30,.62)}
+.sheet .handle{background:rgba(40,44,86,.28)}
+.sheet,.sheet .sheet-body{color:#252A4D}
+.sheet .meta,.sheet .sub,.sheet .hint,.sheet .lead{color:#5B6191}
+.sheet .card,.sheet .setrow,.sheet .meet-card{background:rgba(255,255,255,.62);border-color:rgba(40,44,86,.10);
+  box-shadow:var(--depth-1);color:#252A4D}
+.sheet .input,.sheet .textarea,.sheet select{background:rgba(255,255,255,.72);border-color:rgba(40,44,86,.14);color:#252A4D}
+.sheet .btn-ghost{background:rgba(255,255,255,.66);border:1px solid rgba(40,44,86,.12);color:#353A66}
+.sheet h2,.sheet h3,.sheet .title,.sheet .nm{color:#20244A}
+
+/* --- Cards: squircle + real depth instead of a flat fill --- */
+.card,.meet-card{border-radius:24px;background:linear-gradient(180deg,rgba(58,63,110,.72),rgba(40,44,82,.72));
+  border:1px solid rgba(198,205,255,.10);box-shadow:var(--depth-2),var(--inner-top);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.meet-card{border:1px solid rgba(143,216,240,.20)}
+.setrow{border-radius:20px;background:linear-gradient(180deg,rgba(58,63,110,.62),rgba(40,44,82,.62));
+  border:1px solid rgba(198,205,255,.09);box-shadow:var(--depth-1),var(--inner-top)}
+
+/* --- Chips, pills and glass bars --- */
+.chip,.iconbtn,.radiuspill,.searchfield{background:rgba(36,40,74,.72);border:1px solid rgba(198,205,255,.12);
+  box-shadow:var(--depth-1),var(--inner-top);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 1px rgba(255,255,255,.22), 0 0 18px var(--glow), var(--depth-1)}
+
+/* --- Primary actions: soft indigo with a glow, not a hard neon gradient --- */
+.btn-primary,#fab{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#FFF;
+  box-shadow:0 10px 26px rgba(90,96,180,.48), var(--inner-top)}
+#fab{border-radius:22px}
+.btn-primary{border-radius:22px}
+.sheet .btn-primary{color:#fff}
+
+/* --- Tab bar: lifted glass slab with a light top edge --- */
+#tabbar{background:linear-gradient(180deg,rgba(60,66,116,.96),rgba(34,38,72,.98));
+  border-top:1px solid rgba(198,205,255,.20);
+  box-shadow:0 -12px 34px rgba(8,10,26,.60), inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.tab.active{color:#EDEFFF}
+.tab.active::after{background:linear-gradient(90deg,var(--social),var(--cyan));box-shadow:0 0 12px var(--glow)}
+
+/* --- Round icon buttons, like the control grid in the reference --- */
+.ctrlbtn{background:rgba(42,46,84,.78)!important;border:1px solid rgba(198,205,255,.14)!important;
+  box-shadow:var(--depth-2), var(--inner-top), inset 0 -6px 14px rgba(10,12,30,.35)!important;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.ctrlbtn:active{box-shadow:var(--depth-1), inset 0 2px 8px rgba(10,12,30,.5)!important}
+
+/* --- Avatars get a soft rim so they read against the night sky --- */
+.avatar{box-shadow:0 0 0 1px rgba(198,205,255,.16), var(--depth-1)}
+.presence-marker .pav{border:2.5px solid rgba(233,238,255,.92);
+  box-shadow:0 0 0 3px rgba(126,130,216,.35), 0 0 18px var(--glow), 0 6px 16px rgba(8,10,26,.55)}
+.presence-marker .pdot{background:var(--found);border:2px solid #1E2140;box-shadow:0 0 8px rgba(107,227,184,.9)}
+/* your own marker sits a little larger with a brighter halo so you can find yourself */
+.presence-marker.me{width:46px;height:46px;z-index:3}
+.presence-marker.me .pav{border-color:#FFFFFF;box-shadow:0 0 0 4px rgba(126,130,216,.45), 0 0 26px var(--glow), 0 8px 20px rgba(8,10,26,.6)}
+.presence-marker.me::after{content:'';position:absolute;inset:-10px;border-radius:50%;
+  border:2px solid rgba(159,216,245,.55);animation:mePulse 2.6s ease-out infinite}
+@keyframes mePulse{0%{transform:scale(.75);opacity:.85}100%{transform:scale(1.35);opacity:0}}
+
+/* --- Story rings pick up the dawn ramp --- */
+.story-ring{background:conic-gradient(from 210deg,var(--social),var(--cyan),var(--dawn-3),var(--social));
+  box-shadow:0 0 16px rgba(143,216,240,.35)}
+.story-ring.seen{background:rgba(198,205,255,.22);box-shadow:none}
+/* view counter on your own story bubble */
+.story-views-pip{position:absolute;left:50%;transform:translateX(-50%);bottom:20px;z-index:3;
+  display:inline-flex;align-items:center;gap:3px;height:18px;padding:0 7px;border-radius:99px;
+  background:linear-gradient(180deg,#DDE6FF,#B9C6E8);color:#0b0e2e;font-size:10px;font-weight:800;
+  box-shadow:0 3px 8px rgba(8,10,26,.5)}
+
+/* --- Notification rows --- */
+.notif{border-bottom:1px solid rgba(198,205,255,.09)}
+.notif.unread{background:linear-gradient(90deg,rgba(126,130,216,.16),transparent);border-radius:16px}
+.notif .ic{background:rgba(42,46,84,.85);box-shadow:var(--depth-1),var(--inner-top)}
+
+/* --- Light theme keeps the same shapes, warmer surfaces --- */
+:root[data-theme="light"] .card,:root[data-theme="light"] .meet-card,:root[data-theme="light"] .setrow{
+  background:#FFFFFF;border:1px solid rgba(40,44,86,.10);box-shadow:var(--depth-1)}
+:root[data-theme="light"] .chip,:root[data-theme="light"] .iconbtn,
+:root[data-theme="light"] .radiuspill,:root[data-theme="light"] .searchfield{
+  background:rgba(255,255,255,.88);border:1px solid rgba(40,44,86,.10)}
+:root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#FFFFFF,#F1F3FB);
+  border-top:1px solid rgba(40,44,86,.10);box-shadow:0 -10px 28px rgba(40,44,86,.12)}
+:root[data-theme="light"] .sheet{background:linear-gradient(180deg,#FFFFFF 0%,#F7F4FA 55%,#F6EFE5 100%)}
+
+/* --- Meetup category chips + sort row (item 8) --- */
+.sortrow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 0 10px}
+.sortrow::-webkit-scrollbar{display:none}
+.sortchip{flex:0 0 auto;height:32px;padding:0 13px;border-radius:99px;display:flex;align-items:center;gap:6px;
+  font-size:12.5px;font-weight:700;white-space:nowrap;color:var(--paper);
+  background:rgba(36,40,74,.72);border:1px solid rgba(198,205,255,.12);box-shadow:var(--depth-1)}
+.sortchip[aria-pressed="true"]{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.2), 0 0 16px var(--glow)}
+.mtype{width:40px;height:40px;border-radius:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(126,130,216,.35),rgba(60,66,116,.35));
+  border:1px solid rgba(198,205,255,.16);box-shadow:var(--depth-1),var(--inner-top)}
+.sheet .mtype{background:linear-gradient(180deg,rgba(126,130,216,.22),rgba(126,130,216,.10));border-color:rgba(40,44,86,.12)}
+
+/* --- Message bubbles + DM rows (item 5) --- */
+.msg{box-shadow:var(--depth-1)}
+.msg.me{background:linear-gradient(180deg,#7E82D8,#5F63B4);color:#fff}
+.msg.them{background:rgba(52,57,100,.88);color:var(--paper)}
+.sheet .msg.them{background:rgba(255,255,255,.78);color:#252A4D}
+.dm-row{border-bottom:1px solid rgba(198,205,255,.09);border-radius:18px;padding:12px 10px}
+.dm-row:active{background:rgba(126,130,216,.14)}
+.msg-line{display:flex;gap:8px;align-items:flex-end;margin-bottom:8px}
+.msg-line.me{justify-content:flex-end}
+.msg-line.them{justify-content:flex-start}
+.msg-av{border:none;cursor:pointer;box-shadow:0 0 0 1px rgba(198,205,255,.18)}
+.msg-av:active{transform:scale(.92)}
+.msg-wrap{position:relative;display:flex;flex-direction:column;max-width:82%}
+.msg-wrap.me{align-self:flex-end;align-items:flex-end}
+.msg-wrap.them{align-self:flex-start;align-items:flex-start}
+.msg-del{opacity:0;transition:opacity .15s ease;font-size:11px;font-weight:700;color:var(--muted);
+  background:none;padding:2px 6px;margin-top:2px}
+.msg-wrap:hover .msg-del,.msg-wrap.show-del .msg-del{opacity:1}
+
+/* --- Badge shelf on someone else's profile (item 6) --- */
+.badgestrip{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px}
+.badgestrip::-webkit-scrollbar{display:none}
+.badgestrip .bchip{flex:0 0 auto;width:66px;text-align:center}
+.badgestrip .bchip .medal{width:52px;height:52px;margin:0 auto 4px}
+.badgestrip .bchip .medal svg{width:100%;height:100%}
+.badgestrip .bchip .bn{font-size:9.5px;font-weight:700;color:var(--muted);line-height:1.2}
+.badgestrip .bchip.locked .medal{filter:grayscale(1) brightness(.55);opacity:.55}
+
+/* --- Super Spot review (item 7) --- */
+.claimcard{border-radius:22px;overflow:hidden;margin-bottom:12px;background:rgba(52,57,100,.72);
+  border:1px solid rgba(198,205,255,.12);box-shadow:var(--depth-2)}
+.claimcard img.shot{width:100%;display:block;max-height:280px;object-fit:cover;background:#20244A}
+.claimcard .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+.claimcard .mg{background:rgba(30,33,64,.6);border-radius:12px;padding:8px 10px}
+.claimcard .mg .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.claimcard .mg .v{font-size:13px;font-weight:700;margin-top:1px}
+.claimcard .mg.warn{background:rgba(255,107,107,.16);border:1px solid rgba(255,107,107,.35)}
+.claimcard .mg.good{background:rgba(107,227,184,.14);border:1px solid rgba(107,227,184,.32)}
+.sheet .claimcard{background:rgba(255,255,255,.66);border-color:rgba(40,44,86,.10);color:#252A4D}
+.sheet .claimcard .mg{background:rgba(40,44,86,.06)}
 </style>
 </head>
 <body>
@@ -781,7 +953,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 
   <!-- CONVERSATION -->
   <section class="screen" id="convScreen" aria-hidden="true">
-    <div class="screen-head" id="convHead"><button class="back" id="convBack">←</button><h1 id="convTitle">Chat</h1></div>
+    <div class="screen-head" id="convHead"><button class="back" id="convBack">←</button><button id="convAv" class="avatar" style="width:34px;height:34px;border-radius:12px;padding:0;overflow:hidden;flex:0 0 auto;display:none"></button><h1 id="convTitle">Chat</h1></div>
     <div class="screen-body" id="convBody" style="display:flex;flex-direction:column;padding:0"></div>
   </section>
 
@@ -820,6 +992,8 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
       <label>Photo <span style="color:var(--danger)">*required</span> (max 10)</label>
       <div class="mediastrip" id="mediaStrip"><button class="addcell" id="addMedia"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>
       <input type="file" id="fileInput" accept="image/*" multiple hidden />
+      <!-- capture forces the camera, which is what a Super Spot claim has to use -->
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
     </div>
     <div class="field"><label>Say something</label><textarea class="textarea" id="postText" placeholder="What's here? Add #hashtags…" maxlength="1000"></textarea></div>
     <div class="field"><label>How long does this pin stay live?</label><div class="seg" id="lifeSeg"></div><div class="pill-note" id="lifeNote">This pin disappears in 7 days</div></div>
@@ -843,6 +1017,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
   <div class="sheet-body scroll">
     <div class="sheet-head"><h2>New meetup</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="meetClose">Cancel</button></div>
     <div class="safety">👋 18+ only. Meetups always use <b>block-level</b> location — your exact spot is never shown. Meet in public, tell someone where you're going, leave whenever you want.</div>
+    <div class="field"><label>Category</label><select class="select" id="meetCategory"></select></div>
     <div class="field"><label>Activity</label><select class="select" id="meetActivity"></select></div>
     <div class="field"><label>Where (snaps to a public place)</label>
       <div class="composer-map" style="height:180px"><div id="meetMap"></div><div class="crosshair"><div class="ring"></div></div><div class="coordreadout mono" id="meetCoord">--.------ , --.------</div></div>
@@ -932,7 +1107,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 14 · 2026-07-30';
+window.PINLY_BUILD = 'build 15 · 2026-07-31';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -1089,7 +1264,36 @@ const LIFETIMES={
   lost:{opts:[['7d',7*D],['14d',14*D],['30d',30*D],['90d',90*D]],def:30*D},
   meetup:{opts:[['1h',1*H],['3h',3*H],['6h',6*H],['12h',12*H],['24h',24*H]],def:3*H},
 };
-const ACTIVITIES=['Coffee','Lunch','Dinner','Drinks','Walk','Hiking','Running','Cycling','Gym session','Basketball','Soccer','Tennis','Swimming','Dog walk','Board games','Video games','Live music','Movie','Museum or gallery','Study session','Language exchange','Photography walk','Farmers market','Bookstore browse','Fishing','Skating','Yoga','Volunteering','Coworking','Just chat'];
+const ACTIVITIES=['Coffee','Lunch','Dinner','Drinks','Walk','Hiking','Running','Cycling','Gym session','Basketball','Soccer','Tennis','Swimming','Dog walk','Board games','Video games','Live music','Movie','Museum or gallery','Study session','Language exchange','Photography walk','Farmers market','Bookstore browse','Fishing','Skating','Yoga','Volunteering','Coworking','Just chat','Coffee date','Dinner date','Drinks date','Walk & talk date'];
+/* Meetup categories — each with its own icon and colour so the feed reads at a glance. */
+const MEET_CATS=[
+  ['Dating',   'heart',    '#FF8FC0'],
+  ['Food',     'food',     '#FFC46B'],
+  ['Drinks',   'glass',    '#C9A0FF'],
+  ['Active',   'ball',     '#6BE3B8'],
+  ['Outdoors', 'tree',     '#7FD6A0'],
+  ['Culture',  'palette',  '#8FD8F0'],
+  ['Games',    'ball',     '#9FA8FF'],
+  ['Learning', 'bulb',     '#FFD98F'],
+  ['Pets',     'paw',      '#FFB07C'],
+  ['Social',   'users',    '#7E82D8']
+];
+const MEET_CAT_NAMES=MEET_CATS.map(c=>c[0]);
+function meetCatMeta(name){const c=MEET_CATS.find(x=>x[0]===name);return c||MEET_CATS[MEET_CATS.length-1];}
+/* Derive a sensible category from the chosen activity so older meetups still sort. */
+function activityCategory(act){
+  const a=String(act||'').toLowerCase();
+  if(/date|dating|romance/.test(a))return 'Dating';
+  if(/coffee|lunch|dinner|market|food|brunch/.test(a))return 'Food';
+  if(/drink|bar|pub|wine|beer/.test(a))return 'Drinks';
+  if(/gym|run|cycl|basketball|soccer|tennis|swim|yoga|skat/.test(a))return 'Active';
+  if(/walk|hik|fish|photo/.test(a))return 'Outdoors';
+  if(/music|movie|museum|gallery|art/.test(a))return 'Culture';
+  if(/board game|video game|games/.test(a))return 'Games';
+  if(/study|language|cowork|book/.test(a))return 'Learning';
+  if(/dog|pet/.test(a))return 'Pets';
+  return 'Social';
+}
 const AGE_BANDS=['18-24','25-34','35-44','45-54','55-64','65+'];
 const RADII=[[100,'100 m'],[500,'500 m'],[1000,'1 km'],[5000,'5 km'],[10000,'10 km'],[null,'City']];
 const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1225,7 +1429,10 @@ function seedUsers(){
     state.users[u.id]=u;});
   state.users['me']=me;
 }
-function userOf(id){return state.users[id]||{id,name:'Someone',avatar:'🙂',color:'#7C5CFF',username:'user',status:'active'};}
+/* The fallback carries an avatarPreset so a character always draws. Without it,
+   anyone not yet in state.users rendered as a bare 🙂 — which is why avatars were
+   missing in DMs, story viewers and meetup rows. */
+function userOf(id){return state.users[id]||{id,name:'Someone',avatarPreset:1,color:'#7E82D8',username:'user',status:'active'};}
 /* Follow graph helpers (§4) */
 function followingIdsOf(id){if(id==='me')return [...state.following];const u=userOf(id);return (u.follows||[]).slice();}
 function followsBool(a,b){return followingIdsOf(a).includes(b);}
@@ -1329,26 +1536,31 @@ function rasterFallback(){const light=currentTheme()==='light';const kind=light?
 function applyTheme(t){
   state.settings.theme=(t==='light')?'light':'dark';
   document.documentElement.setAttribute('data-theme',state.settings.theme);
-  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',state.settings.theme==='light'?'#E9EDF6':'#090B24');
+  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',state.settings.theme==='light'?'#EFEDF7':'#171A32');
   try{localStorage.setItem('pd_theme',state.settings.theme);}catch(e){}
   if(map){try{map.setStyle(currentMapStyle());}catch(e){}} // style.load re-runs enhanceBasemap + re-adds overlays
 }
 /* Palettes keyed by theme. Green/water are pushed brighter than a "realistic" map would use —
    deliberately, so parks and lakes read clearly at a glance on a phone in either theme. */
 const BASEMAP_PALETTES={
-  dark:{bg:'#0B0F30',water:'#2E7BC4',waterLine:'#63A9E0',green:'#2E9F62',greenLine:'#49C481',bld:'#333B7A',bldLine:'#4A5499'},
-  light:{bg:'#E7EEF5',water:'#6FB3EA',waterLine:'#3E8FCB',green:'#7FD19E',greenLine:'#4FAE73',bld:'#C6D0E4',bldLine:'#A9B6D6'},
+  // Indigo night to match the app skin: cool teal water, deep blue-green parks,
+  // buildings a shade lighter than the ground, roads a soft lavender-grey.
+  dark:{bg:'#1A1D38',water:'#2F6E9E',waterLine:'#5FA8CE',green:'#2C7A66',greenLine:'#49A98C',
+        bld:'#2C3157',bldLine:'#3E4576',road:'#3A4070',roadHi:'#4E5691',label:'#C8CEF5',labelHalo:'#12142C'},
+  light:{bg:'#EFEDF7',water:'#8FC4E8',waterLine:'#5B9FD0',green:'#8FD5B4',greenLine:'#57B08D',
+        bld:'#DCD9EC',bldLine:'#BDB9D6',road:'#FFFFFF',roadHi:'#E4E0EE',label:'#3A3F66',labelHalo:'#FFFFFF'},
 };
 function classifyLayer(L){
   const id=(L.id||'').toLowerCase(),sl=(L['source-layer']||'').toLowerCase();
   let filterStr='';try{filterStr=JSON.stringify(L.filter||'').toLowerCase();}catch(e){}
   const key=id+' '+sl+' '+filterStr;
-  const isLabel=/label|name|place|poi|housenumber|text/.test(id+' '+sl); // never reclassify text/label layers
-  if(isLabel)return null;
+  const isLabel=/label|name|place|poi|housenumber|text/.test(id+' '+sl);
+  if(isLabel)return 'label'; // recoloured separately — never repainted as a fill
   const isWater=/water|ocean|sea|lake|river|bay|pond|reservoir|marine|waterway|canal|strait|basin/.test(key);
   const isGreen=/park|wood|grass|forest|golf|pitch|cemetery|garden|nature|greenspace|scrub|meadow|orchard|recreation|zoo|wetland|heath|common|reserve|village_green|allotment/.test(key);
   const isBld=/building/.test(key);
-  if(isWater)return 'water';if(isGreen)return 'green';if(isBld)return 'bld';return null;
+  const isRoad=/road|street|highway|motorway|transportation|bridge|tunnel|path|rail/.test(key);
+  if(isWater)return 'water';if(isGreen)return 'green';if(isBld)return 'bld';if(isRoad)return 'road';return null;
 }
 function enhanceBasemap(m,theme){
   try{
@@ -1358,6 +1570,18 @@ function enhanceBasemap(m,theme){
       const t=L.type;
       if(t==='background'){try{m.setPaintProperty(L.id,'background-color',P.bg);}catch(e){}continue;}
       const cls=classifyLayer(L);if(!cls)continue;
+      // Labels: tint the text and give it a dark halo so it stays readable on indigo.
+      if(cls==='label'){
+        if(t==='symbol'){try{m.setPaintProperty(L.id,'text-color',P.label);m.setPaintProperty(L.id,'text-halo-color',P.labelHalo);m.setPaintProperty(L.id,'text-halo-width',1.3);}catch(e){}}
+        continue;
+      }
+      if(cls==='road'){
+        try{
+          if(t==='line'){m.setPaintProperty(L.id,'line-color',/motorway|primary|trunk/.test((L.id||'').toLowerCase())?P.roadHi:P.road);}
+          else if(t==='fill'){m.setPaintProperty(L.id,'fill-color',P.road);}
+        }catch(e){}
+        continue;
+      }
       try{
         if(t==='fill'){
           if(cls==='water'){m.setPaintProperty(L.id,'fill-color',P.water);m.setPaintProperty(L.id,'fill-opacity',0.95);}
@@ -1468,6 +1692,15 @@ function refreshPresence(){
     el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openUserProfile(u.id);});
     presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(u.loc).addTo(map));
   }
+  /* Your own avatar on the map. It was never drawn before, so "Live" looked like
+     nothing had happened. Tapping it opens your map-avatar picker. */
+  if(state.settings.visibility==='live'&&state.center){
+    const el=document.createElement('div');el.className='presence-marker me';el.setAttribute('role','button');
+    el.setAttribute('aria-label','You are here — tap to change your map avatar');
+    el.innerHTML='<div class="pdot"></div><div class="pav">'+presetAvatar(me.mapAvatar||me.avatarPreset||1)+'</div>';
+    el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openMapAvatarPicker();});
+    presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(state.center).addTo(map));
+  }
   updateNearbyPill();
 }
 function updateNearbyPill(){const el=document.getElementById('nearbyPill');if(!el)return;const n=nearbyCount();el.style.display=n>0?'flex':'none';el.innerHTML='<span class="livedot"></span>'+n+' nearby';}
@@ -1573,9 +1806,25 @@ function renderPrecision(){document.querySelectorAll('#precisionSeg .pillbtn').f
 function renderMediaStrip(){const strip=document.getElementById('mediaStrip');strip.querySelectorAll('.thumbcell').forEach(n=>n.remove());const add=document.getElementById('addMedia');
   state.composer.media.forEach((m,i)=>{const cell=document.createElement('div');cell.className='thumbcell';cell.innerHTML='<img src="'+m.url+'" alt="'+esc(m.alt||'')+'"><button class="rm" aria-label="Remove photo">×</button><span class="editbadge">✎</span>';cell.querySelector('.rm').onclick=(ev)=>{ev.stopPropagation();try{URL.revokeObjectURL(m.url);}catch(e){}state.composer.media.splice(i,1);renderMediaStrip();updatePublish();};cell.querySelector('img').onclick=()=>{openPhotoEditor(m.url,function(out){if(out){m.url=out;m.file=out;m.edited=true;renderMediaStrip();}});};strip.insertBefore(cell,add);});
   add.style.display=state.composer.media.length>=10?'none':'flex';}
-document.getElementById('addMedia').onclick=()=>document.getElementById('fileInput').click();
+document.getElementById('addMedia').onclick=()=>{
+  // Claiming a Super Spot must go through the camera, so the shot can't be a download.
+  if(state.composer&&state.composer.superId){document.getElementById('cameraInput').click();return;}
+  document.getElementById('fileInput').click();
+};
+document.getElementById('cameraInput').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  state.composer.mediaSource='camera';
+  state.composer.mediaCapturedAt=new Date(f.lastModified||Date.now()).toISOString();
+  const rd=new FileReader();
+  rd.onload=()=>{openPhotoEditor(rd.result,function(out){if(out){state.composer.media.push({url:out,alt:'',file:out,edited:true});renderMediaStrip();updatePublish();}});};
+  rd.readAsDataURL(f);
+};
 document.getElementById('fileInput').onchange=e=>{
   const files=[...e.target.files].slice(0,10-state.composer.media.length);e.target.value='';
+  if(files.length){
+    state.composer.mediaSource='upload';
+    state.composer.mediaCapturedAt=new Date(files[0].lastModified||Date.now()).toISOString();
+  }
   let i=0;
   const next=()=>{ if(i>=files.length)return; const f=files[i++];
     const rd=new FileReader();
@@ -1915,8 +2164,16 @@ function renderProfile(){
   else if(profileTab==='saved')list=mine?state.posts.filter(p=>state.saved.has(p.id)):[];
   else list=myPostsAll.filter(p=>p.status==='expired'||(p.expires_at&&p.expires_at<=Date.now())||p.status==='resolved');
   html+='<div id="pList">'+(list.length?list.map(postCard).join(''):emptyMsg(profileTab==='saved'?'Nothing saved yet':profileTab==='archive'?'No expired pins yet':'No pins yet'))+'</div>';
-  html+='<h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Badge shelf</h3><div class="badgegrid">'+badgeShelf(id,4)+'</div>';
+  if(mine){
+    html+='<h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Badge shelf</h3><div class="badgegrid">'+badgeShelf(id,4)+'</div>';
+  }else{
+    /* Someone else's achievements, read from the server's badge table. */
+    const keys=state.userBadges&&state.userBadges[id];
+    html+='<h3 class="display" style="font-size:16px;font-weight:800;margin:16px 4px 8px">Achievements</h3>'
+      +'<div id="theirBadges">'+(keys?otherBadgeStrip(keys):'<div class="meta" style="padding:6px 4px">Loading…</div>')+'</div>';
+  }
   body.innerHTML=html;
+  if(!mine)loadUserBadges(id);
   const vb=body.querySelector('#viewBadges');if(vb)vb.onclick=()=>showBadges();
   const vl=body.querySelector('#viewLb');if(vl)vl.onclick=()=>showLeaderboard();
   body.querySelectorAll('[data-list]').forEach(el=>el.onclick=()=>openUserList(id,el.dataset.list));
@@ -1998,6 +2255,28 @@ function badgeCardHTML(b){
     +'</button>';
 }
 function badgeShelf(id,limit){const defs=badgeDefs();const earned=defs.filter(b=>b.have);const show=(earned.length>=(limit||4)?earned:earned.concat(defs.filter(b=>!b.have))).slice(0,limit||8);return show.map(badgeCardHTML).join('');}
+/* --- another user's achievements ------------------------------------------- */
+function badgeKeyOf(name){return String(name).toLowerCase().replace(/[^a-z0-9]+/g,'_');}
+function otherBadgeStrip(keys){
+  const have=new Set(keys||[]);
+  const defs=badgeDefs().map(b=>({...b,have:have.has(badgeKeyOf(b.name))}));
+  const earned=defs.filter(b=>b.have);
+  if(!earned.length)return '<div class="meta" style="padding:6px 4px">No achievements earned yet.</div>';
+  const show=earned.concat(defs.filter(b=>!b.have)).slice(0,10);
+  return '<div class="meta" style="margin:0 4px 8px">'+earned.length+' earned</div><div class="badgestrip">'
+    +show.map(b=>'<div class="bchip'+(b.have?'':' locked')+'" title="'+esc(b.desc||b.name)+'">'
+      +'<div class="medal">'+medalSVG(b.tier,uiIcon(b.glyph,16,'#fff'))+'</div>'
+      +'<div class="bn">'+esc(b.name)+'</div></div>').join('')+'</div>';
+}
+function loadUserBadges(id){
+  if(!state.userBadges)state.userBadges={};
+  if(state.userBadges[id]){const el=document.getElementById('theirBadges');if(el)el.innerHTML=otherBadgeStrip(state.userBadges[id]);return;}
+  if(!window.LIVE){state.userBadges[id]=[];const el=document.getElementById('theirBadges');if(el)el.innerHTML=otherBadgeStrip([]);return;}
+  liveSafe(L.badgesOf(id).then(function(keys){
+    state.userBadges[id]=keys||[];
+    if(state.viewProfile===id){const el=document.getElementById('theirBadges');if(el)el.innerHTML=otherBadgeStrip(state.userBadges[id]);}
+  }));
+}
 function badgeFlair(u){const p=u.id==='me'?myPoints():(u.points||0);if(p>=10000)return '<span class="flair" title="Local Legend">👑</span>';if(p>=3000)return '<span class="flair" title="Landmark">🏅</span>';if(p>=1000)return '<span class="flair" title="Regular">✦</span>';return '';}
 function maybeBadgeToast(){const mine=state.posts.filter(p=>p.authorId==='me');if(mine.length===1){notify('badge','me','first_drop');toast('🏅 Badge earned: First Drop');}}
 function bindBadgeCards(scope){scope.querySelectorAll('[data-badge]').forEach(el=>el.onclick=()=>{const b=badgeDefs().find(x=>x.name===el.dataset.badge);if(b)openBadgeDetail(b);});}
@@ -2101,13 +2380,39 @@ function renderMeet(){
     body.querySelectorAll('.meet-card[data-id]').forEach(c=>c.onclick=()=>openMeetDetail(c.dataset.id));
     return;
   }
-  const list=state.meetups.filter(m=>m.status!=='expired'&&m.expires_at>Date.now()).filter(m=>m.mine||meetupVisible(m));
+  let list=state.meetups.filter(m=>m.status!=='expired'&&m.expires_at>Date.now()).filter(m=>m.mine||meetupVisible(m));
+
+  /* Category filter + sort. Distance, soonest-expiring and newest are the three
+     things people actually pick between. */
+  if(!state.meetFilter)state.meetFilter={cat:'All',sort:'distance'};
+  const f=state.meetFilter;
+  if(f.cat!=='All')list=list.filter(m=>(m.category||activityCategory(m.activity))===f.cat);
+  const dOf=m=>metresBetween(state.center,m.display_location);
+  if(f.sort==='distance')list.sort((a,b)=>dOf(a)-dOf(b));
+  else if(f.sort==='soon')list.sort((a,b)=>a.expires_at-b.expires_at);
+  else list.sort((a,b)=>b.created_at-a.created_at);
+
   html+='<div class="safety">You are shown as an anonymous alias. Only people in a matching age band can see your meetups. Meet in public, tell someone where you\'re going, leave whenever you want.</div>';
   html+='<button class="btn-primary" id="newMeet" style="margin-bottom:14px">＋ Post a meetup</button>';
-  html+='<div class="meta" style="margin:0 4px 8px">Showing meetups for your band: '+myBand()+'</div>';
-  html+=list.length?list.map(meetCard).join(''):emptyMsg('No meetups nearby for your band yet.');
+
+  html+='<div class="sortrow" id="meetCats">'
+    +['All'].concat(MEET_CAT_NAMES).map(function(c){
+      const cm=c==='All'?null:meetCatMeta(c);
+      return '<button class="sortchip" data-cat="'+esc(c)+'" aria-pressed="'+(f.cat===c)+'">'
+        +(cm?ICON(cm[1],14,f.cat===c?'#fff':cm[2]):'')+esc(c)+'</button>';
+    }).join('')+'</div>';
+  html+='<div class="sortrow" id="meetSort">'
+    +[['distance','Nearest','pin'],['soon','Ending soon','clock'],['new','Newest','sparkle']].map(function(s){
+      return '<button class="sortchip" data-sort="'+s[0]+'" aria-pressed="'+(f.sort===s[0])+'">'
+        +ICON(s[2],14,f.sort===s[0]?'#fff':'currentColor')+s[1]+'</button>';
+    }).join('')+'</div>';
+
+  html+='<div class="meta" style="margin:0 4px 8px">'+list.length+' meetup'+(list.length===1?'':'s')+' · your band '+myBand()+'</div>';
+  html+=list.length?list.map(meetCard).join(''):emptyMsg(f.cat==='All'?'No meetups nearby for your band yet.':'No '+f.cat+' meetups nearby yet.');
   body.innerHTML=html;
   body.querySelectorAll('#meetTabs button').forEach(b=>b.onclick=()=>{meetView=b.dataset.v;renderMeet();});
+  body.querySelectorAll('#meetCats [data-cat]').forEach(b=>b.onclick=()=>{state.meetFilter.cat=b.dataset.cat;renderMeet();});
+  body.querySelectorAll('#meetSort [data-sort]').forEach(b=>b.onclick=()=>{state.meetFilter.sort=b.dataset.sort;renderMeet();});
   document.getElementById('newMeet').onclick=openMeetComposer;
   body.querySelectorAll('.meet-card[data-id]').forEach(c=>c.onclick=()=>openMeetDetail(c.dataset.id));
 }
@@ -2117,7 +2422,16 @@ function meetHostAvatar(m){return (meetIsReal(m)&&!m.mine)?avatarInner(userOf(m.
 function meetCard(m){
   const dist=metresBetween(state.center,m.display_location);
   const pending=m.requests.filter(r=>r.status==='pending').length;
-  return '<div class="meet-card" data-id="'+m.id+'"><div class="row" style="justify-content:space-between"><span class="act-label">◎ '+esc(m.activity)+'</span><span class="meta">'+countdownText(m).replace('Expires in','⏱')+'</span></div>'
+  const cat=m.category||activityCategory(m.activity),cm=meetCatMeta(cat);
+  return '<div class="meet-card" data-id="'+m.id+'">'
+    +'<div class="row" style="justify-content:space-between;align-items:center;gap:10px">'
+      +'<div style="display:flex;align-items:center;gap:10px;min-width:0">'
+        +'<div class="mtype">'+ICON(cm[1],20,cm[2])+'</div>'
+        +'<div style="min-width:0"><span class="act-label">'+esc(m.activity)+'</span>'
+        +'<div class="meta" style="color:'+cm[2]+'">'+esc(cat)+' · '+fmtDist(dist)+'</div></div>'
+      +'</div>'
+      +'<span class="meta" style="white-space:nowrap">'+countdownText(m).replace('Expires in','⏱')+'</span>'
+    +'</div>'
     +'<div class="alias"><div class="av">'+meetHostAvatar(m)+'</div><div><div style="font-weight:700;font-size:13.5px">'+esc(meetHostName(m))+(meetIsReal(m)?' <span class="vibe-badge" style="padding:1px 7px">real</span>':'')+'</div><div class="meta">'+esc(m.venue)+' · '+fmtDist(dist)+' · band '+m.ageBand+'</div></div></div>'
     +(m.note?'<div class="body" style="font-size:13.5px">“'+esc(m.note)+'”</div>':'')
     +(m.mine&&pending?'<div class="pill-note">'+pending+' pending request'+(pending>1?'s':'')+'</div>':'')+'</div>';
@@ -2125,7 +2439,9 @@ function meetCard(m){
 function openMeetComposer(){
   if(state.settings.under18Sim||!me.isAdult){toast('Meetups are 18+');return;}
   if(state.meetups.filter(m=>m.mine&&m.status==='open').length>=3){toast('Rate limit: 3 active meetup pins');return;}
-  state.meetForm={activity:'Coffee',bands:new Set([myBand()]),lifetime:3*H,note:'',identity:'anon'};
+  state.meetForm={activity:'Coffee',category:'Food',bands:new Set([myBand()]),lifetime:3*H,note:'',identity:'anon'};
+  const catSel=document.getElementById('meetCategory');
+  if(catSel){catSel.innerHTML=MEET_CAT_NAMES.map(c=>'<option>'+c+'</option>').join('');catSel.value=state.meetForm.category;}
   const actSel=document.getElementById('meetActivity');actSel.innerHTML=ACTIVITIES.map(a=>'<option>'+a+'</option>').join('');
   renderMeetBands();renderMeetLife();renderMeetIdentity();document.getElementById('meetNote').value='';
   meetScrim.classList.add('open');meetSheet.classList.add('open');
@@ -2139,7 +2455,16 @@ function openMeetComposer(){
 }
 function closeMeetComposer(){meetScrim.classList.remove('open');meetSheet.classList.remove('open');}
 meetScrim.onclick=closeMeetComposer;document.getElementById('meetClose').onclick=closeMeetComposer;
-document.getElementById('meetActivity').onchange=e=>state.meetForm.activity=e.target.value;
+document.getElementById('meetActivity').onchange=e=>{
+  state.meetForm.activity=e.target.value;
+  // keep the category in step with the activity unless it was set by hand
+  if(!state.meetForm.catTouched){
+    state.meetForm.category=activityCategory(e.target.value);
+    const cs=document.getElementById('meetCategory');if(cs)cs.value=state.meetForm.category;
+  }
+};
+(function(){const cs=document.getElementById('meetCategory');
+  if(cs)cs.onchange=e=>{state.meetForm.category=e.target.value;state.meetForm.catTouched=true;};})();
 document.getElementById('meetNote').oninput=e=>state.meetForm.note=e.target.value;
 function renderMeetBands(){
   const wrap=document.getElementById('meetBands');wrap.innerHTML='';const allowed=bandAdjacent(myBand());
@@ -2160,11 +2485,12 @@ document.getElementById('meetPublish').onclick=()=>{
   const venues=['Blue Bottle · Mint Plaza','Central Library','Dolores Park','Ferry Building','Golden Gate Park','Philz Coffee','City Hall Plaza'];
   const venue=venues[Math.abs(hashStr(fmtCoord(c.lng,c.lat,3)))%venues.length];
   const real=state.meetForm.identity==='real';
-  const m={id:uid(),hostId:'me',activity:state.meetForm.activity,note:state.meetForm.note,ageBand:myBand(),bands:[...state.meetForm.bands],
+  const m={id:uid(),hostId:'me',activity:state.meetForm.activity,category:state.meetForm.category||activityCategory(state.meetForm.activity),
+    note:state.meetForm.note,ageBand:myBand(),bands:[...state.meetForm.bands],
     display_location:blockSnap([c.lng,c.lat]),venue,status:'open',created_at:Date.now(),expires_at:Date.now()+state.meetForm.lifetime*1000,
-    identity:state.meetForm.identity,hostAlias:aliasFor(),hostAvatar:1,requests:[],messages:[],revealHost:real,revealGuest:false,mine:true};
+    identity:state.meetForm.identity,hostAlias:aliasFor(),hostAvatar:me.mapAvatar||me.avatarPreset||1,requests:[],messages:[],reveals:[],revealHost:real,revealGuest:false,mine:true};
   state.meetups.unshift(m);closeMeetComposer();renderMeet();toast('Meetup posted'+(real?' as '+me.name:' · '+venue));
-  if(window.LIVE){liveSafe(L.createMeetup({activity:m.activity,note:m.note,ageBand:m.ageBand,bands:m.bands,venue:m.venue,
+  if(window.LIVE){liveSafe(L.createMeetup({activity:m.activity,category:m.category,note:m.note,ageBand:m.ageBand,bands:m.bands,venue:m.venue,
     lng:m.display_location[0],lat:m.display_location[1],identity:m.identity,expiresAt:new Date(m.expires_at).toISOString()}).then(function(r){if(r&&r.data&&r.data.id)m.id=r.data.id;}));}
   else setTimeout(()=>simulateInboundRequest(m.id),3000);
 };
@@ -2272,10 +2598,22 @@ function renderMeetDetail(m){
   if(cs){const go=()=>{const t=ci.value.trim();if(!t)return;m.messages.push({me:true,text:t,at:Date.now()});ci.value='';renderMeetDetail(m);
     if(window.LIVE){liveSafe(L.sendMeetupMessage(m.id,t));return;} // real chat: the other side is a real person
     setTimeout(()=>{m.messages.push({me:false,text:['Sounds good!','See you there 👍','What time works?','On my way soon'][Math.floor(Math.random()*4)],at:Date.now()});if(state.currentMeet===m.id)renderMeetDetail(m);},1400);};cs.onclick=go;ci.addEventListener('keydown',e=>{if(e.key==='Enter')go();});}
-  const rb=body.querySelector('#revealBtn');if(rb)rb.onclick=()=>{if(mine)m.revealHost=true;else m.revealGuest=true;
+  const rb=body.querySelector('#revealBtn');if(rb)rb.onclick=()=>{
+    if(window.LIVE){
+      /* Reveal is stored server-side so the OTHER person actually sees it. Once both
+         sides have revealed, each unlocks the other's real profile. */
+      liveSafe(L.setMeetupReveal(m.id,true)).then(function(r){
+        m.reveals=(r&&r.reveals)||[].concat(m.reveals||[],[state.myUid]);
+        applyMeetReveals(m);
+        toast(bothRevealedIn(m)?'Both revealed 🎉':'You revealed — waiting for the other person');
+        if(state.currentMeet===m.id)renderMeetDetail(m);
+      });
+      return;
+    }
+    if(mine)m.revealHost=true;else m.revealGuest=true;
     if(!(m.revealHost&&m.revealGuest)){toast('You revealed — waiting for the other person');
       // demo only: pretend the other side reveals back. A real person has to actually tap it.
-      if(!window.LIVE)setTimeout(()=>{if(mine)m.revealGuest=true;else m.revealHost=true;if(state.currentMeet===m.id){toast('Both revealed 🎉');renderMeetDetail(m);}},1800);
+      setTimeout(()=>{if(mine)m.revealGuest=true;else m.revealHost=true;if(state.currentMeet===m.id){toast('Both revealed 🎉');renderMeetDetail(m);}},1800);
     }else toast('Both revealed 🎉');renderMeetDetail(m);};
   const lb=body.querySelector('#leaveBtn');if(lb)lb.onclick=()=>{m.status='expired';closeMeetDetail();renderMeet();toast('You left — chat closed');};
 }
@@ -2760,6 +3098,9 @@ function renderAdmin(){
     html+='<label style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;font-size:14px"><input type="checkbox" id="ssHere"> Drop at the current map centre (otherwise ~2–9 km random)</label>';
     html+='<button class="btn-primary" id="ssLaunch">Launch Super Spot</button>';
     if(live)html+='<button class="btn-ghost" id="ssEnd" style="margin-top:8px">End current Super Spot</button>';
+    /* Review queue — nobody is paid until a photo here is approved. */
+    html+='<h3 class="display" style="font-size:16px;font-weight:800;margin:20px 4px 8px">Claims to review</h3>';
+    html+='<div id="claimQueue">'+(state.superClaims?superClaimsHTML(state.superClaims):'<div class="meta" style="padding:6px 4px">Loading…</div>')+'</div>';
   }else{
     html+=openReports.length?openReports.map(reportCardHTML).join(''):emptyMsg('No open reports right now.');
     const done=state.reports.filter(r=>r.status!=='open');
@@ -2771,6 +3112,7 @@ function renderAdmin(){
   const ssE=body.querySelector('#ssEnd');if(ssE)ssE.onclick=()=>{if(state.superSpot)state.superSpot.claimed=true;refreshSuperMarker();toast('Super Spot ended');renderAdmin();};
   const ssImgBtn=body.querySelector('#ssImgBtn');if(ssImgBtn)ssImgBtn.onclick=()=>{const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.onchange=ev=>{const f=ev.target.files&&ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{openPhotoEditor(rd.result,function(out){if(!out)return;const c=superCfg();c.rewardImage=out;saveSuperCfg(c);renderAdmin();});};rd.readAsDataURL(f);};fi.click();};
   const ssImgClr=body.querySelector('#ssImgClr');if(ssImgClr)ssImgClr.onclick=()=>{const c=superCfg();c.rewardImage='';saveSuperCfg(c);renderAdmin();};
+  if(adminTab==='super'){loadSuperClaims();bindSuperClaimButtons(body);}
   const aus=body.querySelector('#adminUserSearch');if(aus)aus.oninput=()=>{state.adminUserQuery=aus.value;const pos=aus.selectionStart;renderAdmin();const el=document.getElementById('adminUserSearch');if(el){el.focus();try{el.setSelectionRange(pos,pos);}catch(e){}}};
   body.querySelectorAll('[data-openuser]').forEach(el=>el.onclick=()=>openUserProfile(el.dataset.openuser));
   body.querySelectorAll('[data-details]').forEach(el=>el.onclick=()=>openUserAdmin(el.dataset.details));
@@ -2893,10 +3235,110 @@ function startSuperClaim(){
 function maybeClaimSuperSpot(post){
   const sid=state.composer&&state.composer.superId;if(!sid)return;
   const ss=state.superSpot;if(!ss||ss.id!==sid||ss.claimed)return;
+  if(window.LIVE){
+    /* A claim is now a SUBMISSION. The owner reviews the photo — with where and when
+       it was taken and whether the camera was used — before any coins are paid. */
+    const shot=(post.media&&post.media[0])||null;
+    const at=state.me?[state.me.lng,state.me.lat]:state.center;
+    liveSafe(L.submitSuperClaim({
+      spotId:ss.id,postId:post.id,photo:shot?shot.url:null,
+      source:(state.composer&&state.composer.mediaSource)||'unknown',
+      lng:at[0],lat:at[1],
+      capturedAt:(state.composer&&state.composer.mediaCapturedAt)||new Date().toISOString()
+    }).then(function(r){
+      if(r&&r.ok)showClaimPendingCard(ss,r.distance_m);
+      else toast((r&&r.error)||'Could not submit your claim');
+    }));
+    return;
+  }
   ss.claimed=true;award('super_claim',ss.reward,post.id);me.superClaims=(me.superClaims||0)+1;
   refreshSuperMarker();notify('super_won','me',post.id);
   if(window.LIVE){liveSafe(L.claimSuperSpot(ss.id,post.id).then(function(r){if(r&&r.ok)showRewardCard(r.reward_title,r.reward_detail,r.points,r.reward_image||ss.rewardImage);else showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward,ss.rewardImage);}));}
   else setTimeout(function(){showRewardCard(ss.rewardTitle,ss.rewardDetail,ss.reward,ss.rewardImage);},700);
+}
+/* ---------- Super Spot claim review (owner / superspot permission) ----------
+   Every submission shows the photo plus the three things that expose a fake:
+   how far from the spot it was taken, whether the camera was used, and whether
+   the shot predates the Super Spot going live. */
+function claimFlags(c){
+  const out=[];
+  const d=(c.distance_m==null)?null:Math.round(c.distance_m);
+  out.push({k:'Distance from spot',v:(d==null?'unknown':fmtDist(d)),bad:(d==null||d>400)});
+  out.push({k:'Photo source',v:(c.source==='camera'?'Camera':(c.source==='upload'?'Gallery upload':'Unknown')),bad:c.source!=='camera'});
+  let stale=null;
+  if(c.captured_at&&c.spot_created_at)stale=Date.parse(c.captured_at)<Date.parse(c.spot_created_at);
+  out.push({k:'Taken',v:(c.captured_at?fmtAgo(Date.parse(c.captured_at))+' ago':'unknown'),bad:(stale===true||!c.captured_at)});
+  out.push({k:'Submitted',v:fmtAgo(Date.parse(c.created_at))+' ago',bad:false});
+  return out;
+}
+function superClaimsHTML(list){
+  if(!list||!list.length)return '<div class="meta" style="padding:6px 4px">No claims waiting. Photos appear here the moment someone submits one.</div>';
+  return list.map(function(c){
+    const u={name:c.user_name||'Someone',username:c.user_username,avatarPhoto:c.user_avatar||null,avatarPreset:c.user_avatar?null:(c.user_preset||1)};
+    const flags=claimFlags(c);
+    const suspect=flags.filter(f=>f.bad).length;
+    return '<div class="claimcard" data-claim="'+esc(c.id)+'">'
+      +(c.photo_url?'<img class="shot" src="'+esc(c.photo_url)+'" alt="claim photo">':'<div class="meta" style="padding:14px">No photo attached</div>')
+      +'<div style="display:flex;align-items:center;gap:10px;padding:12px 12px 0">'+avatarHTML(u,36)
+        +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px">'+esc(u.name)+'</div>'
+        +'<div class="meta">@'+esc(u.username||'user')+' · for '+(c.points||0)+' '+COIN(12)+'</div></div>'
+        +(suspect?'<span class="catbadge" style="background:rgba(255,107,107,.22);color:#FF8F8F">'+suspect+' flag'+(suspect>1?'s':'')+'</span>'
+                 :'<span class="catbadge" style="background:rgba(107,227,184,.20);color:#6BE3B8">Looks good</span>')
+      +'</div>'
+      +'<div class="meta-grid">'+flags.map(f=>'<div class="mg '+(f.bad?'warn':'good')+'"><div class="k">'+esc(f.k)+'</div><div class="v">'+esc(f.v)+'</div></div>').join('')+'</div>'
+      +(c.prompt?'<div class="meta" style="padding:0 12px 8px">Prompt: “'+esc(c.prompt)+'”</div>':'')
+      +'<div style="display:flex;gap:8px;padding:0 12px 12px">'
+        +'<button class="catbadge" data-approve="'+esc(c.id)+'" style="flex:1;height:38px;background:var(--success);color:#0b2a20;font-weight:800">Approve &amp; pay</button>'
+        +'<button class="catbadge" data-reject="'+esc(c.id)+'" style="flex:1;height:38px;background:rgba(255,107,107,.22);color:#FF8F8F;font-weight:800">Reject</button>'
+      +'</div></div>';
+  }).join('');
+}
+function loadSuperClaims(force){
+  if(!window.LIVE){state.superClaims=state.superClaims||[];return;}
+  if(state.superClaims&&!force)return;
+  liveSafe(L.admin.superClaims('pending').then(function(rows){
+    state.superClaims=rows||[];
+    const el=document.getElementById('claimQueue');
+    if(el){el.innerHTML=superClaimsHTML(state.superClaims);bindSuperClaimButtons(el);}
+  }));
+}
+function bindSuperClaimButtons(scope){
+  scope.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>reviewClaim(b.dataset.approve,true));
+  scope.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>reviewClaim(b.dataset.reject,false));
+  scope.querySelectorAll('.claimcard img.shot').forEach(img=>img.onclick=()=>openLightbox(img.src));
+}
+function reviewClaim(id,approve){
+  if(!approve&&!confirm('Reject this photo? The user is told it was not accepted.'))return;
+  if(approve&&!confirm('Approve this claim? The coins and the reward are released to this user, and everyone else on this spot is rejected.'))return;
+  if(window.LIVE)liveSafe(L.admin.reviewSuperClaim(id,approve).then(function(){loadSuperClaims(true);}));
+  state.superClaims=(state.superClaims||[]).filter(c=>c.id!==id);
+  const el=document.getElementById('claimQueue');if(el){el.innerHTML=superClaimsHTML(state.superClaims);bindSuperClaimButtons(el);}
+  toast(approve?'Approved — reward released':'Rejected');
+}
+function openLightbox(src){
+  const w=document.createElement('div');
+  w.style.cssText='position:fixed;inset:0;z-index:560;background:rgba(6,8,26,.92);display:flex;align-items:center;justify-content:center;padding:18px';
+  w.innerHTML='<img src="'+esc(src)+'" style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:var(--depth-3)">';
+  w.onclick=()=>w.remove();document.body.appendChild(w);
+}
+
+/* Shown after a Super Spot photo is submitted — the reward is not revealed until
+   the owner has approved it. */
+function showClaimPendingCard(ss,distance){
+  var wrap=document.createElement('div');wrap.id='claimPending';
+  wrap.style.cssText='position:fixed;inset:0;z-index:520;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
+  wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:26px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#2A2E52,#1A1D38);border:1px solid rgba(198,205,255,.22);box-shadow:var(--depth-3)">'
+    +'<div style="margin-bottom:8px">'+ICON('clock',44,'#9FD8F5')+'</div>'
+    +'<div style="font-family:var(--font-display);font-weight:800;font-size:21px;margin-bottom:6px">Photo submitted</div>'
+    +'<div style="color:var(--muted);font-size:13.5px;line-height:1.5;margin-bottom:14px">Your shot is being reviewed'
+      +(distance!=null&&distance>=0?' · taken '+fmtDist(distance)+' from the spot':'')
+      +'. If it checks out you get <b style="color:var(--paper)">'+(ss.reward||0)+'</b> '+COIN(13)+' and the reward.</div>'
+    +'<div style="background:rgba(159,216,245,.12);border:1px solid rgba(159,216,245,.28);border-radius:14px;padding:12px;font-size:12.5px;color:var(--muted);margin-bottom:16px">Take the photo at the spot, on the day. Re-used or downloaded pictures are rejected.</div>'
+    +'<button id="cpDone" style="width:100%;height:46px;border:none;border-radius:16px;background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;font-weight:800;font-size:15px;cursor:pointer">Got it</button>'
+    +'</div>';
+  document.body.appendChild(wrap);
+  wrap.querySelector('#cpDone').onclick=function(){wrap.remove();};
+  wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
 }
 function showRewardCard(title,detail,points,image){
   var wrap=document.createElement('div');wrap.id='rewardCard';
@@ -3102,7 +3544,9 @@ function storiesRowHTML(){
      and the ＋ corner always adds another. */
   const myStories=byU['me']||[];
   const mineAttr=myStories.length?' data-story-user="me"':' data-story-add="1"';
-  html+='<div class="story-bubble story-add"'+mineAttr+'><div class="story-ring mine"><div>'+avatarInner(me)+'</div></div><span class="plus" data-story-add="1">＋</span><div class="story-name">Your story</div></div>';
+  const myViews=myStories.reduce((n,s)=>n+(s.views||0),0);
+  const viewPip=myStories.length?'<span class="story-views-pip">'+ICON('eye',10,'#0b0e2e')+myViews+'</span>':'';
+  html+='<div class="story-bubble story-add"'+mineAttr+'><div class="story-ring mine"><div>'+avatarInner(me)+'</div></div>'+viewPip+'<span class="plus" data-story-add="1">＋</span><div class="story-name">'+(myStories.length?'Your story':'Add story')+'</div></div>';
   ids.filter(id=>id!=='me').forEach(id=>{const u=userOf(id);const seen=byU[id].every(s=>s.seen);html+='<div class="story-bubble" data-story-user="'+id+'"><div class="story-ring'+(seen?' seen':'')+'"><div>'+avatarInner(u)+'</div></div><div class="story-name">'+esc(u.name.split(' ')[0])+'</div></div>';});
   return html+'</div>';
 }
@@ -3187,22 +3631,48 @@ function renderDm(){
   const convs=state.conversations.slice().filter(c=>!c.members.some(m=>m!=='me'&&state.blocked.has(m))).sort((a,b)=>{const la=lastMsg(a),lb=lastMsg(b);return (lb?lb.at:b.created_at)-(la?la.at:a.created_at);});
   if(!convs.length){body.innerHTML='<div class="empty"><div class="big">No messages yet</div><div>Start a chat from someone’s profile, or tap ＋ New.</div></div>';return;}
   body.innerHTML=convs.map(c=>{const lm=lastMsg(c);const pv=lm?((lm.me?'You: ':'')+(lm.text||'')):'Say hi 👋';
-    return '<div class="dm-row" data-conv="'+c.id+'"><div class="dm-avstack">'+convAvatar(c,46)+'</div><div style="flex:1;min-width:0"><div class="nm">'+esc(convTitle(c))+'</div><div class="pv">'+esc(pv)+'</div></div>'+(lm?'<div class="tm">'+fmtAgo(lm.at)+'</div>':'')+(c.unread?'<div class="unread"></div>':'')+'</div>';}).join('');
+    const other=c.group?null:c.members.find(m=>m!=='me');
+    return '<div class="dm-row" data-conv="'+c.id+'"><div class="dm-avstack"'+(other?' data-openuser="'+esc(other)+'"':'')+' style="cursor:pointer">'+convAvatar(c,46)+'</div><div style="flex:1;min-width:0"><div class="nm">'+esc(convTitle(c))+'</div><div class="pv">'+esc(pv)+'</div></div>'+(lm?'<div class="tm">'+fmtAgo(lm.at)+'</div>':'')+(c.unread?'<div class="unread"></div>':'')+'</div>';}).join('');
   body.querySelectorAll('[data-conv]').forEach(el=>el.onclick=()=>openConversation(el.dataset.conv));
+  // tapping the picture goes to their profile instead of opening the thread
+  body.querySelectorAll('.dm-row [data-openuser]').forEach(el=>el.onclick=(ev)=>{ev.stopPropagation();openUserProfile(el.dataset.openuser);});
 }
-function openConversation(id){const c=state.conversations.find(x=>x.id===id);if(!c)return;c.unread=false;updateDmDot();state.currentConv=id;showScreen('conv');document.getElementById('convTitle').textContent=convTitle(c);if(window.LIVE)liveSubscribeConv(c);renderConv(c);}
+function openConversation(id){const c=state.conversations.find(x=>x.id===id);if(!c)return;c.unread=false;updateDmDot();state.currentConv=id;showScreen('conv');
+  document.getElementById('convTitle').textContent=convTitle(c);
+  /* The header avatar is a shortcut into the other person's profile. */
+  const av=document.getElementById('convAv'),other=c.group?null:c.members.find(m=>m!=='me');
+  if(av){
+    if(other){av.style.display='flex';av.innerHTML=avatarInner(userOf(other));av.onclick=()=>openUserProfile(other);
+      av.setAttribute('aria-label','View '+userOf(other).name+'’s profile');}
+    else{av.style.display='none';av.onclick=null;}
+  }
+  if(window.LIVE)liveSubscribeConv(c);renderConv(c);}
 const STICKERS=['🥰','😹','🎉','👏','🙌','🔥','💜','😎','🤗','😴','🍕','☕','🌸','✨','👋','😂','🥳','🫶','🐣','🌈','😭','💃','🕺','🙈'];
 function isStickerMsg(m){return m.sticker||(/^\s*(\p{Extended_Pictographic}️?‍?){1,3}\s*$/u.test(m.text||'')&&(m.text||'').replace(/\s/g,'').length<=6);}
 function renderConv(c){
   const body=document.getElementById('convBody');
-  const msgs=c.messages.length?c.messages.map(m=>{const st=isStickerMsg(m);
-    if(st)return '<div class="msg sticker '+(m.me?'me':'them')+'" style="background:none;font-size:46px;padding:2px 4px;box-shadow:none">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>';
-    return '<div class="msg '+(m.me?'me':'them')+'">'+(c.group&&!m.me?'<div style="font-size:11px;opacity:.7;font-weight:700;margin-bottom:2px">'+esc(userOf(m.from).name.split(' ')[0])+'</div>':'')+esc(m.text)+'</div>';}).join(''):'<div class="empty"><div>No messages yet — say hi 👋</div></div>';
+  /* Each incoming message carries its sender's avatar (tap it to open their profile),
+     and each of your own can be deleted. */
+  const msgs=c.messages.length?c.messages.map((m,i)=>{
+    const st=isStickerMsg(m);
+    const senderId=m.me?'me':(m.from||c.members.find(x=>x!=='me'));
+    const u=userOf(senderId);
+    const av=m.me?'':'<button class="msg-av avatar" data-openuser="'+esc(senderId||'')+'" aria-label="View '+esc(u.name)+'’s profile" style="width:30px;height:30px;border-radius:11px;flex:0 0 auto;padding:0;overflow:hidden">'+avatarInner(u)+'</button>';
+    const who=(c.group&&!m.me)?'<div style="font-size:11px;opacity:.75;font-weight:700;margin-bottom:2px">'+esc(u.name.split(' ')[0])+'</div>':'';
+    const bubble=st
+      ? '<div class="msg sticker '+(m.me?'me':'them')+'" style="background:none;font-size:46px;padding:2px 4px;box-shadow:none">'+who+esc(m.text)+'</div>'
+      : '<div class="msg '+(m.me?'me':'them')+'">'+who+esc(m.text)+'</div>';
+    const del=m.me?'<button class="msg-del" data-delmsg="'+i+'">Delete</button>':'';
+    return '<div class="msg-line '+(m.me?'me':'them')+'">'+av+'<div class="msg-wrap '+(m.me?'me':'them')+'">'+bubble+del+'</div></div>';
+  }).join(''):'<div class="empty"><div>No messages yet — say hi 👋</div></div>';
   const tray='<div id="stickerTray" style="display:none;gap:6px;flex-wrap:wrap;padding:10px 12px;background:var(--ink);border-top:1px solid var(--line);max-height:150px;overflow:auto">'+STICKERS.map(s=>'<button class="stik" data-s="'+s+'" style="font-size:30px;background:var(--surface-2);border:none;border-radius:12px;width:48px;height:48px;cursor:pointer">'+s+'</button>').join('')+'</div>';
   body.innerHTML='<div class="conv-msgs chat" id="convMsgs">'+msgs+'</div>'+tray+'<div class="conv-bar"><button id="stickerBtn" style="flex:0 0 auto;padding:0 12px;border-radius:14px;background:var(--surface-2);color:var(--paper);font-size:19px">😊</button><input id="convInput" placeholder="Message…"><button id="convSend">Send</button></div>';
   const cm=document.getElementById('convMsgs');if(cm)cm.scrollTop=cm.scrollHeight;
-  const pushMine=(t,isSticker)=>{c.messages.push({me:true,text:t,sticker:!!isSticker,at:Date.now()});dailyTrack('hi');renderConv(c);
-    if(window.LIVE){liveSafe(liveEnsureConv(c).then(function(cid){return L.sendMessage(cid,t);}));return true;}
+  const pushMine=(t,isSticker)=>{const mine={me:true,text:t,sticker:!!isSticker,at:Date.now()};c.messages.push(mine);dailyTrack('hi');renderConv(c);
+    if(window.LIVE){liveSafe(liveEnsureConv(c).then(function(cid){return L.sendMessage(cid,t);}).then(function(r){
+      // remember the server id so this message can be deleted later
+      if(r&&r.data&&r.data.id)mine.id=r.data.id;
+    }));return true;}
     setTimeout(()=>{const other=c.members.find(m=>m!=='me')||c.members[0];c.messages.push({me:false,from:other,text:['haha for real','omg yes 😄','let’s do it','on my way','sounds good 👍','where at?'][Math.floor(Math.random()*6)],at:Date.now()});if(state.currentConv===c.id)renderConv(c);else{c.unread=true;updateDmDot();}},1300+Math.random()*1200);return true;};
   const send=()=>{const inp=document.getElementById('convInput');const t=inp.value.trim();if(!t)return;inp.value='';pushMine(t,false);};
   document.getElementById('convSend').onclick=send;
@@ -3210,6 +3680,24 @@ function renderConv(c){
   const trayEl=document.getElementById('stickerTray');
   document.getElementById('stickerBtn').onclick=()=>{trayEl.style.display=trayEl.style.display==='none'?'flex':'none';if(trayEl.style.display==='flex')trayEl.scrollTop=0;};
   body.querySelectorAll('.stik').forEach(b=>b.onclick=()=>{pushMine(b.dataset.s,true);});
+  // tap someone's avatar in the thread to open their profile
+  body.querySelectorAll('[data-openuser]').forEach(b=>b.onclick=(ev)=>{
+    ev.stopPropagation();const id=b.dataset.openuser;if(id&&id!=='me')openUserProfile(id);
+  });
+  // long-press (or hover on desktop) reveals Delete on your own messages
+  body.querySelectorAll('.msg-wrap.me').forEach(w=>{
+    let t=null;
+    w.addEventListener('touchstart',()=>{t=setTimeout(()=>w.classList.add('show-del'),450);},{passive:true});
+    w.addEventListener('touchend',()=>clearTimeout(t),{passive:true});
+    w.addEventListener('touchmove',()=>clearTimeout(t),{passive:true});
+  });
+  body.querySelectorAll('[data-delmsg]').forEach(b=>b.onclick=(ev)=>{
+    ev.stopPropagation();
+    const i=parseInt(b.dataset.delmsg,10);const m=c.messages[i];
+    if(!m||!confirm('Delete this message?'))return;
+    if(window.LIVE&&m.id)liveSafe(L.deleteMessage(m.id));
+    c.messages.splice(i,1);renderConv(c);toast('Message deleted');
+  });
 }
 function startNewDm(){
   const friends=friendsOf('me').filter(id=>!state.blocked.has(id));
@@ -3534,6 +4022,22 @@ function liveRowToConv(c){
   return {id:c.id,_liveId:c.id,group:!!c.is_group,name:c.name||null,members:members,
     created_at:c.created_at?Date.parse(c.created_at):Date.now(),unread:false,messages:msgs};
 }
+/* --- meetup identity reveal: mutual, and driven by the server list of who revealed --- */
+function meetOtherId(m){
+  if(!m)return null;
+  if(m.mine){var acc=(m.requests||[]).find(function(r){return r.status==='accepted';});return acc?(acc.guestId==='me'?state.myUid:acc.guestId):null;}
+  return m.hostId==='me'?null:m.hostId;
+}
+function bothRevealedIn(m){
+  var rev=m.reveals||[],other=meetOtherId(m);
+  return rev.indexOf(state.myUid)>=0 && !!other && rev.indexOf(other)>=0;
+}
+function applyMeetReveals(m){
+  var rev=m.reveals||[],other=meetOtherId(m),iDid=rev.indexOf(state.myUid)>=0,theyDid=!!other&&rev.indexOf(other)>=0;
+  if(m.mine){m.revealHost=iDid;m.revealGuest=theyDid;m.guestRealId=theyDid?other:null;}
+  else{m.revealGuest=iDid;m.revealHost=theyDid;}
+  return m;
+}
 function liveRowToMeetup(m){
   var mine=m.host_id===state.myUid;
   var loc=(m.lng!=null&&m.lat!=null)?[m.lng,m.lat]:(coordOf(m.display_location,state.center)||state.center);
@@ -3545,13 +4049,18 @@ function liveRowToMeetup(m){
       alias:(g==='me'?'You':aliasFor()),avatar:(r.guest_preset||1),
       at:r.created_at?Date.parse(r.created_at):Date.now()};
   });
-  return {id:m.id,hostId:mine?'me':m.host_id,activity:m.activity,note:m.note||'',ageBand:m.age_band,
+  var out={id:m.id,hostId:mine?'me':m.host_id,activity:m.activity,category:m.category||activityCategory(m.activity),
+    note:m.note||'',ageBand:m.age_band,
     bands:m.bands||[m.age_band],display_location:loc,venue:m.venue,status:m.status||'open',
     created_at:m.created_at?Date.parse(m.created_at):Date.now(),
     expires_at:m.expires_at?Date.parse(m.expires_at):Date.now()+3600e3,
     identity:m.identity||'anon',hostAlias:aliasFor(),hostAvatar:m.host_preset||1,requests:reqs,messages:[],
     myRequest:(reqs.find(function(r){return r.guestId==='me';})||null),
+    reveals:(m.reveals||[]),
     revealHost:m.identity==='real',revealGuest:false,mine:mine};
+  applyMeetReveals(out);
+  if(m.identity==='real')out.revealHost=true; // a "real profile" host is public by design
+  return out;
 }
 function liveRowToReport(r){
   return {id:r.id,type:r.target_type,targetId:r.target_id,reason:r.reason,
@@ -3687,6 +4196,12 @@ async function liveHydrate(){
   try{state.posts=(await L.feed(lng,lat,radius)).map(liveRowToPost);}catch(e){state.posts=[];}
   try{state.whispers=(await L.whispers()).map(liveRowToWhisper);}catch(e){state.whispers=[];}
   try{state.stories=(await L.activeStories()).map(liveRowToStory);}catch(e){state.stories=[];}
+  // view counts for your own stories, so the bubble shows a real number
+  try{
+    await Promise.all(state.stories.filter(function(s){return s.authorId==='me';}).map(function(s){
+      return L.storyViewCount(s.id).then(function(n){s.views=n||0;}).catch(function(){});
+    }));
+  }catch(e){}
   try{state.conversations=(await L.myConversations()).map(liveRowToConv);}catch(e){state.conversations=[];}
   try{state.meetups=(await L.nearbyMeetups(lng,lat,Math.max(radius,25000))).map(liveRowToMeetup);}catch(e){state.meetups=[];}
   try{state.notifications=(await L.notifications(80)).map(liveRowToNotif);}catch(e){state.notifications=[];}

@@ -159,7 +159,8 @@
     async dmWith(otherId) { return (await client().rpc('dm_with', { p_other: otherId })).data; },
     async createGroup(memberIds, name) { return (await client().rpc('create_group_conversation', { p_members: memberIds || [], p_name: name || null })).data; },
     async messages(convId) { return (await client().from('messages').select('*').eq('conversation_id', convId).order('created_at')).data || []; },
-    async sendMessage(convId, body) { var id = await uid(); return client().from('messages').insert({ conversation_id: convId, sender_id: id, body: body }); },
+    async sendMessage(convId, body) { var id = await uid(); return client().from('messages').insert({ conversation_id: convId, sender_id: id, body: body }).select('id').single(); },
+    async deleteMessage(msgId) { return client().from('messages').delete().eq('id', msgId); },
     subscribeMessages: function (convId, cb) {
       return client().channel('msg:' + convId).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'conversation_id=eq.' + convId }, function (p) { cb(p.new); }).subscribe();
     },
@@ -189,7 +190,7 @@
     async createMeetup(m) {
       var id = await uid();
       return client().from('meetups').insert({
-        host_id: id, activity: m.activity, note: m.note || null, age_band: m.ageBand, bands: m.bands,
+        host_id: id, activity: m.activity, category: m.category || null, note: m.note || null, age_band: m.ageBand, bands: m.bands,
         venue: m.venue, display_location: wkt(m.lng, m.lat), identity: m.identity || 'anon', expires_at: m.expiresAt
       }).select('id').single();
     },
@@ -218,9 +219,25 @@
     async storyViewers(storyId) { return (await client().from('story_views').select('viewer_id,created_at,profiles(display_name,username,avatar_url,avatar_preset)').eq('story_id', storyId).order('created_at', { ascending: false })).data || []; },
     async storyViewCount(storyId) { var r = await client().from('story_views').select('viewer_id', { count: 'exact', head: true }).eq('story_id', storyId); return r.count || 0; },
 
-    /* ---------------- Super Spot (weekly bonus, admin-configured) ---------------- */
+    /* ---------------- Super Spot (weekly bonus, admin-configured) ----------------
+       Claiming no longer pays out on its own: it queues the photo for the owner to
+       review, together with where and when it was taken and whether the camera was
+       used, so a stock or re-used picture can be spotted. */
     async activeSuperSpot() { return (await client().from('super_spots_public').select('*').eq('active', true).gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }).limit(1).maybeSingle()).data; },
-    async claimSuperSpot(spotId, postId) { return (await client().rpc('claim_super_spot', { p_spot: spotId, p_post: postId })).data; },
+    async submitSuperClaim(c) {
+      return (await client().rpc('submit_super_claim', {
+        p_spot: c.spotId, p_post: c.postId || null, p_photo: c.photo || null, p_source: c.source || null,
+        p_lat: (typeof c.lat === 'number' ? c.lat : null), p_lng: (typeof c.lng === 'number' ? c.lng : null),
+        p_captured: c.capturedAt || null
+      })).data;
+    },
+    async mySuperClaims() { var id = await uid(); return (await client().from('super_claims').select('*').eq('user_id', id).order('created_at', { ascending: false })).data || []; },
+
+    /* ---------------- Meetup identity reveal (mutual) ---------------- */
+    async setMeetupReveal(meetupId, on) { return (await client().rpc('set_meetup_reveal', { p_meetup: meetupId, p_on: on !== false })).data; },
+
+    /* ---------------- Badges of any user (public shelf) ---------------- */
+    async badgesOf(userId) { return (await client().rpc('badges_of', { p_user: userId })).data || []; },
 
     /* ---------------- Reports / admin ---------------- */
     async report(type, targetId, reason) { var id = await uid(); return client().from('reports').insert({ reporter_id: id, target_type: type, target_id: String(targetId), reason: reason, status: 'open' }); },
@@ -231,7 +248,10 @@
       reports: async function () { return (await client().from('reports').select('*').order('created_at', { ascending: false })).data || []; },
       resolveReport: function (id, status) { return client().from('reports').update({ status: status }).eq('id', id); },
       setSuperSpot: function (s) { return client().rpc('set_super_spot', { p_lat: s.lat, p_lng: s.lng, p_prompt: s.prompt || '', p_reward_title: s.rewardTitle || '', p_reward_detail: s.rewardDetail || null, p_points: s.points || 100, p_expires: s.expiresAt || null, p_reward_image: s.rewardImage || null }); },
-      setUserAdmin: function (targetId, isAdmin, perms) { return client().rpc('set_user_admin', { p_target: targetId, p_is_admin: isAdmin, p_perms: perms || null }); }
+      setUserAdmin: function (targetId, isAdmin, perms) { return client().rpc('set_user_admin', { p_target: targetId, p_is_admin: isAdmin, p_perms: perms || null }); },
+      // Super Spot photo review queue — the owner decides who actually wins.
+      superClaims: async function (status) { return (await client().rpc('super_claims_queue', { p_status: status === undefined ? 'pending' : status })).data || []; },
+      reviewSuperClaim: function (claimId, approve, note) { return client().rpc('review_super_claim', { p_claim: claimId, p_approve: !!approve, p_note: note || null }); }
     },
 
     /* ---------------- Points ---------------- */

@@ -160,3 +160,54 @@ create policy badges_insert on public.badges for insert with check (user_id = au
 -- request rows to the host and the guest who made them).
 -- nearby_people() only returns profiles seen in the last 5 minutes, and go_offline()
 -- clears visibility + last_seen so a signed-out user stops showing as online.
+
+-- ============================================================================
+-- BUILD 15 — mutual meetup reveal, meetup categories, reviewed Super Spot claims
+-- ============================================================================
+
+-- Identity reveal is stored, so BOTH sides actually see it (it used to be local only).
+create table if not exists public.meetup_reveals (
+  meetup_id uuid not null references public.meetups(id) on delete cascade,
+  user_id   uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (meetup_id, user_id)
+);
+alter table public.meetup_reveals enable row level security;
+-- in_meetup() = the host, or a guest whose request was accepted.
+create policy mrev_read   on public.meetup_reveals for select using (public.in_meetup(meetup_id, auth.uid()));
+create policy mrev_insert on public.meetup_reveals for insert with check (user_id = auth.uid() and public.in_meetup(meetup_id, auth.uid()));
+create policy mrev_delete on public.meetup_reveals for delete using (user_id = auth.uid());
+-- set_meetup_reveal(meetup, on) toggles it and notifies the other side.
+
+-- Meetup categories (Dating, Food, Drinks, Active, Outdoors, Culture, Games,
+-- Learning, Pets, Social) drive the feed's icons and filters.
+alter table public.meetups add column if not exists category text;
+
+-- Super Spot claims are reviewed by the owner before anything is paid out.
+-- Submitting records the photo plus the three things that expose a fake: how far
+-- from the spot it was taken, whether the camera was used, and when it was taken.
+create table if not exists public.super_claims (
+  id uuid primary key default gen_random_uuid(),
+  spot_id uuid not null references public.super_spots(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  post_id uuid references public.posts(id) on delete set null,
+  photo_url text, source text, lat double precision, lng double precision,
+  distance_m double precision, captured_at timestamptz,
+  status text not null default 'pending',
+  reviewed_by uuid references public.profiles(id) on delete set null,
+  reviewed_at timestamptz, points integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists super_claims_one_per_user_uidx on public.super_claims(spot_id, user_id);
+alter table public.super_claims enable row level security;
+create policy sc_read   on public.super_claims for select using (user_id = auth.uid() or public.is_admin(auth.uid()) or public.has_perm(auth.uid(),'superspot'));
+create policy sc_insert on public.super_claims for insert with check (user_id = auth.uid());
+-- submit_super_claim(): queues a review, awards nothing.
+-- review_super_claim(): approving pays the winner, closes the spot, rejects the rest.
+-- super_claims_queue(): the review list, with everything needed to judge a photo.
+
+-- Public badge shelf, so achievements show on other people's profiles.
+-- badges_of(user) -> jsonb array of badge keys.
+
+-- You can delete your own messages.
+create policy msg_delete on public.messages for delete using (sender_id = auth.uid() or public.is_admin(auth.uid()));
