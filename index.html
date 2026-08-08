@@ -640,6 +640,23 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .sheet .input,.sheet .textarea,.sheet select{background:rgba(255,255,255,.72);border-color:rgba(40,44,86,.14);color:#252A4D}
 .sheet .btn-ghost{background:rgba(255,255,255,.66);border:1px solid rgba(40,44,86,.12);color:#353A66}
 .sheet h2,.sheet h3,.sheet .title,.sheet .nm{color:#20244A}
+/* Controls inside a light sheet must be light too — dark navy chips on cream read
+   as a different app. Selected states keep the indigo fill. */
+/* Opaque, not translucent: a see-through fill let the dark backdrop bleed through
+   near the bottom of a tall sheet and made the last row look grey. */
+.sheet .seg button,.sheet .subgrid button,.sheet .vibegrid button,.sheet .chip,.sheet .agechip,.sheet .sortchip{
+  background:#FBFAFE;border:1px solid rgba(40,44,86,.12);color:#2A2E52;
+  box-shadow:0 1px 2px rgba(40,44,86,.08)}
+.sheet .seg button[aria-pressed="true"],.sheet .subgrid button[aria-pressed="true"],
+.sheet .vibegrid button[aria-pressed="true"],.sheet .chip[aria-pressed="true"],.sheet .sortchip[aria-pressed="true"]{
+  background:linear-gradient(180deg,#7E82D8,#5B5FAF);border-color:transparent;color:#fff;
+  box-shadow:0 4px 12px rgba(90,96,180,.38)}
+.sheet .seg button[aria-pressed="true"] svg,.sheet .subgrid button[aria-pressed="true"] svg,
+.sheet .vibegrid button[aria-pressed="true"] svg{filter:brightness(0) invert(1)}
+.sheet label,.sheet .field > label{color:#5B6191}
+.sheet .loc-card{background:rgba(255,255,255,.7);border:1px solid rgba(40,44,86,.12)}
+.sheet .safety,.sheet .banner,.sheet .pill-note,.sheet .hint{background:rgba(126,130,216,.10);color:#40467A;border-color:rgba(40,44,86,.10)}
+.sheet .empty,.sheet .meta{color:#5B6191}
 
 /* --- Cards: squircle + real depth instead of a flat fill --- */
 .card,.meet-card{border-radius:24px;background:linear-gradient(180deg,rgba(58,63,110,.72),rgba(40,44,82,.72));
@@ -660,13 +677,19 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .btn-primary{border-radius:22px}
 .sheet .btn-primary{color:#fff}
 
-/* --- Tab bar: lifted glass slab with a light top edge --- */
-#tabbar{background:linear-gradient(180deg,rgba(60,66,116,.96),rgba(34,38,72,.98));
-  border-top:1px solid rgba(198,205,255,.20);
-  box-shadow:0 -12px 34px rgba(8,10,26,.60), inset 0 1px 0 rgba(255,255,255,.16);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.tab.active{color:#EDEFFF}
-.tab.active::after{background:linear-gradient(90deg,var(--social),var(--cyan));box-shadow:0 0 12px var(--glow)}
+/* --- Tab bar: a LIGHT dawn slab, like the bottom of the reference screens.
+   Light-on-dark is also what finally makes it legible — the old dark bar washed
+   out against the night sky. --- */
+#tabbar{background:linear-gradient(180deg,#EDEAF7 0%,#DCD9EC 55%,#D2CEE4 100%);
+  border-top:none;
+  box-shadow:0 -1px 0 rgba(255,255,255,.85) inset, 0 -14px 38px rgba(8,10,26,.55);
+  backdrop-filter:none;-webkit-backdrop-filter:none}
+#tabbar .tab{color:#6A70A0}
+#tabbar .tab.active{color:#242853}
+#tabbar .tab.active svg{filter:drop-shadow(0 2px 6px rgba(126,130,216,.55))}
+.tab.active::after{background:linear-gradient(90deg,var(--social),#5B5FAF);box-shadow:0 0 10px rgba(126,130,216,.7)}
+:root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#FFFFFF,#F1EFF8);
+  box-shadow:0 -1px 0 rgba(255,255,255,.9) inset, 0 -10px 26px rgba(40,44,86,.16)}
 
 /* --- Round icon buttons, like the control grid in the reference --- */
 .ctrlbtn{background:rgba(42,46,84,.78)!important;border:1px solid rgba(198,205,255,.14)!important;
@@ -1107,7 +1130,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 15 · 2026-07-31';
+window.PINLY_BUILD = 'build 16 · 2026-08-08';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -1194,25 +1217,10 @@ const ICONS={
 };
 /* ---- Golden Racoon Coin — the app currency mark (drawn, not emoji) ---- */
 function COIN(size){
-  size=size||18;var u='rc'+Math.random().toString(36).slice(2,7);
-  return '<svg class="ico coin" viewBox="0 0 40 40" width="'+size+'" height="'+size+'" aria-label="Golden Racoon Coin">'
-    +'<defs><linearGradient id="'+u+'g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE79A"/><stop offset=".45" stop-color="#FFC53D"/><stop offset="1" stop-color="#E09000"/></linearGradient>'
-    +'<linearGradient id="'+u+'r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9AA6C4"/><stop offset="1" stop-color="#5E6A88"/></linearGradient></defs>'
-    +'<circle cx="20" cy="20" r="19" fill="url(#'+u+'g)"/>'
-    +'<circle cx="20" cy="20" r="19" fill="none" stroke="#B87A00" stroke-width="1.6"/>'
-    +'<circle cx="20" cy="20" r="15.4" fill="none" stroke="#FFF0BE" stroke-width="1.5" opacity=".85"/>'
-    /* raccoon head */
-    +'<path d="M9.6 15.4 12 8.6l5 3.6ZM30.4 15.4 28 8.6l-5 3.6Z" fill="url(#'+u+'r)"/>'
-    +'<path d="M20 11.4c6 0 9.6 4 9.6 9s-4.2 8.6-9.6 8.6-9.6-3.6-9.6-8.6 3.6-9 9.6-9Z" fill="#B9C4DC"/>'
-    +'<path d="M20 11.4c-3.4 0-6 1.3-7.6 3.4 2.2 1 4.7 1.5 7.6 1.5s5.4-.5 7.6-1.5c-1.6-2.1-4.2-3.4-7.6-3.4Z" fill="#DDE4F2"/>'
-    /* mask */
-    +'<path d="M12.6 19.2c1.4-1.7 3.2-2.5 4.9-2.2 1 .2 1.7.9 2.5.9s1.5-.7 2.5-.9c1.7-.3 3.5.5 4.9 2.2-1 2.2-2.9 3.3-4.8 3-1-.2-1.8-.9-2.6-.9s-1.6.7-2.6.9c-1.9.3-3.8-.8-4.8-3Z" fill="#2E3550"/>'
-    +'<circle cx="15.6" cy="19.2" r="1.5" fill="#fff"/><circle cx="24.4" cy="19.2" r="1.5" fill="#fff"/>'
-    +'<circle cx="15.9" cy="19.4" r=".8" fill="#141a2e"/><circle cx="24.7" cy="19.4" r=".8" fill="#141a2e"/>'
-    /* snout */
-    +'<ellipse cx="20" cy="24.4" rx="4.2" ry="3.2" fill="#F1F5FF"/>'
-    +'<path d="M20 22.6c1.1 0 1.9.6 1.9 1.3S21.1 25 20 25s-1.9-.4-1.9-1.1.8-1.3 1.9-1.3Z" fill="#2E3550"/>'
-    +'<path d="M20 25v1.2M20 26.2q-1.4 1-2.4 0M20 26.2q1.4 1 2.4 0" stroke="#2E3550" stroke-width=".9" fill="none" stroke-linecap="round"/>'
+  size=size||18;
+  // Owner-supplied coin art. Inline styles only, so it is safe to repeat on a page.
+  return '<svg class="ico coin" viewBox="0 0 512 512" width="'+size+'" height="'+size+'" aria-label="Golden Racoon Coin" role="img">'
+    +'<circle style="fill:#FFCE47;" cx="256" cy="256" r="256"/> <circle style="fill:#FBB500;" cx="256" cy="256" r="227.788"/> <path style="fill:#FFE29E;" d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256V0z"/> <path style="fill:#FFCE47;" d="M256,28.212C130.196,28.212,28.212,130.196,28.212,256S130.196,483.788,256,483.788V28.212z"/> <g> <path style="fill:#FFE29E;" d="M234.223,464.557c-14.574-1.505-29.007-4.551-42.9-9.051l9.661-29.821 c11.802,3.824,24.069,6.411,36.46,7.691L234.223,464.557z M278.006,464.533l-3.253-31.178c12.384-1.293,24.645-3.892,36.443-7.728 l9.692,29.811C307.001,459.954,292.574,463.013,278.006,464.533z M151.263,437.681c-12.644-7.304-24.572-15.97-35.451-25.758 l20.965-23.304c9.259,8.33,19.409,15.704,30.166,21.918L151.263,437.681z M360.926,437.573l-15.707-27.128 c10.749-6.223,20.888-13.607,30.137-21.944l20.989,23.283C385.475,421.581,373.559,430.258,360.926,437.573z M86.463,379.397 c-8.622-11.828-16.016-24.583-21.973-37.911l28.618-12.793c5.066,11.33,11.352,22.177,18.687,32.238L86.463,379.397z M425.659,379.229l-25.348-18.441c7.327-10.072,13.606-20.927,18.659-32.267l28.631,12.761 C441.657,354.62,434.274,367.388,425.659,379.229z M50.907,299.797c-3.026-14.235-4.568-28.891-4.584-43.564L77.67,256.2 c0.014,12.497,1.325,24.972,3.899,37.079L50.907,299.797z M461.141,299.569l-30.67-6.485c2.56-12.107,3.858-24.584,3.858-37.084 v-0.375l31.347-0.111v0.487C465.677,270.675,464.15,285.333,461.141,299.569z M81.488,219.109l-30.676-6.45 c3.01-14.316,7.549-28.354,13.492-41.727l28.646,12.729C87.901,195.022,84.045,206.948,81.488,219.109z M430.389,218.529 c-2.598-12.152-6.493-24.063-11.577-35.403l28.604-12.824c5.985,13.349,10.569,27.37,13.628,41.675L430.389,218.529z M111.572,151.373L86.203,132.96c8.581-11.822,18.433-22.786,29.281-32.588l21.014,23.26 C127.262,131.977,118.876,141.31,111.572,151.373z M400.089,150.908c-7.335-10.038-15.751-19.345-25.013-27.658l20.94-23.328 c10.879,9.767,20.766,20.698,29.384,32.492L400.089,150.908z M166.611,101.655l-15.738-27.11 c12.663-7.351,26.127-13.378,40.016-17.912l9.727,29.8C188.815,90.285,177.375,95.406,166.611,101.655z M344.887,101.365 c-10.786-6.214-22.246-11.298-34.06-15.111l9.628-29.832c13.906,4.487,27.391,10.47,40.081,17.782L344.887,101.365z M237.052,78.664l-3.288-31.173c14.441-1.523,29.333-1.547,43.782-0.071l-3.187,31.185 C262.052,77.346,249.35,77.367,237.052,78.664z"/> <path style="fill:#FFE29E;" d="M271.673,307.984V204.016c10.53,5.624,17.715,16.722,17.715,29.47h31.347 c0-30.292-20.917-55.78-49.062-62.807v-33.45h-31.347v33.45c-28.145,7.027-49.062,32.515-49.062,62.807v45.027 c0,30.292,20.917,55.78,49.062,62.807v33.45h31.347v-33.45c28.145-7.027,49.062-32.515,49.062-62.807h-31.347 C289.389,291.262,282.204,302.36,271.673,307.984z M222.611,278.513v-45.027c0-12.749,7.185-23.847,17.715-29.47v103.967 C229.796,302.36,222.611,291.262,222.611,278.513z"/> </g>'
     +'</svg>';
 }
 /* Map legacy emoji tokens → the SVG set, so every menu/row/badge gets a real icon. */
