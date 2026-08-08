@@ -734,6 +734,47 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
   border-top:1px solid rgba(40,44,86,.10);box-shadow:0 -10px 28px rgba(40,44,86,.12)}
 :root[data-theme="light"] .sheet{background:linear-gradient(180deg,#FFFFFF 0%,#F7F4FA 55%,#F6EFE5 100%)}
 
+/* --- Every screen carries the same night→dawn fade as the reference: indigo at the
+   top, warming toward lavender at the bottom where it meets the light tab bar.
+   Painted as a background on the screen itself, so no stacking context is created. --- */
+.screen{background-image:linear-gradient(180deg,transparent 0%,transparent 46%,rgba(170,176,224,.10) 78%,rgba(201,204,235,.20) 100%)}
+:root[data-theme="light"] .screen{background-image:linear-gradient(180deg,transparent 0%,transparent 50%,rgba(246,239,229,.55) 100%)}
+/* Screen headers read as a lifted glass bar rather than a flat strip. */
+.screen-head{background:linear-gradient(180deg,rgba(36,40,74,.92),rgba(30,33,64,.72));
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(198,205,255,.10);box-shadow:0 6px 20px rgba(8,10,26,.28)}
+.screen-head .back{background:rgba(58,63,110,.72);border:1px solid rgba(198,205,255,.14);
+  box-shadow:var(--depth-1),var(--inner-top);border-radius:14px}
+:root[data-theme="light"] .screen-head{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,255,255,.74));
+  border-bottom:1px solid rgba(40,44,86,.10);box-shadow:0 6px 18px rgba(40,44,86,.10)}
+:root[data-theme="light"] .screen-head .back{background:#F1EFF8;border:1px solid rgba(40,44,86,.10)}
+
+/* Pop-over menus get the same glass + depth as the rest of the app. */
+.menu-group{background:linear-gradient(180deg,rgba(58,63,110,.96),rgba(40,44,82,.96))!important;
+  border:1px solid rgba(198,205,255,.12);box-shadow:var(--depth-3),var(--inner-top);border-radius:22px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+:root[data-theme="light"] .menu-group{background:linear-gradient(180deg,#FFFFFF,#F5F3FB)!important;
+  border:1px solid rgba(40,44,86,.10);box-shadow:var(--depth-2)}
+
+/* Inputs everywhere pick up the same recessed treatment. */
+.input,.textarea,.select,.searchfield input{background:rgba(24,27,56,.72);border:1px solid rgba(198,205,255,.12);
+  color:var(--paper);box-shadow:inset 0 2px 6px rgba(8,10,26,.35)}
+.input:focus,.textarea:focus,.select:focus{border-color:rgba(159,216,245,.55);
+  box-shadow:inset 0 2px 6px rgba(8,10,26,.35), 0 0 0 3px rgba(159,216,245,.18);outline:none}
+:root[data-theme="light"] .input,:root[data-theme="light"] .textarea,:root[data-theme="light"] .select{
+  background:#FFFFFF;border:1px solid rgba(40,44,86,.14);color:#242853;box-shadow:inset 0 1px 3px rgba(40,44,86,.06)}
+
+/* Segmented controls, banners and empty states. */
+.seg button{background:rgba(42,46,84,.66);border:1px solid rgba(198,205,255,.10);color:var(--paper)}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(90,96,180,.42)}
+.segtabs button.on{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;box-shadow:0 4px 14px rgba(90,96,180,.42)}
+.banner,.safety,.pill-note{background:rgba(126,130,216,.13);border:1px solid rgba(198,205,255,.14);
+  border-radius:16px;color:var(--paper)}
+.empty{color:var(--muted)}
+.whisper{background:linear-gradient(180deg,rgba(58,63,110,.62),rgba(40,44,82,.62));border:1px solid rgba(198,205,255,.10);
+  border-radius:20px;box-shadow:var(--depth-1),var(--inner-top)}
+
 /* --- Meetup category chips + sort row (item 8) --- */
 .sortrow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 0 10px}
 .sortrow::-webkit-scrollbar{display:none}
@@ -1130,7 +1171,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 16 · 2026-08-08';
+window.PINLY_BUILD = 'build 17 · 2026-08-08';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
