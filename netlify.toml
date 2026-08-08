@@ -1,13 +1,17 @@
-# Netlify config for Pin Drop (static site — no build step)
+# Netlify config for Pinly (static site — the app is a single index.html at the root)
 [build]
   publish = "."
-  command = ""
+  # A real command, deliberately. With an empty command and an unchanged file list,
+  # Netlify reports "All files already uploaded by a previous deploy with the same
+  # commits" and can skip the production deploy entirely. Writing a file that contains
+  # the commit ref makes every deploy genuinely distinct, so it always publishes.
+  command = "printf 'Pinly build\\ncommit: %s\\nbranch: %s\\nbuilt: %s\\n' \"$COMMIT_REF\" \"$BRANCH\" \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" > build-info.txt"
 
-# SPA-ish fallback: unknown routes serve the app
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# The app HTML must never be served stale — the service worker handles offline.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/sw.js"
@@ -15,6 +19,17 @@
     Cache-Control = "no-cache"
 
 [[headers]]
+  for = "/supabase/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
   for = "/*.png"
   [headers.values]
     Cache-Control = "public, max-age=604800"
+
+# SPA-ish fallback: unknown routes serve the app
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
