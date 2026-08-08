@@ -1171,7 +1171,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 17 · 2026-08-08';
+window.PINLY_BUILD = 'build 18 · 2026-08-08';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }

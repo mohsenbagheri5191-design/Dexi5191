@@ -1,47 +1,83 @@
-# Deploy Pin Drop (Phase 0 — get it live)
+# Deploying Pinly
 
-Pin Drop is a static, self-contained site (`index.html` + a few assets). No build step.
-Pick one host below — all take a couple of minutes. It installs as a PWA (Add to Home Screen).
+The app is a static site — one `index.html` at the repo root plus a few assets. There is
+no build step and no server, so it can be hosted anywhere that serves files.
 
-## Files that must ship together
-```
-index.html                # the app
-manifest.webmanifest       # PWA manifest
-sw.js                      # service worker (offline shell)
-icon.svg  icon-192.png  icon-512.png   # app icons
-netlify.toml / vercel.json # host config (use the one for your host)
-```
+---
 
-## Option A — Netlify (drag & drop, no account gymnastics)
-1. Go to https://app.netlify.com/drop
-2. Drag the whole project folder onto the page.
-3. Done — you get a live URL like `https://your-name.netlify.app`. `netlify.toml` is picked up automatically.
-4. (Optional) Add a custom domain in Site settings → Domain management.
+## Current setup: GitHub Pages (free, no build credits)
 
-## Option B — Vercel
-1. Install once: `npm i -g vercel`
-2. In the project folder: `vercel` (follow prompts) then `vercel --prod`
-3. `vercel.json` is used automatically.
+**Live URL:** https://mohsenbagheri5191-design.github.io/Dexi5191/
 
-## Option C — GitHub Pages (free, tied to your repo)
-1. Push these files to a GitHub repo (e.g. `mohsenba-eng/Pinly-app-new`).
-2. Repo → Settings → Pages → Source: `main` branch, `/root`.
-3. Your site: `https://<user>.github.io/<repo>/`.
-   - Note: on a project page the app lives under a sub-path; the relative asset paths here (`./…`) handle that.
+GitHub Pages serves the repo directly. Push to `main` → live in about a minute. There is
+no build allowance to run out, which is why we moved here.
 
-## Requirements for the PWA to work
-- **HTTPS** (all three hosts above give you HTTPS automatically). Service workers only run on HTTPS (or localhost).
-- Open the URL on your phone → browser menu → **Add to Home Screen**. It launches full-screen with the Pin Drop icon.
+### One-time setup (already done, recorded here for reference)
 
-## Test locally first (optional)
-```
-cd this-folder
-python3 -m http.server 8080
-# open http://localhost:8080  (SW + manifest work on localhost)
-```
+1. Repo → **Settings** → **Pages**
+2. **Source:** "Deploy from a branch"
+3. **Branch:** `main`, folder `/ (root)` → **Save**
 
-## Current state (important)
-This deploys the **prototype** — it runs on in-browser mock data, so it's perfect for demos,
-a waitlist, and gathering feedback, but users don't yet share real accounts/data. The Supabase
-backend is now provisioned (see `BACKEND.md`); wiring the app to it is the next step that turns
-this into a real multi-user product.
+`.nojekyll` at the repo root is required. Without it GitHub runs Jekyll over the site,
+which silently drops files and folders beginning with an underscore.
+
+### Supabase must know the URL
+
+Auth redirects are validated against an allowlist, so the app's address has to be
+registered or Google sign-in returns "requested path is invalid".
+
+Supabase → **Authentication** → **URL Configuration**:
+
+| Field | Value |
+|---|---|
+| Site URL | `https://mohsenbagheri5191-design.github.io/Dexi5191/` |
+| Redirect URLs | `https://mohsenbagheri5191-design.github.io/Dexi5191/**` |
+
+Keep any old entries as well — extra redirect URLs are harmless and let a previous
+deployment keep working during a switchover.
+
+Google Cloud Console does **not** need changing. The OAuth callback goes to Supabase's
+own domain (`<project>.supabase.co/auth/v1/callback`), which never changes; only the
+app's own return address does, and that is what the allowlist above covers.
+
+### Why a sub-folder URL works
+
+Every path in the app is relative (`./index.html`, `./supabase/live.js`, `./logo.png`),
+`manifest.webmanifest` uses `"start_url": "./index.html"` and `"scope": "./"`, and the
+service worker is registered as `./sw.js`. So the app runs correctly from
+`/Dexi5191/` and is still installable to a phone home screen.
+
+---
+
+## Previous setup: Netlify
+
+**URL:** https://melodious-cheesecake-5f97f0.netlify.app · site `melodious-cheesecake-5f97f0`
+
+Still connected to GitHub and still serving whatever was last published, but **production
+deploys are paused**: the free team ran out of build credits, so every deploy of `main`
+after 30 July was marked *Skipped* while the site kept serving the July build. Netlify
+shows this as a banner — "production deploys and Agent Runners are paused… upgrade your
+team or wait for your next billing cycle to resume."
+
+If you ever return to Netlify, the allowance resets on the team's monthly billing date
+and deploys resume on their own; nothing in the repo needs changing. `netlify.toml` is
+still present and correct.
+
+> ⚠️ A skipped deploy is easy to misread as a caching problem. If the app looks stale,
+> check **which commit the host actually published** before blaming the browser or the
+> service worker. On Netlify that is Deploys → the top entry's commit ref.
+
+---
+
+## Other hosts
+
+Anything that serves static files works: Cloudflare Pages, Vercel, S3 + CloudFront, or
+plain nginx. Point it at the repo root, no build command. Wherever you land, add that
+origin to Supabase's redirect allowlist as above.
+
+## Cache behaviour
+
+`sw.js` uses a versioned cache key (`pinly-vN`) and network-first for the app HTML, so a
+new build lands on the next load rather than being pinned by the service worker. Bump
+both `PINLY_BUILD` in `index.html` and `CACHE` in `sw.js` on every release — the visible
+build tag on the sign-in screen is how you confirm what is actually live.
