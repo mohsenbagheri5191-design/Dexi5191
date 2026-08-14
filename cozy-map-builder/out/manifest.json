@@ -1,0 +1,202 @@
+[
+ {
+  "category": "house",
+  "name": "cottage-starter",
+  "variant": null,
+  "state": "base",
+  "kind": "sprite",
+  "w": 256,
+  "h": 320,
+  "stem": "out/house/house_cottage-starter_base"
+ },
+ {
+  "category": "house",
+  "name": "cottage-starter",
+  "variant": null,
+  "state": "mask",
+  "kind": "mask",
+  "w": 256,
+  "h": 320,
+  "stem": "out/house/house_cottage-starter_mask"
+ },
+ {
+  "category": "house",
+  "name": "cottage-starter",
+  "variant": null,
+  "state": "shadow",
+  "kind": "sprite",
+  "w": 256,
+  "h": 320,
+  "stem": "out/house/house_cottage-starter_shadow"
+ },
+ {
+  "category": "terrain",
+  "name": "grass",
+  "variant": "v00",
+  "state": "base",
+  "kind": "sprite",
+  "w": 128,
+  "h": 64,
+  "stem": "out/terrain/terrain_grass_v00_base"
+ },
+ {
+  "category": "terrain",
+  "name": "grass",
+  "variant": "v01",
+  "state": "base",
+  "kind": "sprite",
+  "w": 128,
+  "h": 64,
+  "stem": "out/terrain/terrain_grass_v01_base"
+ },
+ {
+  "category": "terrain",
+  "name": "grass",
+  "variant": "v02",
+  "state": "base",
+  "kind": "sprite",
+  "w": 128,
+  "h": 64,
+  "stem": "out/terrain/terrain_grass_v02_base"
+ },
+ {
+  "category": "terrain",
+  "name": "grass",
+  "variant": "v03",
+  "state": "base",
+  "kind": "sprite",
+  "w": 128,
+  "h": 64,
+  "stem": "out/terrain/terrain_grass_v03_base"
+ },
+ {
+  "category": "terrain",
+  "name": "grass",
+  "variant": "v00",
+  "state": "seasonmask",
+  "kind": "seasonmask",
+  "w": 128,
+  "h": 64,
+  "stem": "out/terrain/terrain_grass_v00_seasonmask"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "sapling",
+  "state": "base",
+  "kind": "sprite",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_sapling_base"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "sapling",
+  "state": "seasonmask",
+  "kind": "seasonmask",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_sapling_seasonmask"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "sapling",
+  "state": "shadow",
+  "kind": "sprite",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_sapling_shadow"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "young",
+  "state": "base",
+  "kind": "sprite",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_young_base"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "young",
+  "state": "seasonmask",
+  "kind": "seasonmask",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_young_seasonmask"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "young",
+  "state": "shadow",
+  "kind": "sprite",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_young_shadow"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "mature",
+  "state": "base",
+  "kind": "sprite",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_mature_base"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "mature",
+  "state": "seasonmask",
+  "kind": "seasonmask",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_mature_seasonmask"
+ },
+ {
+  "category": "plant",
+  "name": "tree-oak",
+  "variant": "mature",
+  "state": "shadow",
+  "kind": "sprite",
+  "w": 192,
+  "h": 256,
+  "stem": "out/plant/plant_tree-oak_mature_shadow"
+ },
+ {
+  "category": "decor",
+  "name": "bench-wooden",
+  "variant": null,
+  "state": "base",
+  "kind": "sprite",
+  "w": 128,
+  "h": 96,
+  "stem": "out/decor/decor_bench-wooden_base"
+ },
+ {
+  "category": "decor",
+  "name": "bench-wooden",
+  "variant": null,
+  "state": "mask",
+  "kind": "mask",
+  "w": 128,
+  "h": 96,
+  "stem": "out/decor/decor_bench-wooden_mask"
+ },
+ {
+  "category": "decor",
+  "name": "bench-wooden",
+  "variant": null,
+  "state": "shadow",
+  "kind": "sprite",
+  "w": 128,
+  "h": 96,
+  "stem": "out/decor/decor_bench-wooden_shadow"
+ }
+]
