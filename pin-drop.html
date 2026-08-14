@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Pin Drop" />
-<meta name="theme-color" content="#171A32" />
+<meta name="theme-color" content="#0D1826" />
 <title>Pin Drop</title>
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -29,19 +29,19 @@
 :root{
   /* Night-to-dawn palette: deep indigo sky at the top easing into lavender and
      warm cream at the bottom, the way the reference screens do. */
-  --void:#171A32; --ink:#1E2140; --surface:#2A2E52; --surface-2:#353A66; --line:rgba(198,205,255,.11);
-  --paper:#EDEFFF; --muted:#9BA2CE;
-  --social:#7E82D8; --fire:#FF6B6B; --hazard:#FFC46B; --found:#6BE3B8; --lost:#FF8FC0; --meetup:#8FD8F0;
-  --cyan:#9FD8F5; --success:#6BE3B8; --danger:#FF6B6B;
+  --void:#0D1826; --ink:#12202F; --surface:#1B2E42; --surface-2:#254257; --line:rgba(175,205,228,.11);
+  --paper:#E9F2FA; --muted:#8FA8C0;
+  --social:#38BDF8; --fire:#FF6B6B; --hazard:#FFC24B; --found:#3FD8A4; --lost:#FF6E8A; --meetup:#2FD3C0;
+  --cyan:#7FD8F5; --success:#3FD8A4; --danger:#FF6B6B;
   /* dawn ramp — used by sheets, cards and the bottom of the map */
-  --dawn-1:#C9CCEB; --dawn-2:#DCD9EC; --dawn-3:#F2EAE0; --cream:#F6EFE5;
-  --glow:rgba(190,205,255,.55);
+  --dawn-1:#CBDCEA; --dawn-2:#E0E7EF; --dawn-3:#F4EFE6; --cream:#F8F3EA;
+  --glow:rgba(150,210,240,.55);
   /* layered depth: a soft ambient shadow plus a tighter contact shadow */
-  --depth-1:0 1px 2px rgba(10,12,30,.20), 0 4px 10px rgba(10,12,30,.22);
-  --depth-2:0 2px 6px rgba(10,12,30,.24), 0 12px 28px rgba(10,12,30,.34);
-  --depth-3:0 6px 18px rgba(10,12,30,.30), 0 26px 60px rgba(10,12,30,.46);
+  --depth-1:0 1px 2px rgba(6,18,28,.20), 0 4px 10px rgba(6,18,28,.22);
+  --depth-2:0 2px 6px rgba(6,18,28,.24), 0 12px 28px rgba(6,18,28,.34);
+  --depth-3:0 6px 18px rgba(6,18,28,.30), 0 26px 60px rgba(6,18,28,.46);
   --inner-top:inset 0 1px 0 rgba(255,255,255,.10);
-  --ring:0 0 0 1px rgba(198,205,255,.10);
+  --ring:0 0 0 1px rgba(175,205,228,.10);
   --font-display:'Bricolage Grotesque', system-ui, sans-serif;
   --font-body:'Plus Jakarta Sans', system-ui, sans-serif;
   --font-mono:'Space Mono', ui-monospace, monospace;
@@ -52,10 +52,10 @@
 }
 /* Light theme — same accent hues, inverted surfaces; accents darkened where needed for contrast */
 :root[data-theme="light"]{
-  --void:#E9EDF6; --ink:#FFFFFF; --surface:#FFFFFF; --surface-2:#EDF1F9; --line:rgba(20,24,60,.12);
-  --paper:#161A38; --muted:#5C6488;
+  --void:#E8EFF6; --ink:#FFFFFF; --surface:#FFFFFF; --surface-2:#E8EFF6; --line:rgba(16,34,48,.12);
+  --paper:#161A38; --muted:#4E6B84;
   --cyan:#0E97B5; --success:#0FA579;
-  --scrim:rgba(20,24,60,.35);
+  --scrim:rgba(16,34,48,.35);
 }
 :root[data-theme="light"] .btn-primary,:root[data-theme="light"] #fab{color:#fff}
 :root[data-theme="light"] .chip[aria-pressed="true"],:root[data-theme="light"] .seg button[aria-pressed="true"],:root[data-theme="light"] .catbadge,:root[data-theme="light"] .act.on,:root[data-theme="light"] .commentbar button{color:#fff}
@@ -85,8 +85,8 @@ img{max-width:100%}
     radial-gradient(1px 1px   at 45% 8%,   rgba(255,255,255,.45), transparent 60%),
     radial-gradient(1.2px 1.2px at 20% 44%, rgba(255,255,255,.28), transparent 60%),
     radial-gradient(1px 1px   at 68% 48%,  rgba(255,255,255,.24), transparent 60%),
-    radial-gradient(140% 70% at 50% -10%, #232748 0%, #1B1E3C 42%, #171A32 100%)}
-:root[data-theme="light"] #app{background-image:radial-gradient(140% 70% at 50% -10%, #FFFFFF 0%, #F2F1FA 46%, #E9EDF6 100%)}
+    radial-gradient(140% 70% at 50% -10%, #16273A 0%, #102030 42%, #0D1826 100%)}
+:root[data-theme="light"] #app{background-image:radial-gradient(140% 70% at 50% -10%, #FFFFFF 0%, #EDF3F8 46%, #E8EFF6 100%)}
 
 /* ---------- Depth helpers shared across the app ---------- */
 .squircle{border-radius:28px}
@@ -97,21 +97,21 @@ img{max-width:100%}
 #topbar{position:absolute;left:0;right:0;z-index:20;top:calc(var(--safe-top) + 8px);padding:0 12px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 #topbar > *{pointer-events:auto}
 .searchrow{display:flex;gap:8px;align-items:center}
-.searchfield{flex:1;min-width:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:14px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line)}
+.searchfield{flex:1;min-width:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:14px;background:rgba(15,32,47,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line)}
 .searchfield svg{flex:0 0 auto;opacity:.8}
 .searchfield input{flex:1;min-width:0;background:none;border:none;color:var(--paper);font-size:16px;padding:0}
 .searchfield input::placeholder{color:var(--muted)}
 .loc{flex:0 0 auto;text-align:right;line-height:1.05;max-width:44%;overflow:hidden}
 .loc .hood{font-family:var(--font-display);font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .loc .coord{font-family:var(--font-mono);font-size:10px;color:var(--cyan);white-space:nowrap}
-.iconbtn{flex:0 0 auto;width:44px;height:44px;border-radius:14px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative}
+.iconbtn{flex:0 0 auto;width:44px;height:44px;border-radius:14px;background:rgba(15,32,47,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative}
 .badge-dot{position:absolute;top:8px;right:9px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--fire);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono)}
-.radiuspill{flex:0 0 auto;height:44px;padding:0 12px;border-radius:14px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);font-family:var(--font-mono);font-size:12.5px;color:var(--cyan);display:flex;align-items:center;gap:6px}
+.radiuspill{flex:0 0 auto;height:44px;padding:0 12px;border-radius:14px;background:rgba(15,32,47,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);font-family:var(--font-mono);font-size:12.5px;color:var(--cyan);display:flex;align-items:center;gap:6px}
 .chiprow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .chiprow::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;height:34px;min-height:34px;padding:0 14px;border-radius:99px;display:flex;align-items:center;gap:7px;white-space:nowrap;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper);transition:transform .12s ease}
+.chip{flex:0 0 auto;height:34px;min-height:34px;padding:0 14px;border-radius:99px;display:flex;align-items:center;gap:7px;white-space:nowrap;background:rgba(15,32,47,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper);transition:transform .12s ease}
 .chip .glyph{font-size:13px;line-height:1}
-.chip[aria-pressed="true"]{color:#0b0e2e;border-color:transparent}
+.chip[aria-pressed="true"]{color:#06202B;border-color:transparent}
 .chip:active{transform:scale(.96)}
 
 /* ---------- Map ---------- */
@@ -125,14 +125,14 @@ img{max-width:100%}
 .zoomgroup button{width:44px;height:40px;font-size:22px;display:flex;align-items:center;justify-content:center;color:var(--paper)}
 .zoomgroup .divider{height:1px;width:26px;background:var(--line)}
 .ctrlbtn.recenter{color:var(--cyan)}
-#fab{position:absolute;left:50%;transform:translateX(-50%);z-index:16;bottom:calc(var(--tabbar-h) + var(--safe-bottom) + 16px);height:56px;padding:0 22px;border-radius:18px;display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:800;font-size:15.5px;color:#0b0e2e;background:linear-gradient(135deg,var(--social),var(--lost));box-shadow:0 10px 30px rgba(124,92,255,.5)}
+#fab{position:absolute;left:50%;transform:translateX(-50%);z-index:16;bottom:calc(var(--tabbar-h) + var(--safe-bottom) + 16px);height:56px;padding:0 22px;border-radius:18px;display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:800;font-size:15.5px;color:#06202B;background:linear-gradient(135deg,var(--social),var(--lost));box-shadow:0 10px 30px rgba(56,189,248,.5)}
 #fab:active{transform:translateX(-50%) scale(.97)}
-.me-dot{width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #0b0e2e;box-shadow:0 0 0 4px rgba(53,229,255,.25)}
+.me-dot{width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #06202B;box-shadow:0 0 0 4px rgba(95,227,214,.25)}
 
 /* ---------- Teardrop markers ---------- */
 .pin{width:34px;height:34px;position:relative;cursor:pointer}
 .pin .drop{position:absolute;inset:0;border-radius:50% 50% 50% 6px;transform:rotate(45deg);border:2px solid #fff}
-.pin .glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0b0e2e;font-weight:700}
+.pin .glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#06202B;font-weight:700}
 .pin .radar{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none;z-index:-1}
 @keyframes radar{from{transform:scale(.5);opacity:.9}to{transform:scale(2.6);opacity:0}}
 .pin.urgent .radar{animation:radar 2.4s ease-out infinite}
@@ -175,12 +175,12 @@ img{max-width:100%}
 .segtabs button.on{background:var(--surface-2);color:var(--paper)}
 
 /* ---------- Tab bar ---------- */
-#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;max-width:560px;margin:0 auto;height:calc(var(--tabbar-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);display:flex;background:linear-gradient(180deg,#2C3388,#1B2060);border-top:1px solid rgba(160,180,255,.32);box-shadow:0 -10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14)}
-:root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#ffffff,#F1F4FF);border-top:1px solid rgba(16,19,58,.14);box-shadow:0 -8px 24px rgba(16,19,58,.14)}
+#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:30;max-width:560px;margin:0 auto;height:calc(var(--tabbar-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);display:flex;background:linear-gradient(180deg,#2C3388,#1B2060);border-top:1px solid rgba(150,200,230,.32);box-shadow:0 -10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14)}
+:root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#ffffff,#F1F4FF);border-top:1px solid rgba(15,32,47,.14);box-shadow:0 -8px 24px rgba(15,32,47,.14)}
 /* --- motion system: springy, modern, subtle --- */
 @keyframes popIn{0%{transform:scale(.86);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
 @keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(124,92,255,.5)}50%{box-shadow:0 0 0 9px rgba(124,92,255,0)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,.5)}50%{box-shadow:0 0 0 9px rgba(56,189,248,0)}}
 .tab{transition:color .22s ease,transform .22s cubic-bezier(.34,1.56,.64,1)}
 .tab svg{transition:transform .26s cubic-bezier(.34,1.56,.64,1),color .22s ease,opacity .2s}
 .tab:active{transform:scale(.93)}
@@ -195,7 +195,7 @@ img{max-width:100%}
 .react-btn.on{animation:popIn .3s ease both}
 .menu-group{animation:slideUp .26s cubic-bezier(.22,1,.36,1) both}
 .menu-item{position:relative}
-.menu-item:active{background:rgba(124,92,255,.16)}
+.menu-item:active{background:rgba(56,189,248,.16)}
 #fab{transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .25s ease}
 #fab:active{transform:translateX(-50%) scale(.93)}
 .ctrlbtn{transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .2s ease,border-color .2s ease}
@@ -211,13 +211,13 @@ img{max-width:100%}
 .switch{transition:background .22s ease,border-color .22s ease}
 .toast.show,#toast.show{animation:slideUp .24s cubic-bezier(.22,1,.36,1) both}
 @media (prefers-reduced-motion: reduce){.tab,.tab svg,.chip,.btn-primary,.menu-group,.av-opt{animation:none!important;transition:none!important}}
-:root[data-theme="light"] #tabbar{background:#ffffff;border-top:1px solid rgba(16,19,58,.12);box-shadow:0 -6px 20px rgba(16,19,58,.12)}
+:root[data-theme="light"] #tabbar{background:#ffffff;border-top:1px solid rgba(15,32,47,.12);box-shadow:0 -6px 20px rgba(15,32,47,.12)}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;position:relative}
 .tab svg{opacity:.92}
 .tab.active{color:var(--paper)}
 .tab.active svg{color:var(--cyan);opacity:1}
 :root[data-theme="light"] .tab{color:#5b6180}
-:root[data-theme="light"] .tab.active{color:#10133A}
+:root[data-theme="light"] .tab.active{color:#12202F}
 .tab svg{width:23px;height:23px}
 .tab .tdot{position:absolute;top:8px;right:calc(50% - 18px);min-width:8px;height:8px;border-radius:99px;background:var(--fire)}
 
@@ -239,9 +239,9 @@ img{max-width:100%}
 .textarea{min-height:84px;resize:vertical;line-height:1.5}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg button{padding:9px 13px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper);display:flex;align-items:center;gap:7px}
-.seg button[aria-pressed="true"]{border-color:transparent;color:#0b0e2e}
-.pillbtn[aria-pressed="true"]{background:var(--social);border-color:transparent;color:#0b0e2e}
-.btn-primary{width:100%;height:52px;border-radius:18px;font-family:var(--font-display);font-weight:800;font-size:16px;color:#0b0e2e;background:linear-gradient(135deg,var(--social),var(--lost));box-shadow:0 10px 30px rgba(124,92,255,.4)}
+.seg button[aria-pressed="true"]{border-color:transparent;color:#06202B}
+.pillbtn[aria-pressed="true"]{background:var(--social);border-color:transparent;color:#06202B}
+.btn-primary{width:100%;height:52px;border-radius:18px;font-family:var(--font-display);font-weight:800;font-size:16px;color:#06202B;background:linear-gradient(135deg,var(--social),var(--lost));box-shadow:0 10px 30px rgba(56,189,248,.4)}
 .btn-primary:disabled{opacity:.4;box-shadow:none;filter:grayscale(.4)}
 .btn-ghost{width:100%;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);font-weight:600;color:var(--paper)}
 .btn-danger{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,68,56,.4);background:rgba(255,68,56,.12);font-weight:700;color:var(--danger)}
@@ -249,7 +249,7 @@ img{max-width:100%}
 .composer-map{position:relative;height:220px;border-radius:16px;overflow:hidden;border:1px solid var(--line);margin-bottom:6px}
 #composerMap,#meetMap{position:absolute;inset:0}
 .crosshair{position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%);pointer-events:none;z-index:5}
-.crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--cyan);box-shadow:0 0 6px rgba(53,229,255,.8)}
+.crosshair::before,.crosshair::after{content:"";position:absolute;background:var(--cyan);box-shadow:0 0 6px rgba(95,227,214,.8)}
 .crosshair::before{left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%)}
 .crosshair::after{top:50%;left:0;right:0;height:2px;transform:translateY(-50%)}
 .crosshair .ring{position:absolute;inset:11px;border:2px solid var(--cyan);border-radius:50%}
@@ -277,11 +277,11 @@ img{max-width:100%}
 .detail-text a{color:var(--cyan);text-decoration:none;font-weight:600}
 .actions{display:flex;gap:8px;margin:14px 0 8px}
 .act{flex:1;height:46px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:7px;font-weight:700;font-size:13.5px;color:var(--paper)}
-.act.on{color:#0b0e2e;border-color:transparent}
+.act.on{color:#06202B;border-color:transparent}
 .act.like.on{background:var(--lost)}
 .act.save.on{background:var(--cyan)}
-.act.confirm.emph{background:var(--fire);color:#0b0e2e;border-color:transparent}
-.act.follow.on{background:var(--social);color:#0b0e2e;border-color:transparent}
+.act.confirm.emph{background:var(--fire);color:#06202B;border-color:transparent}
+.act.follow.on{background:var(--social);color:#06202B;border-color:transparent}
 .comment{padding:10px 0;border-top:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
 .comment .avatar{width:32px;height:32px;border-radius:11px;font-size:15px}
 .comment .c-nm{font-weight:700;font-size:13px}
@@ -289,27 +289,27 @@ img{max-width:100%}
 .comment .c-del{margin-left:auto;color:var(--muted);font-size:12px;flex:0 0 auto}
 .commentbar{display:flex;gap:8px;margin-top:10px}
 .commentbar input{flex:1}
-.commentbar button{flex:0 0 auto;padding:0 16px;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:700}
+.commentbar button{flex:0 0 auto;padding:0 16px;border-radius:14px;background:var(--social);color:#06202B;font-weight:700}
 
 /* ---------- Notifications ---------- */
 .notif{display:flex;gap:12px;padding:12px 6px;border-bottom:1px solid var(--line);align-items:flex-start}
-.notif.unread{background:linear-gradient(90deg,rgba(53,229,255,.06),transparent)}
+.notif.unread{background:linear-gradient(90deg,rgba(95,227,214,.06),transparent)}
 .notif .ic{width:38px;height:38px;border-radius:12px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--surface-2)}
 .notif .tx{font-size:14px}
 .notif .tm{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);margin-top:2px}
 
 /* ---------- Meetups ---------- */
-.meet-card{background:var(--surface);border-radius:18px;padding:14px;margin-bottom:12px;border:1px solid rgba(53,229,255,.25)}
+.meet-card{background:var(--surface);border-radius:18px;padding:14px;margin-bottom:12px;border:1px solid rgba(95,227,214,.25)}
 .meet-card .act-label{font-family:var(--font-display);font-weight:800;font-size:17px}
 .alias{display:flex;align-items:center;gap:10px;margin:8px 0}
 .alias .av{width:38px;height:38px;border-radius:12px;flex:0 0 auto}
-.safety{background:rgba(53,229,255,.08);border:1px solid rgba(53,229,255,.28);border-radius:14px;padding:12px;font-size:12.5px;line-height:1.5;color:var(--paper);margin:10px 0}
+.safety{background:rgba(95,227,214,.08);border:1px solid rgba(95,227,214,.28);border-radius:14px;padding:12px;font-size:12.5px;line-height:1.5;color:var(--paper);margin:10px 0}
 .chat{display:flex;flex-direction:column;gap:8px;padding:10px 0}
 .msg{max-width:78%;padding:9px 13px;border-radius:16px;font-size:14.5px;line-height:1.4}
 .msg.them{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:5px}
-.msg.me{align-self:flex-end;background:var(--social);color:#0b0e2e;border-bottom-right-radius:5px}
+.msg.me{align-self:flex-end;background:var(--social);color:#06202B;border-bottom-right-radius:5px}
 .agechip{padding:8px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-weight:600;font-size:13.5px}
-.agechip[aria-pressed="true"]{background:var(--cyan);color:#0b0e2e;border-color:transparent}
+.agechip[aria-pressed="true"]{background:var(--cyan);color:#06202B;border-color:transparent}
 
 /* ---------- Settings ---------- */
 .setrow{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:14px;margin-bottom:8px;border:1px solid var(--line)}
@@ -345,9 +345,9 @@ img{max-width:100%}
 #toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(-4px)}
 
 /* ---------- Age gate (§4 / 18+) ---------- */
-#ageGate{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px calc(var(--safe-bottom) + 26px);text-align:center;max-width:560px;margin:0 auto}
+#ageGate{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 0%,#0F2A3D,var(--void));display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px calc(var(--safe-bottom) + 26px);text-align:center;max-width:560px;margin:0 auto}
 #ageGate.show{display:flex}
-#ageGate .glyphmark{width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:22px}
+#ageGate .glyphmark{width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,var(--social),var(--meetup));display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 18px 50px rgba(56,189,248,.5);margin-bottom:22px}
 #ageGate h1{font-family:var(--font-display);font-weight:800;font-size:27px;margin:0 0 8px;letter-spacing:-.02em}
 #ageGate p{color:var(--muted);font-size:14.5px;line-height:1.55;max-width:320px;margin:0 0 22px}
 #ageGate .gate-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px}
@@ -364,13 +364,13 @@ img{max-width:100%}
 .av-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
 .av-opt{aspect-ratio:1;border-radius:18px;overflow:hidden;border:2px solid transparent;position:relative;background:var(--surface-2);padding:0}
 .av-opt svg,.av-opt img{width:100%;height:100%;display:block;object-fit:cover}
-.av-opt[aria-pressed="true"]{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(53,229,255,.25)}
-.av-opt .chk{position:absolute;right:4px;bottom:4px;width:20px;height:20px;border-radius:50%;background:var(--cyan);color:#0b0e2e;font-size:12px;display:none;align-items:center;justify-content:center;font-weight:800}
+.av-opt[aria-pressed="true"]{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(95,227,214,.25)}
+.av-opt .chk{position:absolute;right:4px;bottom:4px;width:20px;height:20px;border-radius:50%;background:var(--cyan);color:#06202B;font-size:12px;display:none;align-items:center;justify-content:center;font-weight:800}
 .av-opt[aria-pressed="true"] .chk{display:flex}
 .av-upload{aspect-ratio:1;border-radius:18px;border:1px dashed rgba(255,255,255,.28);background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:10.5px;font-weight:600}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .avatar.tappable{cursor:pointer;position:relative}
-.avatar .edit-pip{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:var(--cyan);color:#0b0e2e;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--ink)}
+.avatar .edit-pip{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:var(--cyan);color:#06202B;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--ink)}
 
 /* ---------- Redesigned badges (§7) ---------- */
 .badgegrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
@@ -394,7 +394,7 @@ img{max-width:100%}
 .subgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .subopt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 6px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);font-size:11.5px;font-weight:600;color:var(--paper);text-align:center;line-height:1.15}
 .subopt .se{font-size:21px;line-height:1}
-.subopt[aria-pressed="true"]{border-color:var(--cyan);background:rgba(53,229,255,.12)}
+.subopt[aria-pressed="true"]{border-color:var(--cyan);background:rgba(95,227,214,.12)}
 .subbadge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--paper)}
 
 /* ---------- Followers / user lists ---------- */
@@ -402,7 +402,7 @@ img{max-width:100%}
 .ulist-row .nm{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:6px}
 .ulist-row .sub{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:1px}
 .ulist-row .fbtn{flex:0 0 auto;height:34px;padding:0 14px;border-radius:11px;font-weight:700;font-size:12.5px;border:1px solid var(--line);background:var(--surface-2);color:var(--paper)}
-.ulist-row .fbtn.on{background:var(--social);color:#0b0e2e;border-color:transparent}
+.ulist-row .fbtn.on{background:var(--social);color:#06202B;border-color:transparent}
 .statlink{cursor:pointer}
 .statlink .n{transition:color .15s}
 .statlink:active .n{color:var(--cyan)}
@@ -417,7 +417,7 @@ img{max-width:100%}
 .admin-row .nm{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
 .admin-row .sub{font-size:11px;color:var(--muted);margin-top:2px}
 .statustag{font-family:var(--font-mono);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em}
-.statustag.active{background:rgba(34,229,163,.16);color:var(--success)}
+.statustag.active{background:rgba(63,216,164,.16);color:var(--success)}
 .statustag.restricted{background:rgba(255,176,32,.16);color:var(--hazard)}
 .statustag.banned{background:rgba(255,68,56,.16);color:var(--danger)}
 .report-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--danger);border-radius:14px;padding:12px;margin-bottom:8px}
@@ -425,19 +425,19 @@ img{max-width:100%}
 .mini-actions button{flex:1;min-width:88px;height:38px;border-radius:11px;font-weight:700;font-size:12.5px;border:1px solid var(--line);background:var(--surface-2);color:var(--paper)}
 .mini-actions button.warn{border-color:rgba(255,176,32,.4);color:var(--hazard)}
 .mini-actions button.danger{border-color:rgba(255,68,56,.4);color:var(--danger)}
-.mini-actions button.good{border-color:rgba(34,229,163,.4);color:var(--success)}
+.mini-actions button.good{border-color:rgba(63,216,164,.4);color:var(--success)}
 .banner{display:flex;gap:10px;align-items:center;background:rgba(255,68,56,.1);border:1px solid rgba(255,68,56,.3);border-radius:14px;padding:12px 14px;font-size:13px;margin-bottom:12px}
 
 /* meetup map marker */
 .meet-marker{width:32px;height:32px;position:relative;cursor:pointer}
-.meet-marker .ring{position:absolute;inset:0;border-radius:50%;background:var(--meetup);border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#0b0e2e;font-weight:800;font-size:15px;box-shadow:0 6px 16px rgba(53,229,255,.55)}
+.meet-marker .ring{position:absolute;inset:0;border-radius:50%;background:var(--meetup);border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#06202B;font-weight:800;font-size:15px;box-shadow:0 6px 16px rgba(95,227,214,.55)}
 .meet-marker .pulse{position:absolute;inset:0;border-radius:50%;background:var(--meetup);opacity:.4;animation:radar 2.8s ease-out infinite;z-index:-1}
 
 /* ---------- Pin placement mode ---------- */
 #placeLayer{position:absolute;inset:0;z-index:22;display:none;pointer-events:none}
 #placeLayer.active{display:block}
 .place-cross{position:absolute;left:50%;top:calc(50% - 22px);transform:translate(-50%,-50%);width:60px;height:60px;pointer-events:none}
-.place-cross .ring{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border:2.5px solid var(--cyan);border-radius:50%;box-shadow:0 0 12px rgba(53,229,255,.7)}
+.place-cross .ring{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border:2.5px solid var(--cyan);border-radius:50%;box-shadow:0 0 12px rgba(95,227,214,.7)}
 .place-cross .v{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);background:linear-gradient(var(--cyan),transparent 42%,transparent 58%,var(--cyan))}
 .place-cross .h{position:absolute;top:50%;left:0;right:0;height:2px;transform:translateY(-50%);background:linear-gradient(90deg,var(--cyan),transparent 42%,transparent 58%,var(--cyan))}
 .place-cross::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
@@ -448,9 +448,9 @@ img{max-width:100%}
 /* ---------- Live presence ---------- */
 #mapChrome{position:absolute;left:12px;z-index:16;top:calc(var(--safe-top) + 96px);display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none;max-width:calc(100% - 84px)}
 #mapChrome>*{pointer-events:auto}
-#nearbyPill{position:static;height:34px;padding:0 13px;border-radius:99px;background:rgba(16,19,58,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--paper);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
+#nearbyPill{position:static;height:34px;padding:0 13px;border-radius:99px;background:rgba(15,32,47,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);color:var(--paper);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
 :root[data-theme="light"] #nearbyPill{background:rgba(255,255,255,.9)}
-.livedot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px rgba(34,229,163,.28);animation:livepulse 2s ease-in-out infinite}
+.livedot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px rgba(63,216,164,.28);animation:livepulse 2s ease-in-out infinite}
 @keyframes livepulse{0%,100%{opacity:1}50%{opacity:.45}}
 .presence-marker{width:38px;height:38px;position:relative;cursor:pointer}
 .presence-marker .pav{position:absolute;inset:0;border-radius:50%;overflow:hidden;border:2.5px solid var(--success);background:var(--surface-2);box-shadow:0 4px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:18px}
@@ -459,16 +459,16 @@ img{max-width:100%}
 
 /* ---------- Super Spot (weekly bonus) ---------- */
 .super-marker{width:42px;height:42px;position:relative;cursor:pointer}
-.super-marker .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);border:2px solid #fff;box-shadow:0 6px 20px rgba(255,176,32,.75)}
+.super-marker .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFC24B);border:2px solid #fff;box-shadow:0 6px 20px rgba(255,176,32,.75)}
 .super-marker .pulse{position:absolute;inset:0;border-radius:50%;background:#FFD23F;opacity:.5;animation:radar 2.6s ease-out infinite;z-index:-1}
 .super-hero{display:flex;gap:14px;align-items:center;margin-bottom:12px}
-.super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);box-shadow:0 10px 30px rgba(255,176,32,.5)}
-#superBanner{display:none;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,210,63,.18),rgba(255,176,32,.05));border:1px solid rgba(255,210,63,.4);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:600;line-height:1.35}
-.reward-teaser{background:linear-gradient(90deg,rgba(199,155,255,.2),rgba(139,68,255,.06));border:1px solid rgba(199,155,255,.45);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:13.5px;font-weight:600}
+.super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFC24B);box-shadow:0 10px 30px rgba(255,176,32,.5)}
+#superBanner{display:none;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,194,75,.18),rgba(255,176,32,.05));border:1px solid rgba(255,194,75,.4);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:600;line-height:1.35}
+.reward-teaser{background:linear-gradient(90deg,rgba(140,215,240,.2),rgba(139,68,255,.06));border:1px solid rgba(140,215,240,.45);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:13.5px;font-weight:600}
 .story-views{margin-left:auto;background:rgba(0,0,0,.45);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 
 /* ---------- Account setup wizard ---------- */
-#setupWizard{position:fixed;inset:0;z-index:190;background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));display:none;flex-direction:column;max-width:560px;margin:0 auto}
+#setupWizard{position:fixed;inset:0;z-index:190;background:radial-gradient(120% 80% at 50% 0%,#0F2A3D,var(--void));display:none;flex-direction:column;max-width:560px;margin:0 auto}
 :root[data-theme="light"] #setupWizard{background:radial-gradient(120% 80% at 50% 0%,#dfe6f5,var(--void))}
 #setupWizard.show{display:flex}
 .setup-inner{flex:1;display:flex;flex-direction:column;padding:calc(var(--safe-top) + 28px) 24px calc(var(--safe-bottom) + 20px);overflow-y:auto}
@@ -526,12 +526,12 @@ img{max-width:100%}
 /* ---------- Reactions & vibes ---------- */
 .react-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
 .react-btn{height:38px;padding:0 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);font-size:15px;display:flex;align-items:center;gap:6px;color:var(--paper)}
-.react-btn.on{border-color:var(--social);background:rgba(124,92,255,.14)}
+.react-btn.on{border-color:var(--social);background:rgba(56,189,248,.14)}
 .react-btn .rc{font-size:12px;font-weight:700;font-family:var(--font-mono)}
 .vibe-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line)}
 .vibegrid{display:flex;flex-wrap:wrap;gap:8px}
 .vibegrid button{padding:9px 13px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--paper)}
-.vibegrid button[aria-pressed="true"]{border-color:var(--cyan);background:rgba(53,229,255,.12)}
+.vibegrid button[aria-pressed="true"]{border-color:var(--cyan);background:rgba(95,227,214,.12)}
 
 /* ---------- Whispers (anon feed) ---------- */
 .whisper{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
@@ -540,7 +540,7 @@ img{max-width:100%}
 .wfilter{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;-webkit-overflow-scrolling:touch}
 .wfilter::-webkit-scrollbar{display:none}
 .wfilter button{flex:0 0 auto;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
-.wfilter button.on{background:var(--social);color:#0b0e2e;border-color:transparent}
+.wfilter button.on{background:var(--social);color:#06202B;border-color:transparent}
 /* Inline icon alignment */
 svg.ico{display:inline-block;vertical-align:-.18em;flex:0 0 auto}
 .av-opt{position:relative;padding-bottom:16px}
@@ -552,15 +552,15 @@ svg.ico{display:inline-block;vertical-align:-.18em;flex:0 0 auto}
 .seg button,.chip{display:inline-flex;align-items:center;gap:6px}
 .pickrow{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;margin-bottom:8px;border-radius:15px;border:1px solid var(--line);background:var(--surface);color:var(--paper);cursor:pointer;transition:transform .16s cubic-bezier(.34,1.56,.64,1),border-color .2s}
 .pickrow:active{transform:scale(.97)}
-.pickrow:hover{border-color:rgba(124,92,255,.5)}
+.pickrow:hover{border-color:rgba(56,189,248,.5)}
 .pickrow .nm{font-weight:700;font-size:14px}
 .pickrow .sub{font-size:11.5px;color:var(--muted)}
 svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))}
 /* Admin: roles + content moderation */
 .rtag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:middle}
-.rtag.admin{background:linear-gradient(135deg,var(--social),var(--meetup));color:#0b0e2e}
-.rtag.staff{background:var(--surface-2);color:var(--cyan);border:1px solid rgba(53,229,255,.35)}
-.mini-actions .role{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(53,229,255,.18));border:1px solid rgba(124,92,255,.5);color:var(--paper)}
+.rtag.admin{background:linear-gradient(135deg,var(--social),var(--meetup));color:#06202B}
+.rtag.staff{background:var(--surface-2);color:var(--cyan);border:1px solid rgba(95,227,214,.35)}
+.mini-actions .role{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,rgba(56,189,248,.25),rgba(95,227,214,.18));border:1px solid rgba(56,189,248,.5);color:var(--paper)}
 .content-row{align-items:flex-start}
 .content-row.flagged{border-left:3px solid var(--hazard)}
 .content-row .cbody{font-size:13px;color:var(--paper);opacity:.85;margin:6px 0 2px;line-height:1.45;overflow-wrap:anywhere}
@@ -574,7 +574,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .streakchip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:linear-gradient(90deg,rgba(255,120,60,.18),rgba(255,176,32,.1));border:1px solid rgba(255,150,60,.35);color:var(--hazard)}
 
 /* ---------- Daily tasks ---------- */
-.daily-card{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,rgba(124,92,255,.18),rgba(53,229,255,.1));border:1px solid rgba(124,92,255,.35);border-radius:18px;padding:13px 14px;margin-bottom:12px;cursor:pointer}
+.daily-card{display:flex;align-items:center;gap:12px;background:linear-gradient(120deg,rgba(56,189,248,.18),rgba(95,227,214,.1));border:1px solid rgba(56,189,248,.35);border-radius:18px;padding:13px 14px;margin-bottom:12px;cursor:pointer}
 .daily-card .ring{position:relative;width:46px;height:46px;flex:0 0 auto}
 .daily-card .ring svg{transform:rotate(-90deg)}
 .daily-card .ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:var(--font-mono)}
@@ -582,7 +582,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .daily-card .dt-sub{font-size:12.5px;color:var(--muted);margin-top:1px}
 .daily-card .go{margin-left:auto;color:var(--muted);font-size:20px}
 .dtask{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:var(--surface);border:1px solid var(--line);margin-bottom:9px}
-.dtask.done{border-color:rgba(34,229,163,.5);background:rgba(34,229,163,.08)}
+.dtask.done{border-color:rgba(63,216,164,.5);background:rgba(63,216,164,.08)}
 .dtask .de{font-size:24px;flex:0 0 auto;width:34px;text-align:center}
 .dtask .dl{font-weight:700;font-size:14.5px}
 .dtask .dp{font-size:11.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono)}
@@ -590,7 +590,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .dtask.done .dchk{background:var(--success);border-color:transparent;color:#04121a}
 .dtask .dbar{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px}
 .dtask .dbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--social),var(--cyan))}
-.daily-reward{background:linear-gradient(120deg,rgba(255,210,63,.16),rgba(255,120,60,.08));border:1px solid rgba(255,180,60,.4);border-radius:16px;padding:14px;text-align:center;margin-top:6px}
+.daily-reward{background:linear-gradient(120deg,rgba(255,194,75,.16),rgba(255,120,60,.08));border:1px solid rgba(255,180,60,.4);border-radius:16px;padding:14px;text-align:center;margin-top:6px}
 
 /* ---------- Avatar cropper ---------- */
 #cropper{position:fixed;inset:0;z-index:210;background:rgba(6,8,24,.96);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;max-width:560px;margin:0 auto;padding:24px}
@@ -605,18 +605,18 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .crop-actions{display:flex;gap:10px;width:300px;max-width:82vw}
 
 /* City layer (Toronto data) */
-#cityBtn.on{background:linear-gradient(135deg,var(--social),var(--meetup));color:#0b0e2e;border-color:transparent}
+#cityBtn.on{background:linear-gradient(135deg,var(--social),var(--meetup));color:#06202B;border-color:transparent}
 .lyrgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .lyr{display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:15px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:13.5px;font-weight:700;cursor:pointer;text-align:left}
-.lyr.on{color:var(--paper);border-color:rgba(124,92,255,.55);background:linear-gradient(135deg,rgba(124,92,255,.16),rgba(53,229,255,.06))}
+.lyr.on{color:var(--paper);border-color:rgba(56,189,248,.55);background:linear-gradient(135deg,rgba(56,189,248,.16),rgba(95,227,214,.06))}
 .lyr .lyi{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .lyr .lchk{margin-left:auto;display:flex;align-items:center}
 .lyr span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#weatherBanner{display:none;position:static;align-items:center;gap:8px;background:rgba(16,19,58,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 12px;font-size:13px;color:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.35)}
-:root[data-theme="light"] #weatherBanner{background:rgba(255,255,255,.9);color:#10133A}
-#cityToday{display:none;position:absolute;left:12px;bottom:calc(var(--safe-bottom,0px) + 150px);z-index:6;align-items:center;gap:6px;background:var(--social);color:#fff;border:none;border-radius:999px;padding:9px 15px;font-weight:800;font-size:13px;box-shadow:0 10px 28px rgba(124,92,255,.5);cursor:pointer}
+#weatherBanner{display:none;position:static;align-items:center;gap:8px;background:rgba(15,32,47,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 12px;font-size:13px;color:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+:root[data-theme="light"] #weatherBanner{background:rgba(255,255,255,.9);color:#12202F}
+#cityToday{display:none;position:absolute;left:12px;bottom:calc(var(--safe-bottom,0px) + 150px);z-index:6;align-items:center;gap:6px;background:var(--social);color:#fff;border:none;border-radius:999px;padding:9px 15px;font-weight:800;font-size:13px;box-shadow:0 10px 28px rgba(56,189,248,.5);cursor:pointer}
 .city-marker{width:22px;height:22px;cursor:pointer}
-.city-marker .cm-dot{width:22px;height:22px;border-radius:50% 50% 50% 3px;transform:rotate(-2deg);background:var(--cc,#35E5FF);display:flex;align-items:center;justify-content:center;font-size:11px;color:#0b0e2e;box-shadow:0 3px 9px rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.85)}
+.city-marker .cm-dot{width:22px;height:22px;border-radius:50% 50% 50% 3px;transform:rotate(-2deg);background:var(--cc,#5FE3D6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#06202B;box-shadow:0 3px 9px rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.85)}
 /* animated sign-in background */
 .la-blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.55;pointer-events:none;z-index:0;will-change:transform}
 @keyframes laFloat{0%{transform:translate(0,0) scale(1)}33%{transform:translate(24px,-30px) scale(1.12)}66%{transform:translate(-22px,18px) scale(.92)}100%{transform:translate(0,0) scale(1)}}
@@ -631,48 +631,58 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 /* --- Sheets and panels: the warm dawn gradient from the reference --- */
 .sheet{background:linear-gradient(180deg,var(--dawn-1) 0%,var(--dawn-2) 34%,var(--dawn-3) 100%);
   border-radius:34px 34px 0 0;border-top:none;
-  box-shadow:0 -2px 0 rgba(255,255,255,.55) inset, 0 -30px 80px rgba(10,12,30,.62)}
-.sheet .handle{background:rgba(40,44,86,.28)}
-.sheet,.sheet .sheet-body{color:#252A4D}
-.sheet .meta,.sheet .sub,.sheet .hint,.sheet .lead{color:#5B6191}
-.sheet .card,.sheet .setrow,.sheet .meet-card{background:rgba(255,255,255,.62);border-color:rgba(40,44,86,.10);
-  box-shadow:var(--depth-1);color:#252A4D}
-.sheet .input,.sheet .textarea,.sheet select{background:rgba(255,255,255,.72);border-color:rgba(40,44,86,.14);color:#252A4D}
-.sheet .btn-ghost{background:rgba(255,255,255,.66);border:1px solid rgba(40,44,86,.12);color:#353A66}
-.sheet h2,.sheet h3,.sheet .title,.sheet .nm{color:#20244A}
+  box-shadow:0 -2px 0 rgba(255,255,255,.55) inset}
+/* Only an OPEN sheet casts a shadow. Closed sheets park just below the viewport at
+   z-index 41 — above the tab bar — and seven of them stacking an upward shadow was
+   what made the bottom menu look dark and murky no matter how light we painted it. */
+.sheet.open{box-shadow:0 -2px 0 rgba(255,255,255,.55) inset, 0 -30px 80px rgba(6,18,28,.62)}
+.sheet .handle{background:rgba(22,44,62,.28)}
+/* Re-point the design tokens inside a light sheet. Everything below inherits the
+   dark-on-light values automatically — this is what makes the Daily tasks list, and
+   anything else using var(--muted)/var(--line), readable on the cream panel instead
+   of washing out to pale grey on pale cream. */
+.sheet{--paper:#123043; --muted:#4E6B84; --line:rgba(22,44,62,.14);
+       --ink:#FFFFFF; --surface:#FFFFFF; --surface-2:#EDF3F8;}
+.sheet,.sheet .sheet-body{color:#123043}
+.sheet .meta,.sheet .sub,.sheet .hint,.sheet .lead{color:#4E6B84}
+.sheet .card,.sheet .setrow,.sheet .meet-card{background:rgba(255,255,255,.62);border-color:rgba(22,44,62,.10);
+  box-shadow:var(--depth-1);color:#123043}
+.sheet .input,.sheet .textarea,.sheet select{background:rgba(255,255,255,.72);border-color:rgba(22,44,62,.14);color:#123043}
+.sheet .btn-ghost{background:rgba(255,255,255,.66);border:1px solid rgba(22,44,62,.12);color:#254257}
+.sheet h2,.sheet h3,.sheet .title,.sheet .nm{color:#123043}
 /* Controls inside a light sheet must be light too — dark navy chips on cream read
    as a different app. Selected states keep the indigo fill. */
 /* Opaque, not translucent: a see-through fill let the dark backdrop bleed through
    near the bottom of a tall sheet and made the last row look grey. */
 .sheet .seg button,.sheet .subgrid button,.sheet .vibegrid button,.sheet .chip,.sheet .agechip,.sheet .sortchip{
-  background:#FBFAFE;border:1px solid rgba(40,44,86,.12);color:#2A2E52;
-  box-shadow:0 1px 2px rgba(40,44,86,.08)}
+  background:#FAFCFE;border:1px solid rgba(22,44,62,.12);color:#1B2E42;
+  box-shadow:0 1px 2px rgba(22,44,62,.08)}
 .sheet .seg button[aria-pressed="true"],.sheet .subgrid button[aria-pressed="true"],
 .sheet .vibegrid button[aria-pressed="true"],.sheet .chip[aria-pressed="true"],.sheet .sortchip[aria-pressed="true"]{
-  background:linear-gradient(180deg,#7E82D8,#5B5FAF);border-color:transparent;color:#fff;
-  box-shadow:0 4px 12px rgba(90,96,180,.38)}
+  background:linear-gradient(180deg,#38BDF8,#1E88C7);border-color:transparent;color:#fff;
+  box-shadow:0 4px 12px rgba(30,136,199,.38)}
 .sheet .seg button[aria-pressed="true"] svg,.sheet .subgrid button[aria-pressed="true"] svg,
 .sheet .vibegrid button[aria-pressed="true"] svg{filter:brightness(0) invert(1)}
-.sheet label,.sheet .field > label{color:#5B6191}
-.sheet .loc-card{background:rgba(255,255,255,.7);border:1px solid rgba(40,44,86,.12)}
-.sheet .safety,.sheet .banner,.sheet .pill-note,.sheet .hint{background:rgba(126,130,216,.10);color:#40467A;border-color:rgba(40,44,86,.10)}
-.sheet .empty,.sheet .meta{color:#5B6191}
+.sheet label,.sheet .field > label{color:#4E6B84}
+.sheet .loc-card{background:rgba(255,255,255,.7);border:1px solid rgba(22,44,62,.12)}
+.sheet .safety,.sheet .banner,.sheet .pill-note,.sheet .hint{background:rgba(56,189,248,.10);color:#2C5570;border-color:rgba(22,44,62,.10)}
+.sheet .empty,.sheet .meta{color:#4E6B84}
 
 /* --- Cards: squircle + real depth instead of a flat fill --- */
-.card,.meet-card{border-radius:24px;background:linear-gradient(180deg,rgba(58,63,110,.72),rgba(40,44,82,.72));
-  border:1px solid rgba(198,205,255,.10);box-shadow:var(--depth-2),var(--inner-top);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.meet-card{border:1px solid rgba(143,216,240,.20)}
-.setrow{border-radius:20px;background:linear-gradient(180deg,rgba(58,63,110,.62),rgba(40,44,82,.62));
-  border:1px solid rgba(198,205,255,.09);box-shadow:var(--depth-1),var(--inner-top)}
+.card,.meet-card{border-radius:24px;background:linear-gradient(180deg,rgba(37,66,87,.72),rgba(40,44,82,.72));
+  border:1px solid rgba(175,205,228,.10);box-shadow:var(--depth-2),var(--inner-top);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.meet-card{border:1px solid rgba(47,211,192,.20)}
+.setrow{border-radius:20px;background:linear-gradient(180deg,rgba(37,66,87,.62),rgba(40,44,82,.62));
+  border:1px solid rgba(175,205,228,.09);box-shadow:var(--depth-1),var(--inner-top)}
 
 /* --- Chips, pills and glass bars --- */
-.chip,.iconbtn,.radiuspill,.searchfield{background:rgba(36,40,74,.72);border:1px solid rgba(198,205,255,.12);
+.chip,.iconbtn,.radiuspill,.searchfield{background:rgba(22,42,60,.72);border:1px solid rgba(175,205,228,.12);
   box-shadow:var(--depth-1),var(--inner-top);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .chip[aria-pressed="true"]{box-shadow:0 0 0 1px rgba(255,255,255,.22), 0 0 18px var(--glow), var(--depth-1)}
 
 /* --- Primary actions: soft indigo with a glow, not a hard neon gradient --- */
-.btn-primary,#fab{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#FFF;
-  box-shadow:0 10px 26px rgba(90,96,180,.48), var(--inner-top)}
+.btn-primary,#fab{background:linear-gradient(180deg,#38BDF8,#1E88C7);color:#FFF;
+  box-shadow:0 10px 26px rgba(30,136,199,.48), var(--inner-top)}
 #fab{border-radius:22px}
 .btn-primary{border-radius:22px}
 .sheet .btn-primary{color:#fff}
@@ -680,99 +690,99 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 /* --- Tab bar: a LIGHT dawn slab, like the bottom of the reference screens.
    Light-on-dark is also what finally makes it legible — the old dark bar washed
    out against the night sky. --- */
-#tabbar{background:linear-gradient(180deg,#EDEAF7 0%,#DCD9EC 55%,#D2CEE4 100%);
+#tabbar{background:linear-gradient(180deg,#E7EEF5 0%,#E0E7EF 55%,#D3DEE9 100%);
   border-top:none;
-  box-shadow:0 -1px 0 rgba(255,255,255,.85) inset, 0 -14px 38px rgba(8,10,26,.55);
+  box-shadow:0 -1px 0 rgba(255,255,255,.85) inset, 0 -14px 38px rgba(5,16,26,.55);
   backdrop-filter:none;-webkit-backdrop-filter:none}
-#tabbar .tab{color:#6A70A0}
-#tabbar .tab.active{color:#242853}
-#tabbar .tab.active svg{filter:drop-shadow(0 2px 6px rgba(126,130,216,.55))}
-.tab.active::after{background:linear-gradient(90deg,var(--social),#5B5FAF);box-shadow:0 0 10px rgba(126,130,216,.7)}
-:root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#FFFFFF,#F1EFF8);
-  box-shadow:0 -1px 0 rgba(255,255,255,.9) inset, 0 -10px 26px rgba(40,44,86,.16)}
+#tabbar .tab{color:#5A7590}
+#tabbar .tab.active{color:#12303F}
+#tabbar .tab.active svg{filter:drop-shadow(0 2px 6px rgba(56,189,248,.55))}
+.tab.active::after{background:linear-gradient(90deg,var(--social),#1E88C7);box-shadow:0 0 10px rgba(56,189,248,.7)}
+:root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#FFFFFF,#ECF2F7);
+  box-shadow:0 -1px 0 rgba(255,255,255,.9) inset, 0 -10px 26px rgba(22,44,62,.16)}
 
 /* --- Round icon buttons, like the control grid in the reference --- */
-.ctrlbtn{background:rgba(42,46,84,.78)!important;border:1px solid rgba(198,205,255,.14)!important;
-  box-shadow:var(--depth-2), var(--inner-top), inset 0 -6px 14px rgba(10,12,30,.35)!important;
+.ctrlbtn{background:rgba(27,46,66,.78)!important;border:1px solid rgba(175,205,228,.14)!important;
+  box-shadow:var(--depth-2), var(--inner-top), inset 0 -6px 14px rgba(6,18,28,.35)!important;
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-.ctrlbtn:active{box-shadow:var(--depth-1), inset 0 2px 8px rgba(10,12,30,.5)!important}
+.ctrlbtn:active{box-shadow:var(--depth-1), inset 0 2px 8px rgba(6,18,28,.5)!important}
 
 /* --- Avatars get a soft rim so they read against the night sky --- */
-.avatar{box-shadow:0 0 0 1px rgba(198,205,255,.16), var(--depth-1)}
+.avatar{box-shadow:0 0 0 1px rgba(175,205,228,.16), var(--depth-1)}
 .presence-marker .pav{border:2.5px solid rgba(233,238,255,.92);
-  box-shadow:0 0 0 3px rgba(126,130,216,.35), 0 0 18px var(--glow), 0 6px 16px rgba(8,10,26,.55)}
-.presence-marker .pdot{background:var(--found);border:2px solid #1E2140;box-shadow:0 0 8px rgba(107,227,184,.9)}
+  box-shadow:0 0 0 3px rgba(56,189,248,.35), 0 0 18px var(--glow), 0 6px 16px rgba(5,16,26,.55)}
+.presence-marker .pdot{background:var(--found);border:2px solid #12202F;box-shadow:0 0 8px rgba(63,216,164,.9)}
 /* your own marker sits a little larger with a brighter halo so you can find yourself */
 .presence-marker.me{width:46px;height:46px;z-index:3}
-.presence-marker.me .pav{border-color:#FFFFFF;box-shadow:0 0 0 4px rgba(126,130,216,.45), 0 0 26px var(--glow), 0 8px 20px rgba(8,10,26,.6)}
+.presence-marker.me .pav{border-color:#FFFFFF;box-shadow:0 0 0 4px rgba(56,189,248,.45), 0 0 26px var(--glow), 0 8px 20px rgba(5,16,26,.6)}
 .presence-marker.me::after{content:'';position:absolute;inset:-10px;border-radius:50%;
-  border:2px solid rgba(159,216,245,.55);animation:mePulse 2.6s ease-out infinite}
+  border:2px solid rgba(127,216,245,.55);animation:mePulse 2.6s ease-out infinite}
 @keyframes mePulse{0%{transform:scale(.75);opacity:.85}100%{transform:scale(1.35);opacity:0}}
 
 /* --- Story rings pick up the dawn ramp --- */
 .story-ring{background:conic-gradient(from 210deg,var(--social),var(--cyan),var(--dawn-3),var(--social));
-  box-shadow:0 0 16px rgba(143,216,240,.35)}
-.story-ring.seen{background:rgba(198,205,255,.22);box-shadow:none}
+  box-shadow:0 0 16px rgba(47,211,192,.35)}
+.story-ring.seen{background:rgba(175,205,228,.22);box-shadow:none}
 /* view counter on your own story bubble */
 .story-views-pip{position:absolute;left:50%;transform:translateX(-50%);bottom:20px;z-index:3;
   display:inline-flex;align-items:center;gap:3px;height:18px;padding:0 7px;border-radius:99px;
-  background:linear-gradient(180deg,#DDE6FF,#B9C6E8);color:#0b0e2e;font-size:10px;font-weight:800;
-  box-shadow:0 3px 8px rgba(8,10,26,.5)}
+  background:linear-gradient(180deg,#CFE8F7,#A9C6DB);color:#06202B;font-size:10px;font-weight:800;
+  box-shadow:0 3px 8px rgba(5,16,26,.5)}
 
 /* --- Notification rows --- */
-.notif{border-bottom:1px solid rgba(198,205,255,.09)}
-.notif.unread{background:linear-gradient(90deg,rgba(126,130,216,.16),transparent);border-radius:16px}
-.notif .ic{background:rgba(42,46,84,.85);box-shadow:var(--depth-1),var(--inner-top)}
+.notif{border-bottom:1px solid rgba(175,205,228,.09)}
+.notif.unread{background:linear-gradient(90deg,rgba(56,189,248,.16),transparent);border-radius:16px}
+.notif .ic{background:rgba(27,46,66,.85);box-shadow:var(--depth-1),var(--inner-top)}
 
 /* --- Light theme keeps the same shapes, warmer surfaces --- */
 :root[data-theme="light"] .card,:root[data-theme="light"] .meet-card,:root[data-theme="light"] .setrow{
-  background:#FFFFFF;border:1px solid rgba(40,44,86,.10);box-shadow:var(--depth-1)}
+  background:#FFFFFF;border:1px solid rgba(22,44,62,.10);box-shadow:var(--depth-1)}
 :root[data-theme="light"] .chip,:root[data-theme="light"] .iconbtn,
 :root[data-theme="light"] .radiuspill,:root[data-theme="light"] .searchfield{
-  background:rgba(255,255,255,.88);border:1px solid rgba(40,44,86,.10)}
+  background:rgba(255,255,255,.88);border:1px solid rgba(22,44,62,.10)}
 :root[data-theme="light"] #tabbar{background:linear-gradient(180deg,#FFFFFF,#F1F3FB);
-  border-top:1px solid rgba(40,44,86,.10);box-shadow:0 -10px 28px rgba(40,44,86,.12)}
-:root[data-theme="light"] .sheet{background:linear-gradient(180deg,#FFFFFF 0%,#F7F4FA 55%,#F6EFE5 100%)}
+  border-top:1px solid rgba(22,44,62,.10);box-shadow:0 -10px 28px rgba(22,44,62,.12)}
+:root[data-theme="light"] .sheet{background:linear-gradient(180deg,#FFFFFF 0%,#F2F6FA 55%,#F8F3EA 100%)}
 
 /* --- Every screen carries the same night→dawn fade as the reference: indigo at the
    top, warming toward lavender at the bottom where it meets the light tab bar.
    Painted as a background on the screen itself, so no stacking context is created. --- */
-.screen{background-image:linear-gradient(180deg,transparent 0%,transparent 46%,rgba(170,176,224,.10) 78%,rgba(201,204,235,.20) 100%)}
-:root[data-theme="light"] .screen{background-image:linear-gradient(180deg,transparent 0%,transparent 50%,rgba(246,239,229,.55) 100%)}
+.screen{background-image:linear-gradient(180deg,transparent 0%,transparent 46%,rgba(150,190,220,.10) 78%,rgba(203,220,234,.20) 100%)}
+:root[data-theme="light"] .screen{background-image:linear-gradient(180deg,transparent 0%,transparent 50%,rgba(248,243,234,.55) 100%)}
 /* Screen headers read as a lifted glass bar rather than a flat strip. */
-.screen-head{background:linear-gradient(180deg,rgba(36,40,74,.92),rgba(30,33,64,.72));
+.screen-head{background:linear-gradient(180deg,rgba(22,42,60,.92),rgba(18,32,47,.72));
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(198,205,255,.10);box-shadow:0 6px 20px rgba(8,10,26,.28)}
-.screen-head .back{background:rgba(58,63,110,.72);border:1px solid rgba(198,205,255,.14);
+  border-bottom:1px solid rgba(175,205,228,.10);box-shadow:0 6px 20px rgba(5,16,26,.28)}
+.screen-head .back{background:rgba(37,66,87,.72);border:1px solid rgba(175,205,228,.14);
   box-shadow:var(--depth-1),var(--inner-top);border-radius:14px}
 :root[data-theme="light"] .screen-head{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,255,255,.74));
-  border-bottom:1px solid rgba(40,44,86,.10);box-shadow:0 6px 18px rgba(40,44,86,.10)}
-:root[data-theme="light"] .screen-head .back{background:#F1EFF8;border:1px solid rgba(40,44,86,.10)}
+  border-bottom:1px solid rgba(22,44,62,.10);box-shadow:0 6px 18px rgba(22,44,62,.10)}
+:root[data-theme="light"] .screen-head .back{background:#ECF2F7;border:1px solid rgba(22,44,62,.10)}
 
 /* Pop-over menus get the same glass + depth as the rest of the app. */
-.menu-group{background:linear-gradient(180deg,rgba(58,63,110,.96),rgba(40,44,82,.96))!important;
-  border:1px solid rgba(198,205,255,.12);box-shadow:var(--depth-3),var(--inner-top);border-radius:22px;
+.menu-group{background:linear-gradient(180deg,rgba(37,66,87,.96),rgba(40,44,82,.96))!important;
+  border:1px solid rgba(175,205,228,.12);box-shadow:var(--depth-3),var(--inner-top);border-radius:22px;
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-:root[data-theme="light"] .menu-group{background:linear-gradient(180deg,#FFFFFF,#F5F3FB)!important;
-  border:1px solid rgba(40,44,86,.10);box-shadow:var(--depth-2)}
+:root[data-theme="light"] .menu-group{background:linear-gradient(180deg,#FFFFFF,#F0F5F9)!important;
+  border:1px solid rgba(22,44,62,.10);box-shadow:var(--depth-2)}
 
 /* Inputs everywhere pick up the same recessed treatment. */
-.input,.textarea,.select,.searchfield input{background:rgba(24,27,56,.72);border:1px solid rgba(198,205,255,.12);
-  color:var(--paper);box-shadow:inset 0 2px 6px rgba(8,10,26,.35)}
-.input:focus,.textarea:focus,.select:focus{border-color:rgba(159,216,245,.55);
-  box-shadow:inset 0 2px 6px rgba(8,10,26,.35), 0 0 0 3px rgba(159,216,245,.18);outline:none}
+.input,.textarea,.select,.searchfield input{background:rgba(14,28,42,.72);border:1px solid rgba(175,205,228,.12);
+  color:var(--paper);box-shadow:inset 0 2px 6px rgba(5,16,26,.35)}
+.input:focus,.textarea:focus,.select:focus{border-color:rgba(127,216,245,.55);
+  box-shadow:inset 0 2px 6px rgba(5,16,26,.35), 0 0 0 3px rgba(127,216,245,.18);outline:none}
 :root[data-theme="light"] .input,:root[data-theme="light"] .textarea,:root[data-theme="light"] .select{
-  background:#FFFFFF;border:1px solid rgba(40,44,86,.14);color:#242853;box-shadow:inset 0 1px 3px rgba(40,44,86,.06)}
+  background:#FFFFFF;border:1px solid rgba(22,44,62,.14);color:#12303F;box-shadow:inset 0 1px 3px rgba(22,44,62,.06)}
 
 /* Segmented controls, banners and empty states. */
-.seg button{background:rgba(42,46,84,.66);border:1px solid rgba(198,205,255,.10);color:var(--paper)}
-.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;border-color:transparent;
-  box-shadow:0 4px 14px rgba(90,96,180,.42)}
-.segtabs button.on{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;box-shadow:0 4px 14px rgba(90,96,180,.42)}
-.banner,.safety,.pill-note{background:rgba(126,130,216,.13);border:1px solid rgba(198,205,255,.14);
+.seg button{background:rgba(27,46,66,.66);border:1px solid rgba(175,205,228,.10);color:var(--paper)}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#38BDF8,#1E88C7);color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(30,136,199,.42)}
+.segtabs button.on{background:linear-gradient(180deg,#38BDF8,#1E88C7);color:#fff;box-shadow:0 4px 14px rgba(30,136,199,.42)}
+.banner,.safety,.pill-note{background:rgba(56,189,248,.13);border:1px solid rgba(175,205,228,.14);
   border-radius:16px;color:var(--paper)}
 .empty{color:var(--muted)}
-.whisper{background:linear-gradient(180deg,rgba(58,63,110,.62),rgba(40,44,82,.62));border:1px solid rgba(198,205,255,.10);
+.whisper{background:linear-gradient(180deg,rgba(37,66,87,.62),rgba(40,44,82,.62));border:1px solid rgba(175,205,228,.10);
   border-radius:20px;box-shadow:var(--depth-1),var(--inner-top)}
 
 /* --- Meetup category chips + sort row (item 8) --- */
@@ -780,25 +790,35 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .sortrow::-webkit-scrollbar{display:none}
 .sortchip{flex:0 0 auto;height:32px;padding:0 13px;border-radius:99px;display:flex;align-items:center;gap:6px;
   font-size:12.5px;font-weight:700;white-space:nowrap;color:var(--paper);
-  background:rgba(36,40,74,.72);border:1px solid rgba(198,205,255,.12);box-shadow:var(--depth-1)}
-.sortchip[aria-pressed="true"]{background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;
+  background:rgba(22,42,60,.72);border:1px solid rgba(175,205,228,.12);box-shadow:var(--depth-1)}
+.sortchip[aria-pressed="true"]{background:linear-gradient(180deg,#38BDF8,#1E88C7);color:#fff;
   box-shadow:0 0 0 1px rgba(255,255,255,.2), 0 0 16px var(--glow)}
 .mtype{width:40px;height:40px;border-radius:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,rgba(126,130,216,.35),rgba(60,66,116,.35));
-  border:1px solid rgba(198,205,255,.16);box-shadow:var(--depth-1),var(--inner-top)}
-.sheet .mtype{background:linear-gradient(180deg,rgba(126,130,216,.22),rgba(126,130,216,.10));border-color:rgba(40,44,86,.12)}
+  background:linear-gradient(180deg,rgba(56,189,248,.35),rgba(40,70,92,.35));
+  border:1px solid rgba(175,205,228,.16);box-shadow:var(--depth-1),var(--inner-top)}
+.sheet .mtype{background:linear-gradient(180deg,rgba(56,189,248,.22),rgba(56,189,248,.10));border-color:rgba(22,44,62,.12)}
 
 /* --- Message bubbles + DM rows (item 5) --- */
-.msg{box-shadow:var(--depth-1)}
-.msg.me{background:linear-gradient(180deg,#7E82D8,#5F63B4);color:#fff}
-.msg.them{background:rgba(52,57,100,.88);color:var(--paper)}
-.sheet .msg.them{background:rgba(255,255,255,.78);color:#252A4D}
-.dm-row{border-bottom:1px solid rgba(198,205,255,.09);border-radius:18px;padding:12px 10px}
-.dm-row:active{background:rgba(126,130,216,.14)}
+/* Long words, pasted links and emoji runs used to push straight out of the bubble.
+   overflow-wrap:anywhere breaks mid-word only when there is no other option. */
+.msg{box-shadow:var(--depth-1);overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;
+  max-width:100%;min-width:0}
+.msg-wrap{min-width:0}
+.msg-line{max-width:100%}
+.msg.sticker{white-space:normal}
+/* the same guard for anywhere else user text is shown */
+.pv,.nm,.tx,.body,.wtext,.title,.meta,.bubble{overflow-wrap:anywhere;word-break:break-word}
+.dm-row{min-width:0}
+.dm-row .pv,.dm-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg.me{background:linear-gradient(180deg,#38BDF8,#1E88C7);color:#fff}
+.msg.them{background:rgba(33,58,78,.88);color:var(--paper)}
+.sheet .msg.them{background:rgba(255,255,255,.78);color:#123043}
+.dm-row{border-bottom:1px solid rgba(175,205,228,.09);border-radius:18px;padding:12px 10px}
+.dm-row:active{background:rgba(56,189,248,.14)}
 .msg-line{display:flex;gap:8px;align-items:flex-end;margin-bottom:8px}
 .msg-line.me{justify-content:flex-end}
 .msg-line.them{justify-content:flex-start}
-.msg-av{border:none;cursor:pointer;box-shadow:0 0 0 1px rgba(198,205,255,.18)}
+.msg-av{border:none;cursor:pointer;box-shadow:0 0 0 1px rgba(175,205,228,.18)}
 .msg-av:active{transform:scale(.92)}
 .msg-wrap{position:relative;display:flex;flex-direction:column;max-width:82%}
 .msg-wrap.me{align-self:flex-end;align-items:flex-end}
@@ -817,17 +837,17 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .badgestrip .bchip.locked .medal{filter:grayscale(1) brightness(.55);opacity:.55}
 
 /* --- Super Spot review (item 7) --- */
-.claimcard{border-radius:22px;overflow:hidden;margin-bottom:12px;background:rgba(52,57,100,.72);
-  border:1px solid rgba(198,205,255,.12);box-shadow:var(--depth-2)}
-.claimcard img.shot{width:100%;display:block;max-height:280px;object-fit:cover;background:#20244A}
+.claimcard{border-radius:22px;overflow:hidden;margin-bottom:12px;background:rgba(33,58,78,.72);
+  border:1px solid rgba(175,205,228,.12);box-shadow:var(--depth-2)}
+.claimcard img.shot{width:100%;display:block;max-height:280px;object-fit:cover;background:#123043}
 .claimcard .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
-.claimcard .mg{background:rgba(30,33,64,.6);border-radius:12px;padding:8px 10px}
+.claimcard .mg{background:rgba(18,32,47,.6);border-radius:12px;padding:8px 10px}
 .claimcard .mg .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .claimcard .mg .v{font-size:13px;font-weight:700;margin-top:1px}
 .claimcard .mg.warn{background:rgba(255,107,107,.16);border:1px solid rgba(255,107,107,.35)}
-.claimcard .mg.good{background:rgba(107,227,184,.14);border:1px solid rgba(107,227,184,.32)}
-.sheet .claimcard{background:rgba(255,255,255,.66);border-color:rgba(40,44,86,.10);color:#252A4D}
-.sheet .claimcard .mg{background:rgba(40,44,86,.06)}
+.claimcard .mg.good{background:rgba(63,216,164,.14);border:1px solid rgba(63,216,164,.32)}
+.sheet .claimcard{background:rgba(255,255,255,.66);border-color:rgba(22,44,62,.10);color:#123043}
+.sheet .claimcard .mg{background:rgba(22,44,62,.06)}
 </style>
 </head>
 <body>
@@ -1171,7 +1191,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 18 · 2026-08-08';
+window.PINLY_BUILD = 'build 19 · 2026-08-08';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -1278,13 +1298,13 @@ function ICON(name,size,color){
   return '<svg class="ico" viewBox="0 0 24 24" width="'+size+'" height="'+size+'" fill="none" aria-hidden="true">'+d.split('CUR').join(color)+'</svg>';
 }
 const CATS = {
-  social:{name:'Social',color:'#7C5CFF',glyph:'💬',mg:'✦',meaning:'Tips, sightings, chatter'},
-  event:{name:'Event',color:'#B15CFF',glyph:'🎉',mg:'★',meaning:'Happening now — music, markets, meetups'},
-  hazard:{name:'Hazard',color:'#FFB020',glyph:'⚠️',mg:'⚠',meaning:'Closures, outages, ice, danger',urgent:true},
-  aware:{name:'Be Aware',color:'#FF5C5C',glyph:'👁️',mg:'❗',meaning:'Heads up — safety, suspicious activity, stay alert',urgent:true},
-  found:{name:'Found',color:'#22E5A3',glyph:'📦',mg:'◆',meaning:'Found item, pet, person'},
-  lost:{name:'Lost',color:'#FF5CA8',glyph:'🔍',mg:'◇',meaning:'Lost item, pet, person'},
-  meetup:{name:'Meetup',color:'#35E5FF',glyph:'🫂',mg:'◎',meaning:'Anonymous invite (18+)'},
+  social:{name:'Social',color:'#38BDF8',glyph:'💬',mg:'✦',meaning:'Tips, sightings, chatter'},
+  event:{name:'Event',color:'#F0A93B',glyph:'🎉',mg:'★',meaning:'Happening now — music, markets, meetups'},
+  hazard:{name:'Hazard',color:'#FFC24B',glyph:'⚠️',mg:'⚠',meaning:'Closures, outages, ice, danger',urgent:true},
+  aware:{name:'Be Aware',color:'#FF7A59',glyph:'👁️',mg:'❗',meaning:'Heads up — safety, suspicious activity, stay alert',urgent:true},
+  found:{name:'Found',color:'#3FD8A4',glyph:'📦',mg:'◆',meaning:'Found item, pet, person'},
+  lost:{name:'Lost',color:'#FF6E8A',glyph:'🔍',mg:'◇',meaning:'Lost item, pet, person'},
+  meetup:{name:'Meetup',color:'#5FE3D6',glyph:'🫂',mg:'◎',meaning:'Anonymous invite (18+)'},
 };
 const CAT_KEYS=['social','event','hazard','aware','found','lost','meetup'];
 /* Rich social "spot types" (§5) — many useful, location-based categories to post.
@@ -1316,16 +1336,16 @@ const LIFETIMES={
 const ACTIVITIES=['Coffee','Lunch','Dinner','Drinks','Walk','Hiking','Running','Cycling','Gym session','Basketball','Soccer','Tennis','Swimming','Dog walk','Board games','Video games','Live music','Movie','Museum or gallery','Study session','Language exchange','Photography walk','Farmers market','Bookstore browse','Fishing','Skating','Yoga','Volunteering','Coworking','Just chat','Coffee date','Dinner date','Drinks date','Walk & talk date'];
 /* Meetup categories — each with its own icon and colour so the feed reads at a glance. */
 const MEET_CATS=[
-  ['Dating',   'heart',    '#FF8FC0'],
-  ['Food',     'food',     '#FFC46B'],
-  ['Drinks',   'glass',    '#C9A0FF'],
-  ['Active',   'ball',     '#6BE3B8'],
+  ['Dating',   'heart',    '#FF6E8A'],
+  ['Food',     'food',     '#FFC24B'],
+  ['Drinks',   'glass',    '#7FD8F5'],
+  ['Active',   'ball',     '#3FD8A4'],
   ['Outdoors', 'tree',     '#7FD6A0'],
-  ['Culture',  'palette',  '#8FD8F0'],
+  ['Culture',  'palette',  '#2FD3C0'],
   ['Games',    'ball',     '#9FA8FF'],
   ['Learning', 'bulb',     '#FFD98F'],
   ['Pets',     'paw',      '#FFB07C'],
-  ['Social',   'users',    '#7E82D8']
+  ['Social',   'users',    '#38BDF8']
 ];
 const MEET_CAT_NAMES=MEET_CATS.map(c=>c[0]);
 function meetCatMeta(name){const c=MEET_CATS.find(x=>x[0]===name);return c||MEET_CATS[MEET_CATS.length-1];}
@@ -1348,30 +1368,30 @@ const RADII=[[100,'100 m'],[500,'500 m'],[1000,'1 km'],[5000,'5 km'],[10000,'10 
 const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- Preset SVG avatars (§6) — richer original art, more variety ---------- */
-const AV_GRADS=[['#7C5CFF','#35E5FF'],['#FF5CA8','#7C5CFF'],['#22E5A3','#35E5FF'],['#FFB020','#FF5CA8'],
-  ['#35E5FF','#22E5A3'],['#FF4438','#FFB020'],['#7C5CFF','#FF5CA8'],['#22E5A3','#7C5CFF'],
-  ['#FFB020','#35E5FF'],['#FF5CA8','#22E5A3'],['#5B8CFF','#B15CFF'],['#00D4B8','#0A9CF5'],
-  ['#FF7A45','#FFD23F'],['#B15CFF','#FF5CA8'],['#2BD4C4','#7C5CFF'],['#FFD23F','#FF7AC6'],
-  ['#4EA8FF','#22E5A3'],['#FF6B9D','#FFC24B']];
+const AV_GRADS=[['#38BDF8','#5FE3D6'],['#FF6E8A','#38BDF8'],['#3FD8A4','#5FE3D6'],['#FFC24B','#FF6E8A'],
+  ['#5FE3D6','#3FD8A4'],['#FF6B6B','#FFC24B'],['#38BDF8','#FF6E8A'],['#3FD8A4','#38BDF8'],
+  ['#FFC24B','#5FE3D6'],['#FF6E8A','#3FD8A4'],['#5B8CFF','#F0A93B'],['#00D4B8','#0A9CF5'],
+  ['#FF7A45','#FFD23F'],['#F0A93B','#FF6E8A'],['#2BD4C4','#38BDF8'],['#FFD23F','#FF7AC6'],
+  ['#4EA8FF','#3FD8A4'],['#FF6B9D','#FFC24B']];
 const AV_ART=[
   '<circle cx="32" cy="27" r="9" fill="#fff"/><path d="M17 48c0-9 7-13 15-13s15 4 15 13Z" fill="#fff"/>', /* person */
   '<circle cx="24" cy="30" r="4" fill="#fff"/><circle cx="40" cy="30" r="4" fill="#fff"/><path d="M23 40q9 8 18 0" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>', /* smiley */
-  '<path d="M32 15c9 0 15 6 15 15 0 8-6 12-6 17H23c0-5-6-9-6-17 0-9 6-15 15-15Z" fill="#fff"/><circle cx="26" cy="30" r="2.6" fill="#0b0e2e"/><circle cx="38" cy="30" r="2.6" fill="#0b0e2e"/>', /* robot head */
-  '<path d="M32 14c11 4 15 10 15 20s-7 16-15 16-15-6-15-16 4-16 15-20Z" fill="#fff"/><path d="M26 33h12M32 27v12" stroke="#0b0e2e" stroke-width="2.4" stroke-linecap="round"/>', /* leaf/plus */
-  '<path d="M20 24l12-8 12 8v14l-12 8-12-8Z" fill="#fff"/><circle cx="32" cy="31" r="5" fill="#0b0e2e"/>', /* gem */
-  '<circle cx="32" cy="32" r="15" fill="#fff"/><path d="M32 20v12l8 5" stroke="#0b0e2e" stroke-width="3" fill="none" stroke-linecap="round"/>', /* clock */
+  '<path d="M32 15c9 0 15 6 15 15 0 8-6 12-6 17H23c0-5-6-9-6-17 0-9 6-15 15-15Z" fill="#fff"/><circle cx="26" cy="30" r="2.6" fill="#06202B"/><circle cx="38" cy="30" r="2.6" fill="#06202B"/>', /* robot head */
+  '<path d="M32 14c11 4 15 10 15 20s-7 16-15 16-15-6-15-16 4-16 15-20Z" fill="#fff"/><path d="M26 33h12M32 27v12" stroke="#06202B" stroke-width="2.4" stroke-linecap="round"/>', /* leaf/plus */
+  '<path d="M20 24l12-8 12 8v14l-12 8-12-8Z" fill="#fff"/><circle cx="32" cy="31" r="5" fill="#06202B"/>', /* gem */
+  '<circle cx="32" cy="32" r="15" fill="#fff"/><path d="M32 20v12l8 5" stroke="#06202B" stroke-width="3" fill="none" stroke-linecap="round"/>', /* clock */
   '<path d="M32 16l5 10 11 2-8 8 2 11-10-6-10 6 2-11-8-8 11-2Z" fill="#fff"/>', /* star */
-  '<circle cx="32" cy="30" r="12" fill="#fff"/><path d="M20 46c3-6 7-8 12-8s9 2 12 8" stroke="#fff" stroke-width="4" fill="none"/><circle cx="27" cy="28" r="2.4" fill="#0b0e2e"/><circle cx="37" cy="28" r="2.4" fill="#0b0e2e"/>', /* avatar face */
+  '<circle cx="32" cy="30" r="12" fill="#fff"/><path d="M20 46c3-6 7-8 12-8s9 2 12 8" stroke="#fff" stroke-width="4" fill="none"/><circle cx="27" cy="28" r="2.4" fill="#06202B"/><circle cx="37" cy="28" r="2.4" fill="#06202B"/>', /* avatar face */
   '<path d="M16 40 48 20 34 44 30 36Z" fill="#fff"/>', /* plane */
-  '<rect x="18" y="24" width="28" height="20" rx="5" fill="#fff"/><circle cx="26" cy="34" r="4" fill="#0b0e2e"/><circle cx="38" cy="34" r="4" fill="#0b0e2e"/>', /* camera */
+  '<rect x="18" y="24" width="28" height="20" rx="5" fill="#fff"/><circle cx="26" cy="34" r="4" fill="#06202B"/><circle cx="38" cy="34" r="4" fill="#06202B"/>', /* camera */
   '<path d="M32 46V28M32 30c-6-2-10-8-8-14 6 0 10 6 8 14M32 32c6-3 12-2 14 3-5 4-11 3-14-3" fill="#fff"/>', /* monstera */
-  '<circle cx="32" cy="32" r="14" fill="#fff"/><path d="M32 18v28M18 32h28M22 22 42 42M42 22 22 42" stroke="#0b0e2e" stroke-width="1.5"/>', /* disco */
+  '<circle cx="32" cy="32" r="14" fill="#fff"/><path d="M32 18v28M18 32h28M22 22 42 42M42 22 22 42" stroke="#06202B" stroke-width="1.5"/>', /* disco */
   '<path d="M34 14 20 36h10l-4 16 18-26H32l6-12Z" fill="#fff"/>', /* bolt */
-  '<path d="M40 20a14 14 0 1 0 6 18 11 11 0 0 1-6-18Z" fill="#fff"/><rect x="36" y="28" width="12" height="4" rx="2" fill="#0b0e2e"/>', /* moon shades */
+  '<path d="M40 20a14 14 0 1 0 6 18 11 11 0 0 1-6-18Z" fill="#fff"/><rect x="36" y="28" width="12" height="4" rx="2" fill="#06202B"/>', /* moon shades */
   '<path d="M32 44c-8-6-13-11-13-18a7 7 0 0 1 13-3 7 7 0 0 1 13 3c0 7-5 12-13 18Z" fill="#fff"/>', /* heart */
-  '<path d="M22 42V26l10-8 10 8v16Z" fill="#fff"/><rect x="28" y="32" width="8" height="10" fill="#0b0e2e"/>', /* house */
+  '<path d="M22 42V26l10-8 10 8v16Z" fill="#fff"/><rect x="28" y="32" width="8" height="10" fill="#06202B"/>', /* house */
   '<circle cx="32" cy="26" r="8" fill="#fff"/><path d="M20 30c-3 4-3 10 2 12M44 30c3 4 3 10-2 12" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M22 48c2-7 5-10 10-10s8 3 10 10Z" fill="#fff"/>', /* explorer */
-  '<path d="M32 16c6 0 8 5 8 9s5 4 5 9-4 8-13 8-13-3-13-8 5-5 5-9 2-9 8-9Z" fill="#fff"/><circle cx="27" cy="32" r="2.2" fill="#0b0e2e"/><circle cx="37" cy="32" r="2.2" fill="#0b0e2e"/>', /* fox */
+  '<path d="M32 16c6 0 8 5 8 9s5 4 5 9-4 8-13 8-13-3-13-8 5-5 5-9 2-9 8-9Z" fill="#fff"/><circle cx="27" cy="32" r="2.2" fill="#06202B"/><circle cx="37" cy="32" r="2.2" fill="#06202B"/>', /* fox */
 ];
 /* 50 cute modern characters — animals, people & fun (single-codepoint emoji so they
    render as color glyphs everywhere, including as HTML map markers). Pick any as your map avatar. */
@@ -1415,7 +1435,7 @@ function avatarInner(user){
 }
 function avatarHTML(user,size){
   size=size||42;
-  const bg=(!user.avatarPreset&&!user.avatarPhoto)?';background:linear-gradient(135deg,'+(user.color||'#7C5CFF')+',#232866)':'';
+  const bg=(!user.avatarPreset&&!user.avatarPhoto)?';background:linear-gradient(135deg,'+(user.color||'#38BDF8')+',#254257)':'';
   return '<div class="avatar" style="width:'+size+'px;height:'+size+'px'+bg+'">'+avatarInner(user)+'</div>';
 }
 
@@ -1442,7 +1462,7 @@ function bandAdjacent(band){const i=AGE_BANDS.indexOf(band);const out=[band];if(
 function aliasFor(){const adj=['Amber','Cobalt','Jade','Coral','Slate','Indigo','Mint','Violet','Ember','Cyan'];const noun=['Fox','Heron','Otter','Lynx','Wren','Marten','Falcon','Vole','Crane','Moth'];return adj[Math.floor(Math.random()*adj.length)]+' '+noun[Math.floor(Math.random()*noun.length)]+' '+(10+Math.floor(Math.random()*89));}
 
 /* ---------- State ---------- */
-const me={id:'me',name:'You',username:'you',avatarPreset:1,color:'#7C5CFF',bio:'Dropping pins around town.',ageBand:'25-34',isAdult:true,isAdmin:true,status:'active',joined:Date.now(),
+const me={id:'me',name:'You',username:'you',avatarPreset:1,color:'#38BDF8',bio:'Dropping pins around town.',ageBand:'25-34',isAdult:true,isAdmin:true,status:'active',joined:Date.now(),
   email:'you@example.com',phone:'',streak:0,streakDay:null,dmPrivacy:'everyone'};
 const state={
   activeCats:new Set(),radiusIdx:2,center:[-122.4194,37.7749],me:null,
@@ -1460,14 +1480,14 @@ const state={
 /* ---------- Seed users (with a small follow graph so lists are real) ---------- */
 function seedUsers(){
   const list=[
-    {id:'u1',name:'Priya N',username:'priya',color:'#7C5CFF',bio:'Local gig hunter 🎧',ageBand:'25-34',points:1240,follows:['u2','u6','me','u8']},
-    {id:'u2',name:'Marco T',username:'marco',color:'#FF4438',bio:'Volunteer responder 🚒',ageBand:'35-44',points:3400,follows:['u1','u3','me']},
-    {id:'u3',name:'Dana R',username:'dana',color:'#FFB020',bio:'Watches the roads ⚠️',ageBand:'45-54',points:980,follows:['u2','u7']},
-    {id:'u4',name:'Sam K',username:'sam',color:'#22E5A3',bio:'Reuniting pets 🐈',ageBand:'25-34',points:640,follows:['u6','u8','me']},
-    {id:'u5',name:'Ivy L',username:'ivy',color:'#FF5CA8',bio:'Always losing keys 🔑',ageBand:'18-24',points:120,follows:['u1','u6','me']},
-    {id:'u6',name:'Leo P',username:'leo',color:'#B15CFF',bio:'Street food scout 🌮',ageBand:'25-34',points:2100,follows:['u1','u2','u8','me']},
-    {id:'u7',name:'Nora W',username:'nora',color:'#FFB020',bio:'Winter safety 🧊',ageBand:'55-64',points:770,follows:['u3','u2']},
-    {id:'u8',name:'Theo M',username:'theo',color:'#22E5A3',bio:'Community garden 🌱',ageBand:'35-44',points:1520,follows:['u1','u6','u4','me']},
+    {id:'u1',name:'Priya N',username:'priya',color:'#38BDF8',bio:'Local gig hunter 🎧',ageBand:'25-34',points:1240,follows:['u2','u6','me','u8']},
+    {id:'u2',name:'Marco T',username:'marco',color:'#FF6B6B',bio:'Volunteer responder 🚒',ageBand:'35-44',points:3400,follows:['u1','u3','me']},
+    {id:'u3',name:'Dana R',username:'dana',color:'#FFC24B',bio:'Watches the roads ⚠️',ageBand:'45-54',points:980,follows:['u2','u7']},
+    {id:'u4',name:'Sam K',username:'sam',color:'#3FD8A4',bio:'Reuniting pets 🐈',ageBand:'25-34',points:640,follows:['u6','u8','me']},
+    {id:'u5',name:'Ivy L',username:'ivy',color:'#FF6E8A',bio:'Always losing keys 🔑',ageBand:'18-24',points:120,follows:['u1','u6','me']},
+    {id:'u6',name:'Leo P',username:'leo',color:'#F0A93B',bio:'Street food scout 🌮',ageBand:'25-34',points:2100,follows:['u1','u2','u8','me']},
+    {id:'u7',name:'Nora W',username:'nora',color:'#FFC24B',bio:'Winter safety 🧊',ageBand:'55-64',points:770,follows:['u3','u2']},
+    {id:'u8',name:'Theo M',username:'theo',color:'#3FD8A4',bio:'Community garden 🌱',ageBand:'35-44',points:1520,follows:['u1','u6','u4','me']},
   ];
   const dmModes=['everyone','friends','everyone','none','friends','everyone','everyone','friends'];
   const vis=[true,true,false,true,false,true,false,true];
@@ -1481,7 +1501,7 @@ function seedUsers(){
 /* The fallback carries an avatarPreset so a character always draws. Without it,
    anyone not yet in state.users rendered as a bare 🙂 — which is why avatars were
    missing in DMs, story viewers and meetup rows. */
-function userOf(id){return state.users[id]||{id,name:'Someone',avatarPreset:1,color:'#7E82D8',username:'user',status:'active'};}
+function userOf(id){return state.users[id]||{id,name:'Someone',avatarPreset:1,color:'#38BDF8',username:'user',status:'active'};}
 /* Follow graph helpers (§4) */
 function followingIdsOf(id){if(id==='me')return [...state.following];const u=userOf(id);return (u.follows||[]).slice();}
 function followsBool(a,b){return followingIdsOf(a).includes(b);}
@@ -1578,26 +1598,26 @@ const BASE_STYLE_LIGHT='https://basemaps.cartocdn.com/gl/positron-gl-style/style
 function currentTheme(){return state.settings.theme==='light'?'light':'dark';}
 function currentMapStyle(){return currentTheme()==='light'?BASE_STYLE_LIGHT:BASE_STYLE;}
 /* Raster fallback if the vector basemap can't load (keeps the map from ever going blank). */
-function rasterFallback(){const light=currentTheme()==='light';const kind=light?'light_all':'dark_all',bg=light?'#E9EDF6':'#0B0F30';
+function rasterFallback(){const light=currentTheme()==='light';const kind=light?'light_all':'dark_all',bg=light?'#E8EFF6':'#0B0F30';
   return {version:8,glyphs:'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
     sources:{cartoR:{type:'raster',tiles:['a','b','c'].map(s=>'https://'+s+'.basemaps.cartocdn.com/'+kind+'/{z}/{x}/{y}@2x.png'),tileSize:256,attribution:'© OpenStreetMap © CARTO'}},
     layers:[{id:'bg',type:'background',paint:{'background-color':bg}},{id:'cartoR',type:'raster',source:'cartoR',paint:{'raster-opacity':1}}]};}
 function applyTheme(t){
   state.settings.theme=(t==='light')?'light':'dark';
   document.documentElement.setAttribute('data-theme',state.settings.theme);
-  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',state.settings.theme==='light'?'#EFEDF7':'#171A32');
+  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',state.settings.theme==='light'?'#EAF1F7':'#0D1826');
   try{localStorage.setItem('pd_theme',state.settings.theme);}catch(e){}
   if(map){try{map.setStyle(currentMapStyle());}catch(e){}} // style.load re-runs enhanceBasemap + re-adds overlays
 }
 /* Palettes keyed by theme. Green/water are pushed brighter than a "realistic" map would use —
    deliberately, so parks and lakes read clearly at a glance on a phone in either theme. */
 const BASEMAP_PALETTES={
-  // Indigo night to match the app skin: cool teal water, deep blue-green parks,
-  // buildings a shade lighter than the ground, roads a soft lavender-grey.
-  dark:{bg:'#1A1D38',water:'#2F6E9E',waterLine:'#5FA8CE',green:'#2C7A66',greenLine:'#49A98C',
-        bld:'#2C3157',bldLine:'#3E4576',road:'#3A4070',roadHi:'#4E5691',label:'#C8CEF5',labelHalo:'#12142C'},
-  light:{bg:'#EFEDF7',water:'#8FC4E8',waterLine:'#5B9FD0',green:'#8FD5B4',greenLine:'#57B08D',
-        bld:'#DCD9EC',bldLine:'#BDB9D6',road:'#FFFFFF',roadHi:'#E4E0EE',label:'#3A3F66',labelHalo:'#FFFFFF'},
+  // Deep-sea night: teal water, sea-green parks, buildings a shade above the ground,
+  // and roads a pale steel-blue so the street grid stays readable. No purple anywhere.
+  dark:{bg:'#0E1C2B',water:'#1F6F93',waterLine:'#49AEC4',green:'#2A7F63',greenLine:'#46B189',
+        bld:'#1B3145',bldLine:'#2C4C66',road:'#31546E',roadHi:'#4A7593',label:'#CFE3F2',labelHalo:'#08131E'},
+  light:{bg:'#EDF3F8',water:'#9BD0E8',waterLine:'#5AA5C8',green:'#93D9B7',greenLine:'#57B08D',
+        bld:'#E2E9F0',bldLine:'#C3CEDA',road:'#FFFFFF',roadHi:'#E6EDF3',label:'#22415A',labelHalo:'#FFFFFF'},
 };
 function classifyLayer(L){
   const id=(L.id||'').toLowerCase(),sl=(L['source-layer']||'').toLowerCase();
@@ -1665,14 +1685,14 @@ function addMapOverlays(){
     clusterProperties:{hazard:['+',['case',['==',['get','category'],'hazard'],1,0]]}});
   if(!map.getSource('radius'))map.addSource('radius',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
   const addL=spec=>{if(!map.getLayer(spec.id))map.addLayer(spec);};
-  addL({id:'radius-fill',type:'fill',source:'radius',paint:{'fill-color':'#35E5FF','fill-opacity':0.05}});
-  addL({id:'radius-line',type:'line',source:'radius',paint:{'line-color':'#35E5FF','line-width':1.5,'line-dasharray':[3,3],'line-opacity':0.7}});
-  addL({id:'clusters',type:'circle',source:'pins',filter:['has','point_count'],paint:{'circle-color':['case',['>',['get','hazard'],0],'#FFB020','#7C5CFF'],'circle-radius':['step',['get','point_count'],20,10,26,25,32],'circle-stroke-width':3,'circle-stroke-color':'#EDEBFF'}});
-  addL({id:'cluster-count',type:'symbol',source:'pins',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-font':['Open Sans Bold'],'text-size':15},paint:{'text-color':'#0b0e2e'}});
-  addL({id:'pin-dot',type:'circle',source:'pins',filter:['!',['has','point_count']],paint:{'circle-radius':13,'circle-color':['match',['get','category'],'social','#7C5CFF','event','#B15CFF','hazard','#FFB020','found','#22E5A3','lost','#FF5CA8','meetup','#35E5FF','#7C5CFF'],'circle-stroke-width':2,'circle-stroke-color':'#EDEBFF'}});
-  addL({id:'pin-glyph',type:'symbol',source:'pins',filter:['!',['has','point_count']],layout:{'text-field':['get','glyph'],'text-font':['Open Sans Bold'],'text-size':14,'text-allow-overlap':true},paint:{'text-color':'#0b0e2e'}});
+  addL({id:'radius-fill',type:'fill',source:'radius',paint:{'fill-color':'#5FE3D6','fill-opacity':0.05}});
+  addL({id:'radius-line',type:'line',source:'radius',paint:{'line-color':'#5FE3D6','line-width':1.5,'line-dasharray':[3,3],'line-opacity':0.7}});
+  addL({id:'clusters',type:'circle',source:'pins',filter:['has','point_count'],paint:{'circle-color':['case',['>',['get','hazard'],0],'#FFC24B','#38BDF8'],'circle-radius':['step',['get','point_count'],20,10,26,25,32],'circle-stroke-width':3,'circle-stroke-color':'#E9F2FA'}});
+  addL({id:'cluster-count',type:'symbol',source:'pins',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-font':['Open Sans Bold'],'text-size':15},paint:{'text-color':'#06202B'}});
+  addL({id:'pin-dot',type:'circle',source:'pins',filter:['!',['has','point_count']],paint:{'circle-radius':13,'circle-color':['match',['get','category'],'social','#38BDF8','event','#F0A93B','hazard','#FFC24B','found','#3FD8A4','lost','#FF6E8A','meetup','#5FE3D6','#38BDF8'],'circle-stroke-width':2,'circle-stroke-color':'#E9F2FA'}});
+  addL({id:'pin-glyph',type:'symbol',source:'pins',filter:['!',['has','point_count']],layout:{'text-field':['get','glyph'],'text-font':['Open Sans Bold'],'text-size':14,'text-allow-overlap':true},paint:{'text-color':'#06202B'}});
   const lightMap=currentTheme()==='light';
-  addL({id:'pin-label',type:'symbol',source:'pins',filter:['!',['has','point_count']],minzoom:13.5,layout:{'text-field':['get','label'],'text-font':['Open Sans Bold'],'text-size':10.5,'text-offset':[0,1.35],'text-anchor':'top','text-optional':true,'text-max-width':8},paint:{'text-color':lightMap?'#1A1E3A':'#EDEBFF','text-halo-color':lightMap?'rgba(255,255,255,0.95)':'rgba(9,11,36,0.92)','text-halo-width':1.5}});
+  addL({id:'pin-label',type:'symbol',source:'pins',filter:['!',['has','point_count']],minzoom:13.5,layout:{'text-field':['get','label'],'text-font':['Open Sans Bold'],'text-size':10.5,'text-offset':[0,1.35],'text-anchor':'top','text-optional':true,'text-max-width':8},paint:{'text-color':lightMap?'#1A1E3A':'#E9F2FA','text-halo-color':lightMap?'rgba(255,255,255,0.95)':'rgba(9,11,36,0.92)','text-halo-width':1.5}});
   if(!mapOverlaysBound){
     mapOverlaysBound=true;
     map.on('click','clusters',e=>{if(state.placing)return;const f=map.queryRenderedFeatures(e.point,{layers:['clusters']})[0];map.getSource('pins').getClusterExpansionZoom(f.properties.cluster_id).then(z=>map.easeTo({center:f.geometry.coordinates,zoom:z}));});
@@ -1706,8 +1726,11 @@ function meetVisibleOnMap(m){
   if(m.status==='expired'||m.expires_at<=Date.now())return false;
   if(state.blocked.has(m.hostId))return false;
   if(state.activeCats.size&&!state.activeCats.has('meetup'))return false;
+  /* Meetups are rarer than pins and people travel to them, so the pin radius (which
+     can be as tight as 1 km) was hiding almost all of them. Show anything within the
+     chosen radius OR 10 km, whichever is larger. */
   const r=RADII[state.radiusIdx][0];
-  if(r!=null&&metresBetween(state.center,m.display_location)>r)return false;
+  if(r!=null&&metresBetween(state.center,m.display_location)>Math.max(r,10000))return false;
   return m.mine||meetupVisible(m);
 }
 function refreshMeetMarkers(){
@@ -1741,14 +1764,19 @@ function refreshPresence(){
     el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openUserProfile(u.id);});
     presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(u.loc).addTo(map));
   }
-  /* Your own avatar on the map. It was never drawn before, so "Live" looked like
-     nothing had happened. Tapping it opens your map-avatar picker. */
-  if(state.settings.visibility==='live'&&state.center){
+  /* Your own avatar, pinned to where YOU actually are. It used to use state.center,
+     which is the middle of the viewport — so the avatar slid along with the map as
+     you panned, as if you were following the screen. Only a real fix from geolocation
+     counts; with no fix we draw nothing rather than lie about your position. */
+  const myFix=(state.me&&typeof state.me.lng==='number')?[state.me.lng,state.me.lat]:null;
+  // the plain blue dot and the avatar are the same person — never show both
+  if(meMarker&&meMarker.getElement)try{meMarker.getElement().style.display=(state.settings.visibility==='live'&&myFix)?'none':'';}catch(e){}
+  if(state.settings.visibility==='live'&&myFix){
     const el=document.createElement('div');el.className='presence-marker me';el.setAttribute('role','button');
     el.setAttribute('aria-label','You are here — tap to change your map avatar');
     el.innerHTML='<div class="pdot"></div><div class="pav">'+presetAvatar(me.mapAvatar||me.avatarPreset||1)+'</div>';
     el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openMapAvatarPicker();});
-    presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(state.center).addTo(map));
+    presenceMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(myFix).addTo(map));
   }
   updateNearbyPill();
 }
@@ -1758,7 +1786,7 @@ function refreshUrgent(){
   const u=filteredPosts().filter(p=>CATS[p.category].urgent).filter(p=>{const [lng,lat]=p.display_location;return lng>=b.getWest()&&lng<=b.getEast()&&lat>=b.getSouth()&&lat<=b.getNorth();}).slice(0,30);
   for(const p of u){const cat=CATS[p.category];const el=document.createElement('div');el.className='pin urgent';el.setAttribute('role','button');
     el.setAttribute('aria-label',cat.name+' pin by '+userOf(p.authorId).name+', '+fmtDist(metresBetween(state.center,p.display_location))+' away');
-    el.innerHTML='<div class="radar" style="background:'+cat.color+';opacity:.5"></div><div class="drop" style="background:'+cat.color+';box-shadow:0 6px 16px '+cat.color+'88"></div><div class="glyph">'+ICON(p.category,15,"#0b0e2e")+'</div>';
+    el.innerHTML='<div class="radar" style="background:'+cat.color+';opacity:.5"></div><div class="drop" style="background:'+cat.color+';box-shadow:0 6px 16px '+cat.color+'88"></div><div class="glyph">'+ICON(p.category,15,"#06202B")+'</div>';
     el.addEventListener('click',ev=>{ev.stopPropagation();openDetail(p.id);});
     urgentMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(p.display_location).addTo(map));}
 }
@@ -1770,6 +1798,7 @@ function updateLocationBar(){if(!map)return;const c=map.getCenter();state.center
 function tryGeolocate(silent){
   if(!navigator.geolocation){if(!silent)toast('Geolocation not available');return;}
   navigator.geolocation.getCurrentPosition(pos=>{const {longitude,latitude}=pos.coords;state.me={lng:longitude,lat:latitude,accuracy:pos.coords.accuracy};
+    refreshPresence(); // your avatar can only be placed once there is a real fix
     if(!meMarker){const el=document.createElement('div');el.className='me-dot';el.setAttribute('aria-label','You are here');meMarker=new maplibregl.Marker({element:el}).setLngLat([longitude,latitude]).addTo(map);}else meMarker.setLngLat([longitude,latitude]);
     if(!silent)map.easeTo({center:[longitude,latitude],zoom:15});},
     ()=>{if(!silent)toast('Could not get location — using default city');},{enableHighAccuracy:true,timeout:8000,maximumAge:30000});
@@ -1783,7 +1812,7 @@ function renderChips(){
   const all=document.createElement('button');all.className='chip';const allOn=state.activeCats.size===0;all.setAttribute('aria-pressed',allOn?'true':'false');if(allOn)all.style.background='var(--paper)';all.textContent='All';
   all.onclick=()=>{state.activeCats.clear();renderChips();refreshPins();};row.appendChild(all);
   for(const k of CAT_KEYS){const c=CATS[k];const b=document.createElement('button');const on=state.activeCats.has(k);b.className='chip';b.setAttribute('aria-pressed',on?'true':'false');if(on)b.style.background=c.color;
-    b.innerHTML='<span class="glyph">'+ICON(k,17,(on?"#0b0e2e":c.color))+'</span>'+c.name;
+    b.innerHTML='<span class="glyph">'+ICON(k,17,(on?"#06202B":c.color))+'</span>'+c.name;
     b.onclick=()=>{if(state.activeCats.has(k))state.activeCats.delete(k);else state.activeCats.add(k);renderChips();refreshPins();};row.appendChild(b);}
 }
 document.getElementById('radiusPill').onclick=()=>{state.radiusIdx=(state.radiusIdx+1)%RADII.length;document.getElementById('radiusPill').innerHTML='◎ '+RADII[state.radiusIdx][1].replace(' ','&nbsp;');drawRadius();refreshPins();toast('Radius: '+RADII[state.radiusIdx][1]);};
@@ -1840,8 +1869,17 @@ function confirmPlacement(){if(!map)return;const c=map.getCenter(),loc=[c.lng,c.
 }
 document.getElementById('placeConfirm').onclick=confirmPlacement;
 document.getElementById('placeCancel').onclick=()=>{const mode=state.placeMode;endPlacement();if(mode==='edit'&&state.composer){composerScrim.classList.add('open');composerSheet.classList.add('open');}};
-function renderCatSeg(){const seg=document.getElementById('catSeg');seg.innerHTML='';for(const k of CAT_KEYS){const c=CATS[k];const b=document.createElement('button');const on=state.composer.category===k;b.setAttribute('aria-pressed',on?'true':'false');if(on)b.style.background=c.color;b.innerHTML=ICON(k,17,(on?"#0b0e2e":c.color))+c.name;
-  b.onclick=()=>{if(k==='meetup'){toast('Use the Meet tab to post an anonymous meetup');return;}state.composer.category=k;state.composer.subcat=null;state.composer.lifetime=LIFETIMES[k].def;renderCatSeg();renderSubSeg();renderLifeSeg();};seg.appendChild(b);}}
+function renderCatSeg(){const seg=document.getElementById('catSeg');seg.innerHTML='';for(const k of CAT_KEYS){const c=CATS[k];const b=document.createElement('button');const on=state.composer.category===k;b.setAttribute('aria-pressed',on?'true':'false');if(on)b.style.background=c.color;b.innerHTML=ICON(k,17,(on?"#06202B":c.color))+c.name;
+  b.onclick=()=>{
+    if(k==='meetup'){
+      /* Picking "Meetup" used to dead-end on a toast. Hand straight over to the meetup
+         composer, carrying the location already chosen on the map. */
+      const at=(state.composer&&state.composer.location)?state.composer.location.slice():null;
+      closeComposer();
+      setTimeout(()=>openMeetComposer(at),220);
+      return;
+    }
+    state.composer.category=k;state.composer.subcat=null;state.composer.lifetime=LIFETIMES[k].def;renderCatSeg();renderSubSeg();renderLifeSeg();};seg.appendChild(b);}}
 function renderSubSeg(){
   const field=document.getElementById('subField'),seg=document.getElementById('subSeg'),subs=SUBCATS[state.composer.category];
   if(!subs){field.style.display='none';return;}
@@ -1928,7 +1966,7 @@ function renderDetail(p){
     +'<div class="author"><div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer" data-openuser="'+p.authorId+'">'+avatarHTML(author,42)
     +'<div style="flex:1"><div class="nm">'+esc(author.name)+' '+badgeFlair(author)+(mine?'<span class="mono" style="color:var(--muted);font-size:11px">· you</span>':'')+'</div><div class="sub">'+fmtDist(dist)+' away · '+fmtCoord(p.display_location[0],p.display_location[1],4)+'</div></div></div>'
     +'<button class="kebab" id="postMenu" aria-label="More">⋯</button>'
-    +'<span class="catbadge" style="background:'+cat.color+';color:#0b0e2e;display:inline-flex;align-items:center;gap:5px">'+ICON(p.category,14,"#0b0e2e")+cat.name+'</span></div>'
+    +'<span class="catbadge" style="background:'+cat.color+';color:#06202B;display:inline-flex;align-items:center;gap:5px">'+ICON(p.category,14,"#06202B")+cat.name+'</span></div>'
     +(sub?'<div style="margin:-4px 0 8px"><span class="subbadge">'+sub.e+' '+esc(sub.n)+'</span></div>':'')
     +'<div class="countdown" id="cdown">'+countdownText(p)+'</div>'
     +'<div class="detail-text">'+linkify(p.text)+'</div>'
@@ -2178,7 +2216,7 @@ function renderSearch(){
 }
 function bindSearchTabs(){document.querySelectorAll('#searchTabs button').forEach(b=>b.onclick=()=>{searchTab=b.dataset.s;renderSearch();});}
 function emptyMsg(m){return '<div class="empty"><div>'+m+'</div></div>';}
-function userRow(u){const following=state.following.has(u.id);return '<div class="card" data-user="'+u.id+'" style="border-left-color:'+(u.color||'#7C5CFF')+';display:flex;align-items:center;gap:12px">'+avatarHTML(u,44)+'<div style="flex:1;min-width:0"><div class="title" style="margin:0">'+esc(u.name)+' '+badgeFlair(u)+'</div><div class="meta">@'+esc(u.username||'user')+' · L'+levelOf(u.points||0)+' · '+followersOf(u.id).length+' followers</div></div><span class="catbadge" style="background:'+(following?'var(--social)':'var(--surface-2)')+';color:'+(following?'#0b0e2e':'var(--paper)')+'">'+(following?'Following':'Follow')+'</span></div>';}
+function userRow(u){const following=state.following.has(u.id);return '<div class="card" data-user="'+u.id+'" style="border-left-color:'+(u.color||'#38BDF8')+';display:flex;align-items:center;gap:12px">'+avatarHTML(u,44)+'<div style="flex:1;min-width:0"><div class="title" style="margin:0">'+esc(u.name)+' '+badgeFlair(u)+'</div><div class="meta">@'+esc(u.username||'user')+' · L'+levelOf(u.points||0)+' · '+followersOf(u.id).length+' followers</div></div><span class="catbadge" style="background:'+(following?'var(--social)':'var(--surface-2)')+';color:'+(following?'#06202B':'var(--paper)')+'">'+(following?'Following':'Follow')+'</span></div>';}
 
 /* ============================================================
    PROFILE (§8.2) — self + others
@@ -2240,7 +2278,7 @@ document.getElementById('settingsBtn').onclick=()=>{showScreen('settings');rende
 /* ============================================================
    BADGES (§9.3)
    ============================================================ */
-const TIERS={bronze:['#E8A75C','#A85F26'],silver:['#E6ECF7','#98A4BD'],gold:['#FFD873','#E0961A'],platinum:['#8B6BFF','#35E5FF']};
+const TIERS={bronze:['#E8A75C','#A85F26'],silver:['#E6ECF7','#98A4BD'],gold:['#FFD873','#E0961A'],platinum:['#8B6BFF','#5FE3D6']};
 const TIER_LABEL={bronze:'Bronze',silver:'Silver',gold:'Gold',platinum:'Elite'};
 function medalSVG(tier,glyph){
   const g=TIERS[tier]||TIERS.bronze,id='m'+Math.random().toString(36).slice(2,7);
@@ -2393,8 +2431,12 @@ document.getElementById('bellBtn').onclick=()=>{switchTab('alerts');};
 const meetScrim=document.getElementById('meetScrim'),meetSheet=document.getElementById('meetSheet');
 const mdScrim=document.getElementById('mdScrim'),mdSheet=document.getElementById('mdSheet');
 function myBand(){return me.ageBand;}
-function meetupVisible(m){ // server-side match: caller's band must be in the host's selected bands
-  return m.bands.includes(myBand());
+function meetupVisible(m){ // caller's band must be in the host's selected bands
+  // A meetup with no bands recorded used to be hidden from everyone, which is how
+  // meetups created before categories/bands existed vanished from the map entirely.
+  const b=m.bands;
+  if(!Array.isArray(b)||!b.length||b.every(x=>!x))return true;
+  return b.includes(myBand());
 }
 function pickRealUser(){const ids=Object.keys(state.users).filter(x=>x!=='me');return ids[Math.floor(Math.random()*ids.length)];}
 let meetView='meetups';
@@ -2485,7 +2527,7 @@ function meetCard(m){
     +(m.note?'<div class="body" style="font-size:13.5px">“'+esc(m.note)+'”</div>':'')
     +(m.mine&&pending?'<div class="pill-note">'+pending+' pending request'+(pending>1?'s':'')+'</div>':'')+'</div>';
 }
-function openMeetComposer(){
+function openMeetComposer(atLngLat){
   if(state.settings.under18Sim||!me.isAdult){toast('Meetups are 18+');return;}
   if(state.meetups.filter(m=>m.mine&&m.status==='open').length>=3){toast('Rate limit: 3 active meetup pins');return;}
   state.meetForm={activity:'Coffee',category:'Food',bands:new Set([myBand()]),lifetime:3*H,note:'',identity:'anon'};
@@ -2494,7 +2536,8 @@ function openMeetComposer(){
   const actSel=document.getElementById('meetActivity');actSel.innerHTML=ACTIVITIES.map(a=>'<option>'+a+'</option>').join('');
   renderMeetBands();renderMeetLife();renderMeetIdentity();document.getElementById('meetNote').value='';
   meetScrim.classList.add('open');meetSheet.classList.add('open');
-  const start=state.me?[state.me.lng,state.me.lat]:state.center;
+  // a location handed over from the pin composer wins over your current position
+  const start=(Array.isArray(atLngLat)&&typeof atLngLat[0]==='number')?atLngLat:(state.me?[state.me.lng,state.me.lat]:state.center);
   setTimeout(()=>{
     if(!meetMap){meetMap=new maplibregl.Map({container:'meetMap',style:currentMapStyle(),center:start,zoom:15,minZoom:10,maxZoom:19,dragRotate:false,pitchWithRotate:false,attributionControl:false});meetMap.touchZoomRotate.disableRotation();meetMap.on('style.load',()=>enhanceBasemap(meetMap));
       meetMap.on('move',()=>{const c=meetMap.getCenter();document.getElementById('meetCoord').textContent=fmtCoord(c.lng,c.lat,6);});
@@ -2591,14 +2634,14 @@ function renderMeetDetail(m){
     html+='<div class="commentbar"><input class="input" id="chatInput" placeholder="Message…"><button id="chatSend">Send</button></div>';
     const bothRevealed=m.revealHost&&m.revealGuest;
     const otherId=mine?m.guestRealId:m.hostId;
-    if(bothRevealed&&otherId){const ou=userOf(otherId);html+='<div class="card" data-openuser="'+otherId+'" style="border-left-color:var(--meetup);display:flex;gap:12px;align-items:center;cursor:pointer;margin-top:10px">'+avatarHTML(ou,46)+'<div style="flex:1;min-width:0"><div class="title" style="margin:0">'+esc(ou.name)+' '+badgeFlair(ou)+'</div><div class="meta">@'+esc(ou.username||'user')+' · tap to view profile</div></div><span class="catbadge" style="background:var(--meetup);color:#0b0e2e">Revealed</span></div>';}
+    if(bothRevealed&&otherId){const ou=userOf(otherId);html+='<div class="card" data-openuser="'+otherId+'" style="border-left-color:var(--meetup);display:flex;gap:12px;align-items:center;cursor:pointer;margin-top:10px">'+avatarHTML(ou,46)+'<div style="flex:1;min-width:0"><div class="title" style="margin:0">'+esc(ou.name)+' '+badgeFlair(ou)+'</div><div class="meta">@'+esc(ou.username||'user')+' · tap to view profile</div></div><span class="catbadge" style="background:var(--meetup);color:#06202B">Revealed</span></div>';}
     html+='<button class="btn-ghost" id="revealBtn" style="margin-top:10px">'+(bothRevealed?'Profiles revealed ✓':((mine?m.revealHost:m.revealGuest)?'Waiting for the other person to reveal…':'Reveal my profile'))+'</button>';
     html+='<button class="btn-danger" id="leaveBtn" style="margin-top:8px">Leave meetup</button>';
   }else if(mine){
     const pending=m.requests.filter(r=>r.status==='pending');
     html+='<h3 class="display" style="font-size:15px;font-weight:800;margin:12px 0 4px">Requests</h3>';
     if(!pending.length)html+=emptyMsg('No requests yet. You\'ll get an alert when someone matches.');
-    else html+=pending.map(r=>'<div class="alias" data-req="'+r.id+'"><div class="av" style="width:40px;height:40px">'+presetAvatar(r.avatar)+'</div><div style="flex:1"><div style="font-weight:700">'+esc(r.alias)+'</div><div class="meta">matches your band</div></div><button class="catbadge acc" data-acc="'+r.id+'" style="background:var(--success);color:#0b0e2e">Accept</button> <button class="catbadge dec" data-dec="'+r.id+'" style="background:var(--surface-2)">Decline</button></div>').join('');
+    else html+=pending.map(r=>'<div class="alias" data-req="'+r.id+'"><div class="av" style="width:40px;height:40px">'+presetAvatar(r.avatar)+'</div><div style="flex:1"><div style="font-weight:700">'+esc(r.alias)+'</div><div class="meta">matches your band</div></div><button class="catbadge acc" data-acc="'+r.id+'" style="background:var(--success);color:#06202B">Accept</button> <button class="catbadge dec" data-dec="'+r.id+'" style="background:var(--surface-2)">Decline</button></div>').join('');
     html+='<button class="btn-danger" id="delMeet" style="margin-top:12px">Delete meetup</button>';
   }else{
     const myReq=m.requests.find(r=>r.byMe);
@@ -2786,9 +2829,9 @@ function renderGateBands(){
   const inp=wrap.querySelector('#gateAge'),msg=wrap.querySelector('#gateAgeMsg');
   const go=()=>{
     const v=parseInt(inp.value,10);
-    if(!isFinite(v)||v<1){msg.textContent='Enter your age to continue';msg.style.color='#FF5CA8';return;}
+    if(!isFinite(v)||v<1){msg.textContent='Enter your age to continue';msg.style.color='#FF6E8A';return;}
     if(v<18){document.getElementById('ageGate').classList.add('blocked');return;}
-    if(v>120){msg.textContent='Enter a real age';msg.style.color='#FF5CA8';return;}
+    if(v>120){msg.textContent='Enter a real age';msg.style.color='#FF6E8A';return;}
     acceptAge(v);
   };
   wrap.querySelector('#gateAgeGo').onclick=go;
@@ -2830,11 +2873,38 @@ function openAvatarPicker(){avPickerMode='profile';renderAvGrid();avScrim.classL
 function openMapAvatarPicker(){avPickerMode='map';renderAvGrid();avScrim.classList.add('open');avSheet.classList.add('open');}
 function closeAvatarPicker(){avScrim.classList.remove('open');avSheet.classList.remove('open');}
 avScrim.onclick=closeAvatarPicker;document.getElementById('avClose').onclick=closeAvatarPicker;
-function afterAvatarChange(){toast('Avatar updated ✓');if(currentTab()==='profile')renderProfile();if(document.getElementById('settingsScreen').classList.contains('active'))renderSettings();
-  if(window.LIVE){
-    if(me.avatarPhoto)liveSafe(L.uploadImage('avatars',me.avatarPhoto).then(function(url){if(url){me.avatarUrl=url;return L.updateProfile({avatar_url:url,avatar_preset:null});}}));
-    else liveSafe(L.updateProfile({avatar_preset:me.avatarPreset,avatar_url:null}));
+function afterAvatarChange(){
+  const refresh=()=>{
+    if(currentTab()==='profile')renderProfile();
+    if(screenActive('settings'))renderSettings();
+    refreshPresence();
+    const av=document.getElementById('convAv');
+    if(av&&av.style.display!=='none'){const c=state.conversations.find(x=>x.id===state.currentConv);
+      const o=c&&!c.group&&c.members.find(m=>m!=='me');if(o)av.innerHTML=avatarInner(userOf(o));}
+  };
+  if(!window.LIVE){toast('Avatar updated ✓');refresh();return;}
+  if(me.avatarPhoto){
+    /* A photo has to reach storage before it is "saved". This used to fail silently:
+       uploadImage() returns null on error, the profile update was skipped, and the old
+       picture came back on the next load with no explanation. */
+    toast('Uploading your photo…');
+    const localCopy=me.avatarPhoto;
+    liveSafe(L.uploadImage('avatars',localCopy).then(function(url){
+      if(!url){me.avatarPhoto=null;refresh();toast('Could not upload that photo — try a smaller one');return;}
+      me.avatarUrl=url;me.avatarPhoto=url;me.avatarPreset=null;
+      return Promise.resolve(L.updateProfile({avatar_url:url,avatar_preset:null})).then(function(r){
+        if(r&&r.error){toast('Photo uploaded but not saved to your profile');return;}
+        refresh();toast('Avatar updated ✓');
+      });
+    }));
+    refresh();
+    return;
   }
+  liveSafe(Promise.resolve(L.updateProfile({avatar_preset:me.avatarPreset,avatar_url:null})).then(function(r){
+    if(r&&r.error){toast('Could not save that avatar');return;}
+    refresh();toast('Avatar updated ✓');
+  }));
+  refresh();
 }
 function renderAvGrid(){
   const grid=document.getElementById('avGrid');
@@ -2848,7 +2918,7 @@ function renderAvGrid(){
   let html='';
   for(let i=1;i<=AV_COUNT;i++){
     const on=mapMode?(cur===i):(!me.avatarPhoto&&me.avatarPreset===i);
-    html+='<button class="av-opt" aria-pressed="'+on+'" data-av="'+i+'" title="'+esc(characterName(i))+'">'+presetAvatar(i)+'<span class="chk">'+ICON('check',12,'#0b0e2e')+'</span><span class="avname">'+esc(characterName(i))+'</span></button>';
+    html+='<button class="av-opt" aria-pressed="'+on+'" data-av="'+i+'" title="'+esc(characterName(i))+'">'+presetAvatar(i)+'<span class="chk">'+ICON('check',12,'#06202B')+'</span><span class="avname">'+esc(characterName(i))+'</span></button>';
   }
   grid.innerHTML=html+(mapMode?'':'<button class="av-upload" id="avUpload"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Photo</button>');
   grid.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{
@@ -2907,7 +2977,7 @@ function openPhotoEditor(dataUrl, cb){
   var vw=Math.min(window.innerWidth-40,360);
   overlay.innerHTML='<div style="font-family:var(--font-display);font-weight:800;font-size:18px">Edit photo</div>'
     +'<div id="peAspects" style="display:flex;gap:8px"></div>'
-    +'<canvas id="peCanvas" style="border-radius:16px;touch-action:none;background:#0b0e2e;box-shadow:0 12px 40px rgba(0,0,0,.5);max-width:100%"></canvas>'
+    +'<canvas id="peCanvas" style="border-radius:16px;touch-action:none;background:#06202B;box-shadow:0 12px 40px rgba(0,0,0,.5);max-width:100%"></canvas>'
     +'<div style="display:flex;align-items:center;gap:12px;width:'+vw+'px;max-width:82vw">'
       +'<button id="peRotate" title="Rotate" style="flex:0 0 auto;width:46px;height:40px;border-radius:12px;border:none;background:var(--surface-2);color:var(--paper);font-size:19px;cursor:pointer">⟳</button>'
       +'<input id="peZoom" type="range" min="1" max="4" step="0.01" value="1" style="flex:1;accent-color:var(--cyan)">'
@@ -2928,8 +2998,8 @@ function openPhotoEditor(dataUrl, cb){
   function draw(){clamp();ctx.clearRect(0,0,fw,fh);ctx.save();ctx.translate(fw/2+ox,fh/2+oy);ctx.rotate(rot*Math.PI/180);ctx.scale(eff(),eff());ctx.drawImage(img,-nw/2,-nh/2,nw,nh);ctx.restore();}
   img.onload=function(){nw=img.naturalWidth;nh=img.naturalHeight;ar=ARS[arIdx][1];setFrame();fit();scale=1;ox=0;oy=0;slider.value=1;draw();};
   img.src=dataUrl;
-  ARS.forEach(function(a,i){var b=document.createElement('button');b.textContent=a[0];b.style.cssText='padding:6px 12px;border-radius:10px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;background:'+(i===arIdx?'var(--social)':'var(--surface-2)')+';color:'+(i===arIdx?'#0b0e2e':'var(--paper)');
-    b.onclick=function(){arIdx=i;ar=a[1];Array.prototype.forEach.call(ab.children,function(c,ci){c.style.background=ci===i?'var(--social)':'var(--surface-2)';c.style.color=ci===i?'#0b0e2e':'var(--paper)';});setFrame();fit();ox=0;oy=0;draw();};ab.appendChild(b);});
+  ARS.forEach(function(a,i){var b=document.createElement('button');b.textContent=a[0];b.style.cssText='padding:6px 12px;border-radius:10px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;background:'+(i===arIdx?'var(--social)':'var(--surface-2)')+';color:'+(i===arIdx?'#06202B':'var(--paper)');
+    b.onclick=function(){arIdx=i;ar=a[1];Array.prototype.forEach.call(ab.children,function(c,ci){c.style.background=ci===i?'var(--social)':'var(--surface-2)';c.style.color=ci===i?'#06202B':'var(--paper)';});setFrame();fit();ox=0;oy=0;draw();};ab.appendChild(b);});
   slider.oninput=function(){scale=parseFloat(slider.value);draw();};
   overlay.querySelector('#peRotate').onclick=function(){rot=(rot+90)%360;fit();ox=0;oy=0;draw();};
   var dragging=false,lx=0,ly=0,pinch=0,pinchBase=1;
@@ -3092,7 +3162,7 @@ function renderAdmin(){
     const meRow={id:'me',name:me.name,username:me.username,isAdmin:me.isAdmin,perms:me.perms||[],status:'active',avatarPreset:me.avatarPreset,avatarPhoto:me.avatarPhoto};
     const all=(me.isAdmin||(me.perms&&me.perms.length))?[meRow].concat(staff.filter(u=>u.id!=='me')):staff;
     html+='<div class="banner">'+ICON('shield',16,'var(--cyan)')+' Add admins and control exactly what each one can do. Changes apply instantly and are enforced by the database.</div>';
-    html+='<button class="btn-primary" id="addAdminBtn" style="margin-bottom:12px">'+ICON('plus',17,'#0b0e2e')+' Add an admin</button>';
+    html+='<button class="btn-primary" id="addAdminBtn" style="margin-bottom:12px">'+ICON('plus',17,'#06202B')+' Add an admin</button>';
     html+='<div class="section-label">Current team ('+all.length+')</div>';
     html+=all.length?all.map(u=>{
       const perms=u.isAdmin?'Full access — every permission':((u.perms&&u.perms.length)?u.perms.map(p=>{const d=ADMIN_PERMS.find(x=>x[0]===p);return d?d[1].replace('&amp;','&'):p;}).join(' · '):'No permissions yet');
@@ -3332,12 +3402,12 @@ function superClaimsHTML(list){
         +'<div style="flex:1;min-width:0"><div style="font-weight:800;font-size:14px">'+esc(u.name)+'</div>'
         +'<div class="meta">@'+esc(u.username||'user')+' · for '+(c.points||0)+' '+COIN(12)+'</div></div>'
         +(suspect?'<span class="catbadge" style="background:rgba(255,107,107,.22);color:#FF8F8F">'+suspect+' flag'+(suspect>1?'s':'')+'</span>'
-                 :'<span class="catbadge" style="background:rgba(107,227,184,.20);color:#6BE3B8">Looks good</span>')
+                 :'<span class="catbadge" style="background:rgba(63,216,164,.20);color:#3FD8A4">Looks good</span>')
       +'</div>'
       +'<div class="meta-grid">'+flags.map(f=>'<div class="mg '+(f.bad?'warn':'good')+'"><div class="k">'+esc(f.k)+'</div><div class="v">'+esc(f.v)+'</div></div>').join('')+'</div>'
       +(c.prompt?'<div class="meta" style="padding:0 12px 8px">Prompt: “'+esc(c.prompt)+'”</div>':'')
       +'<div style="display:flex;gap:8px;padding:0 12px 12px">'
-        +'<button class="catbadge" data-approve="'+esc(c.id)+'" style="flex:1;height:38px;background:var(--success);color:#0b2a20;font-weight:800">Approve &amp; pay</button>'
+        +'<button class="catbadge" data-approve="'+esc(c.id)+'" style="flex:1;height:38px;background:var(--success);color:#06231C;font-weight:800">Approve &amp; pay</button>'
         +'<button class="catbadge" data-reject="'+esc(c.id)+'" style="flex:1;height:38px;background:rgba(255,107,107,.22);color:#FF8F8F;font-weight:800">Reject</button>'
       +'</div></div>';
   }).join('');
@@ -3376,14 +3446,14 @@ function openLightbox(src){
 function showClaimPendingCard(ss,distance){
   var wrap=document.createElement('div');wrap.id='claimPending';
   wrap.style.cssText='position:fixed;inset:0;z-index:520;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
-  wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:26px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#2A2E52,#1A1D38);border:1px solid rgba(198,205,255,.22);box-shadow:var(--depth-3)">'
-    +'<div style="margin-bottom:8px">'+ICON('clock',44,'#9FD8F5')+'</div>'
+  wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:26px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#1B2E42,#0F1E2D);border:1px solid rgba(175,205,228,.22);box-shadow:var(--depth-3)">'
+    +'<div style="margin-bottom:8px">'+ICON('clock',44,'#7FD8F5')+'</div>'
     +'<div style="font-family:var(--font-display);font-weight:800;font-size:21px;margin-bottom:6px">Photo submitted</div>'
     +'<div style="color:var(--muted);font-size:13.5px;line-height:1.5;margin-bottom:14px">Your shot is being reviewed'
       +(distance!=null&&distance>=0?' · taken '+fmtDist(distance)+' from the spot':'')
       +'. If it checks out you get <b style="color:var(--paper)">'+(ss.reward||0)+'</b> '+COIN(13)+' and the reward.</div>'
-    +'<div style="background:rgba(159,216,245,.12);border:1px solid rgba(159,216,245,.28);border-radius:14px;padding:12px;font-size:12.5px;color:var(--muted);margin-bottom:16px">Take the photo at the spot, on the day. Re-used or downloaded pictures are rejected.</div>'
-    +'<button id="cpDone" style="width:100%;height:46px;border:none;border-radius:16px;background:linear-gradient(180deg,#7E82D8,#5B5FAF);color:#fff;font-weight:800;font-size:15px;cursor:pointer">Got it</button>'
+    +'<div style="background:rgba(127,216,245,.12);border:1px solid rgba(127,216,245,.28);border-radius:14px;padding:12px;font-size:12.5px;color:var(--muted);margin-bottom:16px">Take the photo at the spot, on the day. Re-used or downloaded pictures are rejected.</div>'
+    +'<button id="cpDone" style="width:100%;height:46px;border:none;border-radius:16px;background:linear-gradient(180deg,#38BDF8,#1E88C7);color:#fff;font-weight:800;font-size:15px;cursor:pointer">Got it</button>'
     +'</div>';
   document.body.appendChild(wrap);
   wrap.querySelector('#cpDone').onclick=function(){wrap.remove();};
@@ -3392,18 +3462,18 @@ function showClaimPendingCard(ss,distance){
 function showRewardCard(title,detail,points,image){
   var wrap=document.createElement('div');wrap.id='rewardCard';
   wrap.style.cssText='position:fixed;inset:0;z-index:520;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
-  wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:24px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#2a1250,#160a30);border:1px solid rgba(199,155,255,.4);box-shadow:0 24px 70px rgba(124,92,255,.5)">'
+  wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:24px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#0D2436,#08161F);border:1px solid rgba(140,215,240,.4);box-shadow:0 24px 70px rgba(56,189,248,.5)">'
     +'<div style="font-size:52px;margin-bottom:6px">🏆</div>'
     +'<div style="font-family:var(--font-display);font-weight:800;font-size:22px;margin-bottom:4px">You claimed it!</div>'
     +'<div style="color:var(--muted);font-size:13px;margin-bottom:16px">First to the Super Spot · +'+(points||0)+' '+COIN(13)+'</div>'
     +(image?'<img src="'+image+'" alt="reward" style="width:100%;max-height:180px;object-fit:cover;border-radius:14px;margin-bottom:10px">':'')
-    +'<div style="background:linear-gradient(135deg,#C79BFF,#8B44FF);color:#160a30;border-radius:16px;padding:16px;margin-bottom:8px">'
+    +'<div style="background:linear-gradient(135deg,#8FE3F5,#1E88C7);color:#08161F;border-radius:16px;padding:16px;margin-bottom:8px">'
       +'<div style="font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.75;text-transform:uppercase">Your reward</div>'
       +'<div style="font-family:var(--font-display);font-weight:800;font-size:20px;margin:4px 0">'+esc(title||'Mystery reward')+'</div>'
       +(detail?'<div style="font-family:var(--font-mono);font-size:15px;background:rgba(22,10,48,.25);border-radius:10px;padding:8px;margin-top:6px;word-break:break-all">'+esc(detail)+'</div>':'')
     +'</div>'
     +(detail?'<div style="color:var(--muted);font-size:11.5px;margin:8px 0 14px">Screenshot this — tap the code to copy.</div>':'<div style="margin-bottom:10px"></div>')
-    +'<button id="rcDone" style="width:100%;height:46px;border:none;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">Awesome</button>'
+    +'<button id="rcDone" style="width:100%;height:46px;border:none;border-radius:14px;background:var(--social);color:#06202B;font-weight:800;font-size:15px;cursor:pointer">Awesome</button>'
     +'</div>';
   document.body.appendChild(wrap);
   var code=wrap.querySelector('div[style*="font-mono"]');if(code)code.onclick=function(){try{navigator.clipboard.writeText(detail);toast('Reward copied');}catch(e){}};
@@ -3564,7 +3634,7 @@ function whisperComposer(initial,title,onSave){
     +'<div style="color:var(--muted);font-size:12.5px;margin-bottom:10px">Shared with your neighbourhood — no name attached. Be kind.</div>'
     +'<textarea id="wcText" maxlength="400" placeholder="What’s on your mind?" style="width:100%;min-height:130px;resize:vertical;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:14px;font-size:16px;line-height:1.5;font-family:inherit;box-sizing:border-box">'+esc(initial||'')+'</textarea>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px"><span id="wcCount" style="color:var(--muted);font-size:12px">'+((initial||'').length)+' / 400</span>'
-    +'<button id="wcPost" style="height:44px;padding:0 22px;border:none;border-radius:14px;background:var(--social);color:#0b0e2e;font-weight:800;font-size:15px;cursor:pointer">'+(title==='Edit whisper'?'Save':'Post')+'</button></div>'
+    +'<button id="wcPost" style="height:44px;padding:0 22px;border:none;border-radius:14px;background:var(--social);color:#06202B;font-weight:800;font-size:15px;cursor:pointer">'+(title==='Edit whisper'?'Save':'Post')+'</button></div>'
     +'</div>';
   document.body.appendChild(wrap);
   var ta=wrap.querySelector('#wcText'),cnt=wrap.querySelector('#wcCount');
@@ -3594,7 +3664,7 @@ function storiesRowHTML(){
   const myStories=byU['me']||[];
   const mineAttr=myStories.length?' data-story-user="me"':' data-story-add="1"';
   const myViews=myStories.reduce((n,s)=>n+(s.views||0),0);
-  const viewPip=myStories.length?'<span class="story-views-pip">'+ICON('eye',10,'#0b0e2e')+myViews+'</span>':'';
+  const viewPip=myStories.length?'<span class="story-views-pip">'+ICON('eye',10,'#06202B')+myViews+'</span>':'';
   html+='<div class="story-bubble story-add"'+mineAttr+'><div class="story-ring mine"><div>'+avatarInner(me)+'</div></div>'+viewPip+'<span class="plus" data-story-add="1">＋</span><div class="story-name">'+(myStories.length?'Your story':'Add story')+'</div></div>';
   ids.filter(id=>id!=='me').forEach(id=>{const u=userOf(id);const seen=byU[id].every(s=>s.seen);html+='<div class="story-bubble" data-story-user="'+id+'"><div class="story-ring'+(seen?' seen':'')+'"><div>'+avatarInner(u)+'</div></div><div class="story-name">'+esc(u.name.split(' ')[0])+'</div></div>';});
   return html+'</div>';
@@ -3985,7 +4055,7 @@ function liveRegisterUser(id,name,avatar){
   if(avatar!=null){if(typeof avatar==='string'&&/^https?:/.test(avatar))u.avatarUrl=avatar;else if(typeof avatar==='number')u.avatarPreset=avatar;}
   if(!u.name)u.name='Someone';
   if(!u.username)u.username=(name||'user').toLowerCase().replace(/[^a-z0-9]+/g,'')||'user';
-  if(!u.color)u.color='#7C5CFF';
+  if(!u.color)u.color='#38BDF8';
   if(u.isAdult===undefined)u.isAdult=true;
   if(!u.status)u.status='active';
   return u;
@@ -3998,7 +4068,7 @@ function liveProfileToUser(p){
   if(p.map_avatar)u.mapAvatar=p.map_avatar;
   u.ageBand=p.age_band||u.ageBand;u.age=p.age||u.age||null;u.isAdult=!!p.age_verified;u.isAdmin=!!p.is_admin;u.perms=p.perms||[];
   u.status=p.status||'active';u.points=p.points||0;u.dmPrivacy=p.dm_privacy||'everyone';
-  u.email=p.email||u.email||'';u.phone=p.phone||u.phone||'';u.color=u.color||'#7C5CFF';
+  u.email=p.email||u.email||'';u.phone=p.phone||u.phone||'';u.color=u.color||'#38BDF8';
   u.joined=p.created_at?Date.parse(p.created_at):(u.joined||Date.now());
   if(p.visibility==='live')u.visible=true; // never clobber presence set by nearbyPeople
   var c=p.loc?coordOf(p.loc):null;if(c)u.loc=c;
@@ -4141,12 +4211,12 @@ function liveSubscribeConv(c){
 function liveSignIn(initialError){
   return new Promise(function(resolve){
     var el=document.createElement('div');el.id='liveAuth';
-    el.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center;color:var(--paper);background:radial-gradient(120% 80% at 50% 0%,#141a52,var(--void));overflow:auto';
-    var blobs='<div class="la-blob" style="width:240px;height:240px;left:-60px;top:-40px;background:#7C5CFF;animation:laFloat 14s ease-in-out infinite"></div>'
-      +'<div class="la-blob" style="width:200px;height:200px;right:-50px;top:20%;background:#35E5FF;animation:laFloat 18s ease-in-out infinite reverse"></div>'
-      +'<div class="la-blob" style="width:220px;height:220px;left:20%;bottom:-60px;background:#B15CFF;animation:laFloat 16s ease-in-out infinite"></div>';
+    el.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 26px;text-align:center;color:var(--paper);background:radial-gradient(120% 80% at 50% 0%,#0F2A3D,var(--void));overflow:auto';
+    var blobs='<div class="la-blob" style="width:240px;height:240px;left:-60px;top:-40px;background:#38BDF8;animation:laFloat 14s ease-in-out infinite"></div>'
+      +'<div class="la-blob" style="width:200px;height:200px;right:-50px;top:20%;background:#5FE3D6;animation:laFloat 18s ease-in-out infinite reverse"></div>'
+      +'<div class="la-blob" style="width:220px;height:220px;left:20%;bottom:-60px;background:#F0A93B;animation:laFloat 16s ease-in-out infinite"></div>';
     var gsvg='<svg width="18" height="18" viewBox="0 0 48 48" style="flex:0 0 auto"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.28-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
-    el.innerHTML=blobs+'<img src="./logo.png" onerror="this.onerror=null;this.src=\'./icon.svg\'" alt="Pinly" style="width:88px;height:88px;border-radius:22px;object-fit:cover;box-shadow:0 18px 50px rgba(124,92,255,.5);margin-bottom:16px">'
+    el.innerHTML=blobs+'<img src="./logo.png" onerror="this.onerror=null;this.src=\'./icon.svg\'" alt="Pinly" style="width:88px;height:88px;border-radius:22px;object-fit:cover;box-shadow:0 18px 50px rgba(56,189,248,.5);margin-bottom:16px">'
       +'<h1 style="font-family:var(--font-display);font-weight:800;font-size:25px;margin:0 0 6px">Welcome to Pinly</h1>'
       +'<p style="color:var(--muted);font-size:14px;line-height:1.5;max-width:320px;margin:0 0 18px">Sign in or create your account.</p>'
       +'<div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">'
@@ -4154,7 +4224,7 @@ function liveSignIn(initialError){
       +'<button id="laApple" style="height:48px;border-radius:14px;border:none;background:#000;color:#fff;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">Continue with Apple</button>'
       +'<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:4px 0"><div style="flex:1;height:1px;background:var(--line)"></div>or<div style="flex:1;height:1px;background:var(--line)"></div></div>'
       +'<div id="laTabs" style="display:flex;gap:6px;background:var(--surface);border-radius:12px;padding:4px">'
-        +'<button data-m="email" style="flex:1;height:34px;border:none;border-radius:9px;background:var(--social);color:#0b0e2e;font-weight:700;font-size:13px;cursor:pointer">Email</button>'
+        +'<button data-m="email" style="flex:1;height:34px;border:none;border-radius:9px;background:var(--social);color:#06202B;font-weight:700;font-size:13px;cursor:pointer">Email</button>'
         +'<button data-m="phone" style="flex:1;height:34px;border:none;border-radius:9px;background:transparent;color:var(--paper);font-weight:700;font-size:13px;cursor:pointer">Phone</button>'
       +'</div>'
       +'<input id="laEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" style="height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--paper);padding:0 16px;font-size:16px">'
@@ -4166,7 +4236,7 @@ function liveSignIn(initialError){
       +'<div style="font-size:11px;color:var(--muted);opacity:.8;margin-top:16px;max-width:320px;line-height:1.5">18+ only. By continuing you agree to the Terms and Privacy Policy.<br>Pinly · '+PINLY_BUILD+' · <span id="laHost" style="opacity:.75"></span></div>';
     document.body.appendChild(el);
     var emailIn=el.querySelector('#laEmail'),phoneIn=el.querySelector('#laPhone'),codeIn=el.querySelector('#laCode'),btn=el.querySelector('#laBtn'),msg=el.querySelector('#laMsg');
-    if(initialError){msg.textContent=initialError;msg.style.color="#FF5CA8";}
+    if(initialError){msg.textContent=initialError;msg.style.color="#FF6E8A";}
     var hostEl=el.querySelector("#laHost");if(hostEl)hostEl.textContent=location.host;
     /* Never strand a signed-in user on this screen: if a session shows up from ANY
        path (OAuth redirect finishing, storage restore, another tab), close and continue. */
@@ -4180,12 +4250,12 @@ function liveSignIn(initialError){
       if(tries>40)clearInterval(poll); // ~60s
     },1500);
     var mode='email',phase='enter',contact='';
-    function setMsg(t,err){msg.textContent=t||'';msg.style.color=err?'#FF5CA8':'var(--muted)';}
+    function setMsg(t,err){msg.textContent=t||'';msg.style.color=err?'#FF6E8A':'var(--muted)';}
     el.querySelector('#laGoogle').onclick=function(){setMsg('Redirecting to Google…');liveSafe(L.auth.oauth('google')).then(function(r){if(r&&r.error)setMsg(r.error.message||'Google sign-in isn’t switched on yet',true);});};
     el.querySelector('#laApple').onclick=function(){setMsg('Redirecting to Apple…');liveSafe(L.auth.oauth('apple')).then(function(r){if(r&&r.error)setMsg(r.error.message||'Apple sign-in isn’t switched on yet',true);});};
     Array.prototype.forEach.call(el.querySelectorAll('#laTabs button'),function(b){b.onclick=function(){
       mode=b.dataset.m;phase='enter';codeIn.style.display='none';
-      Array.prototype.forEach.call(el.querySelectorAll('#laTabs button'),function(x){var on=x.dataset.m===mode;x.style.background=on?'var(--social)':'transparent';x.style.color=on?'#0b0e2e':'var(--paper)';});
+      Array.prototype.forEach.call(el.querySelectorAll('#laTabs button'),function(x){var on=x.dataset.m===mode;x.style.background=on?'var(--social)':'transparent';x.style.color=on?'#06202B':'var(--paper)';});
       if(mode==='email'){emailIn.style.display='block';phoneIn.style.display='none';btn.textContent='Email me a sign-in link';emailIn.focus();}
       else{emailIn.style.display='none';phoneIn.style.display='block';btn.textContent='Text me a code';phoneIn.focus();}
       setMsg('');
@@ -4233,7 +4303,10 @@ function liveGetCenter(){
   return new Promise(function(resolve){
     if(!navigator.geolocation){resolve(state.center);return;}
     var done=false,t=setTimeout(function(){if(!done){done=true;resolve(state.center);}},6000);
-    navigator.geolocation.getCurrentPosition(function(pos){if(done)return;done=true;clearTimeout(t);resolve([pos.coords.longitude,pos.coords.latitude]);},
+    navigator.geolocation.getCurrentPosition(function(pos){if(done)return;done=true;clearTimeout(t);
+      // remember the real fix, not just the map centre — the map avatar is placed from this
+      state.me={lng:pos.coords.longitude,lat:pos.coords.latitude,accuracy:pos.coords.accuracy};
+      resolve([pos.coords.longitude,pos.coords.latitude]);},
       function(){if(done)return;done=true;clearTimeout(t);resolve(state.center);},{enableHighAccuracy:true,timeout:6000,maximumAge:60000});
   });
 }
@@ -4395,7 +4468,7 @@ function syncCityChrome(onMap){
   else renderCity();
 }
 /* Per-layer visibility — users choose exactly what appears on the map */
-const CITY_LAYERS=[['events','Events','ticket','#B15CFF'],['places','Landmarks','landmark','#35E5FF'],['spots','Food & fun','cup','#FF9F5A'],['weather','Weather','weather','#FFB020'],['news','News','news','#22E5A3']];
+const CITY_LAYERS=[['events','Events','ticket','#F0A93B'],['places','Landmarks','landmark','#5FE3D6'],['spots','Food & fun','cup','#FF9F5A'],['weather','Weather','weather','#FFC24B'],['news','News','news','#3FD8A4']];
 /* tiny distinct marker per OSM place kind */
 const SPOT_ICON={cafe:'cup',bar:'glass',pub:'glass',nightclub:'music',restaurant:'food',marketplace:'bag',theatre:'music',cinema:'camera',park:'tree',garden:'tree',sports_centre:'ball',museum:'landmark',artwork:'palette',attraction:'star',viewpoint:'sunrise'};
 function layerOn(k){if(!state.cityLayers)state.cityLayers={events:true,places:true,spots:true,weather:true,news:true};return state.cityLayers[k]!==false;}
@@ -4408,12 +4481,12 @@ function renderCity(){
   if(map&&maplibregl){
     var addMk=function(item,icon,color,label){if(item.lat==null||item.lng==null)return;
       var el=document.createElement('div');el.className='city-marker';el.style.setProperty('--cc',color);
-      el.innerHTML='<div class="cm-dot">'+ICON(icon,12,'#0b0e2e')+'</div>';el.title=item.title||'';
+      el.innerHTML='<div class="cm-dot">'+ICON(icon,12,'#06202B')+'</div>';el.title=item.title||'';
       el.addEventListener('click',function(ev){ev.stopPropagation();openCityItem(item,label,color);});
       cityMarkers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([item.lng,item.lat]).addTo(map));};
-    if(layerOn('places'))state.city.places.slice(0,30).forEach(function(p){addMk(p,'landmark','#35E5FF','Landmark');});
+    if(layerOn('places'))state.city.places.slice(0,30).forEach(function(p){addMk(p,'landmark','#5FE3D6','Landmark');});
     if(layerOn('spots'))(state.city.spots||[]).slice(0,50).forEach(function(s){addMk(s,SPOT_ICON[s.kind]||'cup','#FF9F5A',(s.kind||'Spot').replace(/_/g,' '));});
-    if(layerOn('events'))state.city.events.slice(0,40).forEach(function(e){addMk(e,'ticket','#B15CFF',e.kind||'Event');});
+    if(layerOn('events'))state.city.events.slice(0,40).forEach(function(e){addMk(e,'ticket','#F0A93B',e.kind||'Event');});
   }
   if(cb){var cnt=(layerOn('events')?state.city.events.length:0)+(layerOn('news')?state.city.news.length:0);cb.style.display='flex';cb.innerHTML=ICON('sparkle',14,'#fff')+'City today'+(cnt?' · '+cnt:'');}
 }
