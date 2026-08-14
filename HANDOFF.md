@@ -74,8 +74,16 @@ warm cream at the bottom, with a faint starfield.
 - **Avatars:** `PACK_AVATARS` = **17 illustrated characters** supplied by the owner (SVG Repo).
   Class names and gradient ids are **prefixed per avatar** so several inline safely on one page.
   `presetAvatar(i)` / `characterName(i)`; `AV_COUNT` is 17.
-- **Currency:** `COIN(size)` draws the Golden Racoon Coin. ⚠️ **Still the drawn version** — the
-  owner intends to supply a coin image; the archive they sent had avatars only.
+- **Currency:** `COIN(size)` draws the Golden Racoon Coin — the owner-supplied art, in since build 16.
+- **Game art (build 19):** `ART(name,size)` + `GAME_ART` — a **cozy low-poly** set of 11 marks
+  (`superspot`, `trophy`, `pin`, `flame`, `wave`, `eye`, `whisper`, `mapfold`, `meet`, `palette`,
+  `bolt`) covering the Super Spot game, the win card and the daily tasks. Flat faceted polygons on
+  a 64×64 grid, lit from the upper left. ⚠️ **No gradients, no `<defs>`, no ids, by design** — that
+  is what lets a mark inline many times on one page, which is exactly where the avatar set got
+  caught. Each facet strokes its own fill so shared edges can't show antialias seams. `uiIcon()`
+  resolves `'art:<name>'` tokens, so `DAILY_POOL` stays short enough to keep in `localStorage`.
+  ⚠️ The Super Spot star is gold, so its marker and badge sit in a **dark** setting ringed in gold —
+  the old gold-on-gold disc made it almost invisible.
 - Fonts: Bricolage Grotesque (display), Plus Jakarta Sans (body), Space Mono (mono).
 
 ## 6. Auth
@@ -179,15 +187,15 @@ realtime DMs, comment hydration, badges-from-stats, the sign-in-loop regression,
 `simulateRealtime` injects nothing in LIVE. `test13` covers the build-15 skin and the nine fixes.
 
 ## 13. Open items
-1. **Coin image** — the owner wants their own coin art; the archive they sent had only avatars.
-   Drop the file in and replace `COIN()`.
-2. **Ticketmaster key** → real events with photos (the one missing API key).
-3. **Custom SMTP** (e.g. Resend + own domain) before high signup volume — Supabase's built-in email
+1. **Ticketmaster key** → real events with photos (the one missing API key).
+2. **Custom SMTP** (e.g. Resend + own domain) before high signup volume — Supabase's built-in email
    is rate-limited project-wide.
-4. **Server-side safety before public launch:** move location fuzzing + photo EXIF stripping onto
+3. **Server-side safety before public launch:** move location fuzzing + photo EXIF stripping onto
    the write path in an Edge Function; add rate limits and moderation automation.
-5. Optional: Apple sign-in (paid Apple dev account), phone/SMS (Twilio), native wrapper for the
+4. Optional: Apple sign-in (paid Apple dev account), phone/SMS (Twilio), native wrapper for the
    app stores + push.
+5. The badge shelf and the notification rows still use emoji tokens; the low-poly set from build 19
+   is the obvious place to take them next.
 
 ## 14. Sandbox constraints
 This build sandbox **cannot reach `*.supabase.co`, `*.netlify.app` or most CDNs** (egress proxy).

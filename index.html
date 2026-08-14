@@ -459,10 +459,10 @@ img{max-width:100%}
 
 /* ---------- Super Spot (weekly bonus) ---------- */
 .super-marker{width:42px;height:42px;position:relative;cursor:pointer}
-.super-marker .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);border:2px solid #fff;box-shadow:0 6px 20px rgba(255,176,32,.75)}
+.super-marker .core{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 32% 28%,#3E4380,#1A1D3B);border:2px solid #FFD36E;box-shadow:0 6px 20px rgba(255,176,32,.6)}
 .super-marker .pulse{position:absolute;inset:0;border-radius:50%;background:#FFD23F;opacity:.5;animation:radar 2.6s ease-out infinite;z-index:-1}
 .super-hero{display:flex;gap:14px;align-items:center;margin-bottom:12px}
-.super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 30% 30%,#FFE58A,#FFB020);box-shadow:0 10px 30px rgba(255,176,32,.5)}
+.super-badge{width:64px;height:64px;flex:0 0 auto;border-radius:20px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 32% 28%,#3E4380,#1A1D3B);border:1px solid rgba(255,211,110,.5);box-shadow:0 10px 30px rgba(255,176,32,.35)}
 #superBanner{display:none;align-items:center;gap:9px;background:linear-gradient(90deg,rgba(255,210,63,.18),rgba(255,176,32,.05));border:1px solid rgba(255,210,63,.4);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;font-weight:600;line-height:1.35}
 .reward-teaser{background:linear-gradient(90deg,rgba(199,155,255,.2),rgba(139,68,255,.06));border:1px solid rgba(199,155,255,.45);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:13.5px;font-weight:600}
 .story-views{margin-left:auto;background:rgba(0,0,0,.45);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -543,6 +543,9 @@ img{max-width:100%}
 .wfilter button.on{background:var(--social);color:#0b0e2e;border-color:transparent}
 /* Inline icon alignment */
 svg.ico{display:inline-block;vertical-align:-.18em;flex:0 0 auto}
+svg.gart{display:block;flex:0 0 auto}
+svg.gart.h2i{display:inline-block;vertical-align:-.2em;margin-right:1px}
+#superBanner .sbi{flex:0 0 auto;display:flex}
 .av-opt{position:relative;padding-bottom:16px}
 .av-opt .avname{position:absolute;left:0;right:0;bottom:1px;font-size:9.5px;font-weight:700;color:var(--muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
 .av-opt[aria-pressed="true"] .avname{color:var(--cyan)}
@@ -583,7 +586,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
 .daily-card .go{margin-left:auto;color:var(--muted);font-size:20px}
 .dtask{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:var(--surface);border:1px solid var(--line);margin-bottom:9px}
 .dtask.done{border-color:rgba(34,229,163,.5);background:rgba(34,229,163,.08)}
-.dtask .de{font-size:24px;flex:0 0 auto;width:34px;text-align:center}
+.dtask .de{font-size:24px;flex:0 0 auto;width:34px;text-align:center;display:flex;align-items:center;justify-content:center}
 .dtask .dl{font-weight:700;font-size:14.5px}
 .dtask .dp{font-size:11.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono)}
 .dtask .dchk{margin-left:auto;flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted)}
@@ -1041,7 +1044,7 @@ svg.coin{vertical-align:-.22em;filter:drop-shadow(0 1px 2px rgba(184,122,0,.45))
   <div class="handle"></div>
   <div class="sheet-body scroll">
     <div class="sheet-head"><h2>New pin</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="composerClose">Cancel</button></div>
-    <div id="superBanner">✨ You're posting at a <b>Super Spot</b> — publish to claim your bonus points.</div>
+    <div id="superBanner"><span class="sbi"></span> You're posting at a <b>Super Spot</b> — publish to claim your bonus points.</div>
     <div class="field"><label>Category</label><div class="seg" id="catSeg"></div></div>
     <div class="field" id="subField"><label id="subLabel">What kind of spot?</label><div class="subgrid" id="subSeg"></div></div>
     <div class="field"><label>Vibe (optional)</label><div class="vibegrid" id="vibeSeg"></div></div>
@@ -1171,7 +1174,7 @@ window.liveSafe = function (p) {
   catch (e) { console.warn('[live]', e); return Promise.resolve(); }
 };
 /* ---- Install to home screen (PWA — no app store needed) ---- */
-window.PINLY_BUILD = 'build 18 · 2026-08-08';
+window.PINLY_BUILD = 'build 19 · 2026-08-14';
 window.__deferredInstall = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
 function isStandalone(){ return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
@@ -1264,11 +1267,303 @@ function COIN(size){
     +'<circle style="fill:#FFCE47;" cx="256" cy="256" r="256"/> <circle style="fill:#FBB500;" cx="256" cy="256" r="227.788"/> <path style="fill:#FFE29E;" d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256V0z"/> <path style="fill:#FFCE47;" d="M256,28.212C130.196,28.212,28.212,130.196,28.212,256S130.196,483.788,256,483.788V28.212z"/> <g> <path style="fill:#FFE29E;" d="M234.223,464.557c-14.574-1.505-29.007-4.551-42.9-9.051l9.661-29.821 c11.802,3.824,24.069,6.411,36.46,7.691L234.223,464.557z M278.006,464.533l-3.253-31.178c12.384-1.293,24.645-3.892,36.443-7.728 l9.692,29.811C307.001,459.954,292.574,463.013,278.006,464.533z M151.263,437.681c-12.644-7.304-24.572-15.97-35.451-25.758 l20.965-23.304c9.259,8.33,19.409,15.704,30.166,21.918L151.263,437.681z M360.926,437.573l-15.707-27.128 c10.749-6.223,20.888-13.607,30.137-21.944l20.989,23.283C385.475,421.581,373.559,430.258,360.926,437.573z M86.463,379.397 c-8.622-11.828-16.016-24.583-21.973-37.911l28.618-12.793c5.066,11.33,11.352,22.177,18.687,32.238L86.463,379.397z M425.659,379.229l-25.348-18.441c7.327-10.072,13.606-20.927,18.659-32.267l28.631,12.761 C441.657,354.62,434.274,367.388,425.659,379.229z M50.907,299.797c-3.026-14.235-4.568-28.891-4.584-43.564L77.67,256.2 c0.014,12.497,1.325,24.972,3.899,37.079L50.907,299.797z M461.141,299.569l-30.67-6.485c2.56-12.107,3.858-24.584,3.858-37.084 v-0.375l31.347-0.111v0.487C465.677,270.675,464.15,285.333,461.141,299.569z M81.488,219.109l-30.676-6.45 c3.01-14.316,7.549-28.354,13.492-41.727l28.646,12.729C87.901,195.022,84.045,206.948,81.488,219.109z M430.389,218.529 c-2.598-12.152-6.493-24.063-11.577-35.403l28.604-12.824c5.985,13.349,10.569,27.37,13.628,41.675L430.389,218.529z M111.572,151.373L86.203,132.96c8.581-11.822,18.433-22.786,29.281-32.588l21.014,23.26 C127.262,131.977,118.876,141.31,111.572,151.373z M400.089,150.908c-7.335-10.038-15.751-19.345-25.013-27.658l20.94-23.328 c10.879,9.767,20.766,20.698,29.384,32.492L400.089,150.908z M166.611,101.655l-15.738-27.11 c12.663-7.351,26.127-13.378,40.016-17.912l9.727,29.8C188.815,90.285,177.375,95.406,166.611,101.655z M344.887,101.365 c-10.786-6.214-22.246-11.298-34.06-15.111l9.628-29.832c13.906,4.487,27.391,10.47,40.081,17.782L344.887,101.365z M237.052,78.664l-3.288-31.173c14.441-1.523,29.333-1.547,43.782-0.071l-3.187,31.185 C262.052,77.346,249.35,77.367,237.052,78.664z"/> <path style="fill:#FFE29E;" d="M271.673,307.984V204.016c10.53,5.624,17.715,16.722,17.715,29.47h31.347 c0-30.292-20.917-55.78-49.062-62.807v-33.45h-31.347v33.45c-28.145,7.027-49.062,32.515-49.062,62.807v45.027 c0,30.292,20.917,55.78,49.062,62.807v33.45h31.347v-33.45c28.145-7.027,49.062-32.515,49.062-62.807h-31.347 C289.389,291.262,282.204,302.36,271.673,307.984z M222.611,278.513v-45.027c0-12.749,7.185-23.847,17.715-29.47v103.967 C229.796,302.36,222.611,291.262,222.611,278.513z"/> </g>'
     +'</svg>';
 }
+/* ============================================================
+   GAME ART — "cozy low-poly", the marks for the Super Spot game,
+   the win card and the daily tasks.
+   Flat faceted polygons on a 64x64 grid: no gradients, no <defs>,
+   no ids, so every mark is safe to inline many times on one page
+   (the trap the avatar set hit). Each facet strokes its own fill so
+   shared edges cannot show antialias seams.
+   ART(name,size) renders one; GAME_ART holds the raw polygon soup.
+   ============================================================ */
+var GAME_ART={},ART;
+(function(){
+function LP(pts, c) {
+  return '<polygon points="' + pts + '" fill="' + c + '" stroke="' + c + '" stroke-width=".7" stroke-linejoin="round"/>';
+}
+
+/* ---- palette ---------------------------------------------- */
+var G = { // gold
+  hi: '#FFF6D6', l1: '#FFE9A8', l2: '#FFD86B', m1: '#FFC44E', m2: '#F0A93A',
+  d1: '#DC8A25', d2: '#C1731E', sh: '#A25E18'
+};
+var C = { // coral / red
+  hi: '#FFD9C2', l1: '#FFB08A', l2: '#FF8F63', m1: '#F76C44', m2: '#E14F32',
+  d1: '#C13A28', d2: '#9C2B22'
+};
+var V = { // violet / lavender
+  hi: '#EFE6FF', l1: '#D6C4FF', l2: '#BCA2F7', m1: '#9F80E8', m2: '#8464D2',
+  d1: '#6B4CB4', d2: '#523A8E'
+};
+var A = { // aqua / sky
+  hi: '#DFF6FF', l1: '#B6E7F7', l2: '#8AD6EE', m1: '#5FBEDD', m2: '#419FC2',
+  d1: '#2F7EA0', d2: '#245F7C'
+};
+var N = { // nature green
+  hi: '#E3F6C9', l1: '#BFE79A', l2: '#98D374', m1: '#74B857', m2: '#589542',
+  d1: '#427331', d2: '#325726'
+};
+var K = { // cream / paper
+  hi: '#FFFDF5', l1: '#FFF3D9', l2: '#F3E2BC', m1: '#DFC99C', m2: '#C2AB80',
+  d1: '#9C8763'
+};
+var R = { // rose / pink
+  hi: '#FFE1EC', l1: '#FFBBD3', l2: '#FF94B8', m1: '#F26D9A', m2: '#D64C7D'
+};
+var S = { // warm skin
+  hi: '#FFE3C6', l1: '#F8CBA1', l2: '#EDB07E', m1: '#DA9260', m2: '#C0774A',
+  d1: '#9E5C36'
+};
+var INK = '#3B2C52';
+
+/* ============================================================
+   1. SUPER SPOT — the game's hero mark.
+   A five-point star cut like a gem: two facets per point, lit
+   from the upper left, so it still reads as a star at 20px on
+   the map but shows real faceting at 64px.
+   ============================================================ */
+function superspot() {
+  var c = '32,32';
+  // outer points (r 26) and inner points (r 11.5)
+  var O0 = '32,6', O1 = '56.7,24', O2 = '47.3,53', O3 = '16.7,53', O4 = '7.3,24';
+  var I0 = '38.8,22.7', I1 = '42.9,35.6', I2 = '32,43.5', I3 = '21.1,35.6', I4 = '25.2,22.7';
+  return '' +
+    // the same star scaled out, so the mark carries its own glow on any ground
+    '<polygon points="32,1.5 41.4,20.3 62.2,23.3 47.1,37.9 50.7,58.6 32,48.8 13.3,58.6 16.9,37.9 1.8,23.3 22.6,20.3" fill="' + G.l2 + '" opacity=".17"/>' +
+    // ten gem facets, brightest at the upper left
+    LP(c + ' ' + I4 + ' ' + O0, G.hi) +
+    LP(c + ' ' + O0 + ' ' + I0, G.l2) +
+    LP(c + ' ' + I0 + ' ' + O1, G.l1) +
+    LP(c + ' ' + O1 + ' ' + I1, G.d1) +
+    LP(c + ' ' + I1 + ' ' + O2, G.m2) +
+    LP(c + ' ' + O2 + ' ' + I2, G.d2) +
+    LP(c + ' ' + I2 + ' ' + O3, G.m1) +
+    LP(c + ' ' + O3 + ' ' + I3, G.m2) +
+    LP(c + ' ' + I3 + ' ' + O4, G.l1) +
+    LP(c + ' ' + O4 + ' ' + I4, G.l2) +
+    // polished table on the lit side
+    LP('32,32 25.2,22.7 32,20 38.8,22.7', G.hi) +
+    // two companion sparkles, clear of the star body
+    LP('53,9 55.6,14 53,19 50.4,14', G.l1) +
+    LP('12,45 13.8,48.5 12,52 10.2,48.5', G.l2);
+}
+
+/* ============================================================
+   2. TROPHY — the win card. Chunky cozy cup, faceted bowl,
+   mitten handles, star emblem.
+   ============================================================ */
+function trophy() {
+  return '' +
+    // handles
+    LP('13,20 5,22 1,30 7,40 13,38 8,31 9,26 14,25', G.m2) +
+    LP('13,20 5,22 9,26 14,25', G.l2) +
+    LP('51,20 59,22 63,30 57,40 51,38 56,31 55,26 50,25', G.d1) +
+    LP('51,20 59,22 55,26 50,25', G.m1) +
+    // rim band
+    LP('11,14 32,14 32,20 11,20', G.hi) +
+    LP('32,14 53,14 53,20 32,20', G.l2) +
+    // bowl, upper row
+    LP('11,20 22,20 24,32 16,32', G.l1) +
+    LP('22,20 32,20 32,32 24,32', G.l2) +
+    LP('32,20 42,20 40,32 32,32', G.m2) +
+    LP('42,20 53,20 48,32 40,32', G.d1) +
+    // bowl, lower row
+    LP('16,32 24,32 29,45 26,45', G.m1) +
+    LP('24,32 32,32 32,45 29,45', G.l2) +
+    LP('32,32 40,32 35,45 32,45', G.d1) +
+    LP('40,32 48,32 38,45 35,45', G.d2) +
+    // stem
+    LP('27,45 32,45 32,52 26,52', G.m1) +
+    LP('32,45 37,45 38,52 32,52', G.d1) +
+    // plinth
+    LP('17,52 32,52 32,55 15,55', G.l2) +
+    LP('32,52 47,52 49,55 32,55', G.m2) +
+    LP('15,55 32,55 32,61 13,61', G.m1) +
+    LP('32,55 49,55 51,61 32,61', G.d2) +
+    // star emblem
+    LP('32,24 34.4,30 40.5,30 35.6,33.8 37.5,39.6 32,36 26.5,39.6 28.4,33.8 23.5,30 29.6,30', K.hi);
+}
+
+/* ============================================================
+   3. PIN — "drop a pin"
+   ============================================================ */
+function pin() {
+  return '' +
+    LP('32,4 51,17 45,38 32,58', C.l2) +
+    LP('32,4 13,17 19,38 32,58', C.hi) +
+    LP('32,4 51,17 45,38 32,44', C.m1) +
+    LP('45,38 32,58 32,44', C.d1) +
+    LP('19,38 32,58 32,44', C.m2) +
+    LP('32,13 43,20 39,31 32,35', K.l1) +
+    LP('32,13 21,20 25,31 32,35', K.hi);
+}
+
+/* ============================================================
+   4. FLAME — "react to posts". A little campfire.
+   ============================================================ */
+function flame() {
+  return '' +
+    // outer flame: leaning tip, one lick curling off the left
+    LP('37,3 44,15 47,27 45,40 38,51 29,57 19,53 14,43 16,32 22,24 25,32 27,17', C.m1) +
+    LP('37,3 33,17 31,33 29,57 19,53 14,43 16,32 22,24 25,32 27,17', C.l2) +
+    LP('37,3 44,15 47,27 45,40 38,51 29,57 31,33 33,17', C.m2) +
+    // inner flame
+    LP('35,25 41,33 41,43 34,52 27,49 25,41 27,33', G.m1) +
+    LP('35,25 27,33 25,41 27,49 32,51 32,32', G.l2) +
+    LP('35,25 41,33 41,43 34,52 32,51 32,32', G.d1) +
+    // hot core
+    LP('34,35 38,42 32,49 28,42', G.hi) +
+    // embers
+    LP('49,12 51,16 49,20 47,16', C.l1) +
+    LP('12,24 13.6,27 12,30 10.4,27', G.l2);
+}
+
+/* ============================================================
+   5. WAVE — "say hi". A chunky mitten hand.
+   ============================================================ */
+function wave() {
+  return '' +
+    // four fingers, fanned, each with its own shaded side so the gaps
+    // between them stay readable down at 20px
+    LP('16,19 22,15 27,33 21,34', S.l1) + LP('22,15 27,33 24,34', S.m1) +
+    LP('26,13 32,12 33,32 28,32', S.hi) + LP('32,12 33,32 30,32', S.l2) +
+    LP('36,14 42,17 40,33 35,32', S.l1) + LP('42,17 40,33 37,33', S.m1) +
+    LP('45,19 50,23 45,36 40,33', S.l2) + LP('50,23 45,36 42,35', S.m1) +
+    // thumb
+    LP('11,35 16,30 23,37 19,43', S.l2) +
+    // palm
+    LP('19,31 44,31 47,40 43,52 28,55 17,43', S.l2) +
+    LP('19,31 32,31 31,55 28,55 17,43', S.l1) +
+    LP('32,31 44,31 47,40 43,52 31,55', S.m1) +
+    // sleeve cuff
+    LP('25,50 45,50 43,61 27,60', V.m1) +
+    LP('25,50 34,50 33,60 27,60', V.l2);
+}
+
+/* ============================================================
+   6. EYE — "peek at a story".
+   ============================================================ */
+function eye() {
+  var almond = '3,33 11,22 21,16 32,14 43,16 53,22 61,33 53,43 43,49 32,51 21,49 11,43';
+  return '' +
+    // lashes
+    LP('14,19 15,11 20,17', INK) +
+    LP('30,13 32,7 35,13', INK) +
+    LP('45,17 51,11 50,20', INK) +
+    // warm rim, so the eye holds an outline on the light theme too
+    LP(almond, K.m2) +
+    LP('6,33 13,24 22,19 32,17 42,19 51,24 58,33 51,41 42,46 32,48 22,46 13,41', K.hi) +
+    LP('6,33 13,41 22,46 32,48 42,46 51,41 58,33', K.l2) +
+    // iris
+    LP('18,32 20,25 25,20 32,18 39,20 44,25 46,32', A.m1) +
+    LP('46,32 44,39 39,44 32,46 25,44 20,39 18,32', A.d1) +
+    // pupil
+    LP('39,32 37,37 32,39 27,37 25,32 27,27 32,25 37,27', V.d2) +
+    // catchlights
+    LP('27,24 34,24 30,30', K.hi) +
+    LP('36,37 40,36 38,40', K.l1);
+}
+
+/* ============================================================
+   7. WHISPER — anonymous bubble.
+   ============================================================ */
+function whisper() {
+  return '' +
+    LP('8,20 20,9 44,9 56,20 56,36 44,47 26,47 16,58 18,46 8,36', V.l2) +
+    LP('8,20 20,9 32,9 32,47 26,47 16,58 18,46 8,36', V.l1) +
+    LP('20,9 44,9 56,20 32,20', V.hi) +
+    LP('8,20 20,9 32,20', V.hi) +
+    LP('16,58 18,46 26,47', V.m1) +
+    LP('17,25 24,25 24,31 17,31', V.d1) +
+    LP('28,25 35,25 35,31 28,31', V.d1) +
+    LP('39,25 46,25 46,31 39,31', V.d1);
+}
+
+/* ============================================================
+   8. MAP — "check out nearby pins". Folded map with a path.
+   ============================================================ */
+function mapfold() {
+  return '' +
+    LP('3,15 22,9 22,50 3,56', N.l1) +
+    LP('22,9 42,15 42,56 22,50', K.l1) +
+    LP('42,15 61,9 61,50 42,56', N.l2) +
+    LP('3,15 22,9 22,20 3,26', N.hi) +
+    LP('22,9 42,15 42,26 22,20', K.hi) +
+    LP('42,15 61,9 61,20 42,26', N.l1) +
+    // route
+    LP('11,45 15,30 21,30 17,46', C.m1) +
+    LP('15,30 27,22 30,27 18,35', C.m1) +
+    LP('27,22 40,28 37,33 25,27', C.m1) +
+    LP('40,28 50,17 54,21 44,32', C.m1) +
+    LP('50,13 56,17 50,22 45,17', C.d1);
+}
+
+/* ============================================================
+   9. MEET — "peek at a meetup". Two cozy figures.
+   ============================================================ */
+function meet() {
+  return '' +
+    // back figure — violet, rounded shoulders, tucked behind the front one
+    LP('33,60 34,46 39,41 47,38 55,41 59,47 59,60', V.m1) +
+    LP('47,38 55,41 59,47 59,60 47,60', V.d1) +
+    LP('50.9,20.1 50.9,25.9 46.9,29.9 41.1,29.9 37.1,25.9 37.1,20.1 41.1,16.1 46.9,16.1', V.l2) +
+    LP('50.9,20.1 46.9,23 41.1,23 37.1,20.1 41.1,16.1 46.9,16.1', V.hi) +
+    // front figure — gold, drawn over the violet body so they read apart
+    LP('5,60 6,48 11,42 20,39 29,42 34,48 35,60', G.m1) +
+    LP('20,39 29,42 34,48 35,60 20,60', G.d1) +
+    LP('27.9,22.8 27.9,29.3 23.3,33.9 16.8,33.9 12.2,29.3 12.2,22.8 16.8,18.2 23.3,18.2', G.l2) +
+    LP('27.9,22.8 23.3,25.8 16.8,25.8 12.2,22.8 16.8,18.2 23.3,18.2', G.hi) +
+    // a small heart floating in the gap above them
+    LP('32.5,18 26.5,12 26.5,8 29.5,6 32.5,9 35.5,6 38.5,8 38.5,12', R.l2) +
+    LP('32.5,18 26.5,12 26.5,8 29.5,6 32.5,9', R.hi);
+}
+
+/* ============================================================
+   10. PALETTE — "give a post a vibe".
+   ============================================================ */
+function palette() {
+  return '' +
+    // warm wood, not cream — cream vanished against the light theme
+    LP('6,28 16,11 36,6 55,13 60,30 50,45 36,44 30,52 32,58 16,52', K.m1) +
+    LP('6,28 16,11 36,6 55,13 33,28', K.l1) +
+    LP('55,13 60,30 50,45 36,44 33,28', K.m2) +
+    LP('16,52 32,58 30,52 36,44 33,28', K.d1) +
+    // thumb hole
+    LP('20,45 26,43 29,47 25,51', K.d1) +
+    LP('16,20 23,17 26,24 19,27', C.m1) +
+    LP('30,14 37,13 39,20 32,22', G.m1) +
+    LP('44,19 51,21 50,28 43,26', A.m1) +
+    LP('20,33 27,34 26,41 19,39', V.m1) +
+    LP('34,34 41,35 40,42 33,41', N.m1);
+}
+
+/* ============================================================
+   11. STREAK — kept for the daily strip header.
+   ============================================================ */
+function bolt() {
+  return '' +
+    LP('36,3 20,34 31,34 26,61 46,27 34,27', G.l2) +
+    LP('36,3 20,34 31,34 26,61', G.hi) +
+    LP('31,34 26,61 46,27 34,27', G.m1);
+}
+
+GAME_ART = {
+  superspot: superspot(), trophy: trophy(), pin: pin(), flame: flame(),
+  wave: wave(), eye: eye(), whisper: whisper(), mapfold: mapfold(),
+  meet: meet(), palette: palette(), bolt: bolt()
+};
+ART=function(name,size,cls){
+  var d=GAME_ART[name];if(!d)return '';
+  size=size||28;
+  return '<svg class="gart'+(cls?' '+cls:'')+'" viewBox="0 0 64 64" width="'+size+'" height="'+size+'" aria-hidden="true">'+d+'</svg>';
+};
+})();
 /* Map legacy emoji tokens → the SVG set, so every menu/row/badge gets a real icon. */
 const EMOJI_ICON={'✏️':'edit','✏':'edit','🗑':'trash','🗑️':'trash','↗':'share','🔖':'bookmark','🔕':'mute','🔔':'bell','🚫':'ban','⚑':'flag','💬':'message','👥':'users','➕':'plus','📸':'camera','⏱':'clock','🔒':'lock','📧':'mail','📱':'phone','🌐':'globe','❤️':'heart','♥':'heart','⭐':'star','🌟':'star','🏆':'trophy','🔥':'fire','🧭':'compass','🗺️':'compass','🗺':'compass','↩️':'back','↩':'back','👋':'wave','🍜':'food','🍔':'food','🎧':'music','🎶':'music','🎤':'music','🎁':'gift','🏷️':'tag','🏷':'tag','🌳':'tree','🌱':'tree','🪴':'tree','🐾':'paw','🐈':'paw','🐕':'paw','🐶':'paw','💡':'bulb','☕':'cup','🥤':'cup','⚽':'ball','🏀':'ball','🏐':'ball','🛍️':'bag','🛍':'bag','📦':'found','🍸':'glass','🎨':'palette','🤝':'handshake','🌇':'sunrise','☀️':'sunrise','✨':'sparkle','🛡️':'shield','🛡':'shield','🏅':'trophy','👑':'trophy','👁':'eye','👁️':'eye','👀':'eye','✅':'check','🎉':'event','📍':'pin','🏙️':'landmark','🏙':'landmark','🫂':'meetup','⚠️':'hazard','⚠':'hazard','🔍':'lost','🚨':'hazard','🎂':'gift','📲':'phone','🙌':'wave','👍':'check','🤫':'social','🎭':'palette','🔗':'share','🕊️':'wave','🕊':'wave','🛟':'shield','🗼':'landmark','🦉':'eye','🌈':'sparkle','🎸':'music','🎷':'music','📚':'bulb','🧊':'weather','🔑':'lost','🚒':'hazard','💧':'weather','🌮':'food','🥯':'food','🍕':'food','🎃':'event','🕶️':'aware','🕶':'aware','🙂':'social','😮':'social','😌':'social','⚡':'streak','🌷':'tree','🌸':'tree','👟':'ball','🏃':'ball'};
 function uiIcon(token,size,color){
   if(!token)return '';
   if(/^<svg/.test(token))return token;
+  if(token.slice(0,4)==='art:')return ART(token.slice(4),size||24);
   var name=EMOJI_ICON[token]||(ICONS[token]?token:null);
   return name?ICON(name,size||18,color):token;
 }
@@ -3247,7 +3542,7 @@ function refreshSuperMarker(){
   if(superMarker){superMarker.remove();superMarker=null;}
   if(!map||!superActive())return;
   const el=document.createElement('div');el.className='super-marker';el.setAttribute('role','button');el.setAttribute('aria-label','Weekly Super Spot bonus');
-  el.innerHTML='<div class="pulse"></div><div class="core">✨</div>';
+  el.innerHTML='<div class="pulse"></div><div class="core">'+ART('superspot',24)+'</div>';
   el.addEventListener('click',ev=>{ev.stopPropagation();if(!state.placing)openSuperSpot();});
   superMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(state.superSpot.location).addTo(map);
 }
@@ -3260,8 +3555,8 @@ function openSuperSpot(){
   const dist=metresBetween(state.center,ss.location);
   const left=Math.max(0,Math.floor((ss.expires_at-Date.now())/86400000));
   document.getElementById('superBody').innerHTML=
-    '<div class="sheet-head"><h2>✨ Super Spot</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="ssClose">Close</button></div>'
-    +'<div class="super-hero"><div class="super-badge">✨</div><div><div style="font-family:var(--font-display);font-weight:800;font-size:19px">Weekly Super Spot</div><div class="meta">'+fmtDist(dist)+' away · '+left+'d left</div></div></div>'
+    '<div class="sheet-head"><h2>'+ART('superspot',22,'h2i')+' Super Spot</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="ssClose">Close</button></div>'
+    +'<div class="super-hero"><div class="super-badge">'+ART('superspot',40)+'</div><div><div style="font-family:var(--font-display);font-weight:800;font-size:19px">Weekly Super Spot</div><div class="meta">'+fmtDist(dist)+' away · '+left+'d left</div></div></div>'
     +'<div class="reward-teaser">'+ICON("gift",15,"var(--social)")+' Win: <b>'+esc(ss.rewardTitle||'Mystery reward')+'</b> · +'+ss.reward+' '+COIN(13)+'</div>'
     +'<div class="detail-text" style="font-size:14.5px">Be the <b>first to get there</b> and post a photo of <b>'+esc(ss.prompt||'the best thing you see')+'</b> to claim it. First come, first served.</div>'
     +'<div class="safety">🧭 Only real check-ins count — you post from the spot itself. Stay aware of your surroundings and only go somewhere you feel safe.</div>'
@@ -3278,7 +3573,7 @@ function startSuperClaim(){
   const d=metresBetween(from,ss.location);
   if(d>400){closeSuperSheet();switchTab('map');if(map)map.easeTo({center:ss.location,zoom:16});toast('You\'re '+fmtDist(d)+' from the Super Spot — travel there, then claim');return;}
   closeSuperSheet();openComposer(ss.location.slice());state.composer.superId=ss.id;
-  const bn=document.getElementById('superBanner');if(bn)bn.style.display='flex';
+  const bn=document.getElementById('superBanner');if(bn){const sbi=bn.querySelector('.sbi');if(sbi)sbi.innerHTML=ART('superspot',20);bn.style.display='flex';}
   toast('You made it! Post the best thing you see to claim +'+ss.reward+' '+COIN(14));
 }
 function maybeClaimSuperSpot(post){
@@ -3393,7 +3688,7 @@ function showRewardCard(title,detail,points,image){
   var wrap=document.createElement('div');wrap.id='rewardCard';
   wrap.style.cssText='position:fixed;inset:0;z-index:520;display:flex;align-items:center;justify-content:center;padding:26px;background:rgba(6,8,26,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)';
   wrap.innerHTML='<div style="width:100%;max-width:360px;border-radius:24px;padding:26px 22px;text-align:center;background:linear-gradient(160deg,#2a1250,#160a30);border:1px solid rgba(199,155,255,.4);box-shadow:0 24px 70px rgba(124,92,255,.5)">'
-    +'<div style="font-size:52px;margin-bottom:6px">🏆</div>'
+    +'<div style="display:flex;justify-content:center;margin-bottom:8px">'+ART('trophy',62)+'</div>'
     +'<div style="font-family:var(--font-display);font-weight:800;font-size:22px;margin-bottom:4px">You claimed it!</div>'
     +'<div style="color:var(--muted);font-size:13px;margin-bottom:16px">First to the Super Spot · +'+(points||0)+' '+COIN(13)+'</div>'
     +(image?'<img src="'+image+'" alt="reward" style="width:100%;max-height:180px;object-fit:cover;border-radius:14px;margin-bottom:10px">':'')
@@ -3459,15 +3754,15 @@ function streakChipHTML(){return '<span class="streakchip">🔥 '+(me.streak||1)
    DAILY TASKS — casual, fun little quests (§ engaging dailies)
    ============================================================ */
 const DAILY_POOL=[
-  {id:'drop',e:'📍',label:'Drop a pin somewhere',goal:1,reward:12},
-  {id:'react',e:'🔥',label:'React to 3 posts',goal:3,reward:8},
-  {id:'hi',e:'👋',label:'Say hi to someone',goal:1,reward:10},
-  {id:'story',e:'👀',label:'Peek at a story',goal:1,reward:6},
-  {id:'whisper',e:'🤫',label:'Upvote a whisper',goal:1,reward:6},
-  {id:'explore',e:'🗺️',label:'Check out 2 nearby pins',goal:2,reward:8},
-  {id:'meet',e:'🫂',label:'Peek at a meetup',goal:1,reward:8},
-  {id:'super',e:'✨',label:'Find today’s Super Spot',goal:1,reward:15},
-  {id:'vibe',e:'🎨',label:'Give a post a vibe when you drop it',goal:1,reward:8},
+  {id:'drop',e:'art:pin',label:'Drop a pin somewhere',goal:1,reward:12},
+  {id:'react',e:'art:flame',label:'React to 3 posts',goal:3,reward:8},
+  {id:'hi',e:'art:wave',label:'Say hi to someone',goal:1,reward:10},
+  {id:'story',e:'art:eye',label:'Peek at a story',goal:1,reward:6},
+  {id:'whisper',e:'art:whisper',label:'Upvote a whisper',goal:1,reward:6},
+  {id:'explore',e:'art:mapfold',label:'Check out 2 nearby pins',goal:2,reward:8},
+  {id:'meet',e:'art:meet',label:'Peek at a meetup',goal:1,reward:8},
+  {id:'super',e:'art:superspot',label:'Find today’s Super Spot',goal:1,reward:15},
+  {id:'vibe',e:'art:palette',label:'Give a post a vibe when you drop it',goal:1,reward:8},
 ];
 const DAILY_HYPE=['Let’s get into it ✨','Small wins, big energy 🌟','Your neighbourhood misses you 👀','Easy does it — have fun 🌈','Go say hi to the block 👋'];
 function ensureDaily(){
@@ -3507,7 +3802,7 @@ function renderDaily(){
   ensureDaily();const done=dailyDoneCount(),total=state.daily.tasks.length;
   let html='<div class="sheet-head"><h2>Today ✨</h2><button class="btn-ghost" style="width:auto;height:36px;padding:0 14px" id="dailyClose">Close</button></div>';
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+streakChipHTML()+'<span class="meta">'+esc(state.daily.hype)+'</span></div>';
-  html+=state.daily.tasks.map(t=>'<div class="dtask'+(t.done?' done':'')+'"><div class="de">'+uiIcon(t.e,20)+'</div><div style="flex:1;min-width:0"><div class="dl">'+esc(t.label)+'</div><div class="dp">'+(t.done?('Done · +'+t.reward+' '+COIN(14)):(t.progress+' / '+t.goal+' · +'+t.reward+' '+COIN(14)))+'</div>'+(t.done||t.goal<2?'':'<div class="dbar"><i style="width:'+Math.round(t.progress/t.goal*100)+'%"></i></div>')+'</div><div class="dchk">'+(t.done?'✓':'')+'</div></div>').join('');
+  html+=state.daily.tasks.map(t=>'<div class="dtask'+(t.done?' done':'')+'"><div class="de">'+uiIcon(t.e,30)+'</div><div style="flex:1;min-width:0"><div class="dl">'+esc(t.label)+'</div><div class="dp">'+(t.done?('Done · +'+t.reward+' '+COIN(14)):(t.progress+' / '+t.goal+' · +'+t.reward+' '+COIN(14)))+'</div>'+(t.done||t.goal<2?'':'<div class="dbar"><i style="width:'+Math.round(t.progress/t.goal*100)+'%"></i></div>')+'</div><div class="dchk">'+(t.done?'✓':'')+'</div></div>').join('');
   html+=done===total?'<div class="daily-reward"><div style="font-family:var(--font-display);font-weight:800;font-size:16px">🎉 All done — nice!</div><div class="meta" style="margin-top:4px">+25 bonus points earned. Fresh tasks drop tomorrow.</div></div>':'<div class="hint" style="text-align:center;margin-top:8px">Finish them all for a bonus. No pressure — it’s just for fun 🌈</div>';
   document.getElementById('dailyBody').innerHTML=html;
   document.getElementById('dailyClose').onclick=closeDaily;
